@@ -3,9 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'providers/auth_provider.dart';
 import 'screens/splash_screen.dart';
+import 'services/medicine_database_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Load medicine database
+  await MedicineDatabaseService.loadDatabase();
   
   // Configure window for desktop
   await windowManager.ensureInitialized();

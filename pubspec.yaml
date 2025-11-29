@@ -81,6 +81,7 @@ flutter:
     - assets/horizental-logo-white.png
     - assets/doctor.png
     - assets/background-effect.svg
+    - medicine_db/medex_comprehensive_data.json
 
   # Fonts
   fonts:

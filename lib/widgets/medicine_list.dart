@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import '../models/medicine_model.dart';
+import '../services/medicine_database_service.dart';
+import 'medicine_autocomplete_field.dart';
 
 class MedicineList extends StatefulWidget {
   final List<Medicine> medicines;
   final Function(Medicine) onAdd;
   final Function(String) onDelete;
   final Function(int, int) onReorder;
+  final Function(String id, Medicine updatedMedicine)? onUpdate;
 
   const MedicineList({
     Key? key,
@@ -13,6 +16,7 @@ class MedicineList extends StatefulWidget {
     required this.onAdd,
     required this.onDelete,
     required this.onReorder,
+    this.onUpdate,
   }) : super(key: key);
 
   @override
@@ -229,8 +233,6 @@ class _MedicineListState extends State<MedicineList> {
   }
 
   Widget _buildMedicineCard(Medicine medicine, int index, {required Key key}) {
-    final nameController = TextEditingController(text: medicine.name);
-    final genericController = TextEditingController(text: medicine.genericName);
     final compositionController = TextEditingController(text: medicine.composition);
     final dosageController = TextEditingController(text: medicine.dosage);
     final durationController = TextEditingController(text: medicine.duration);
@@ -276,47 +278,86 @@ class _MedicineListState extends State<MedicineList> {
                       },
                     ),
                     const SizedBox(width: 8),
-                    // Medicine Name
+                    // Medicine Name with Autocomplete
                     Expanded(
-                      child: TextField(
-                        controller: nameController,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF1E293B),
-                          fontFamily: 'ProductSans',
-                        ),
-                        decoration: const InputDecoration(
-                          hintText: 'Medicine Name (e.g., Tab. Napa)',
-                          hintStyle: TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF94A3B8),
-                            fontWeight: FontWeight.normal,
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
+                      child: MedicineAutocompleteField(
+                        label: 'Medicine Name',
+                        initialValue: medicine.name,
+                        searchByGeneric: false,
+                        onMedicineSelected: (medicineData) {
+                          // Auto-fill all fields when medicine is selected
+                          final updatedMedicine = Medicine(
+                            id: medicine.id,
+                            type: medicineData.dosageForm.isNotEmpty ? medicineData.dosageForm : medicine.type,
+                            name: '${medicineData.medicineName}${medicineData.powerStrength.isNotEmpty ? " ${medicineData.powerStrength}" : ""}',
+                            genericName: medicineData.genericName,
+                            composition: medicineData.company,
+                            dosage: medicine.dosage,
+                            duration: medicine.duration,
+                            advice: medicine.advice,
+                          );
+                          if (widget.onUpdate != null) {
+                            widget.onUpdate!(medicine.id, updatedMedicine);
+                          }
+                        },
+                        onTextChanged: (value) {
+                          // Update medicine name as user types
+                          final updatedMedicine = Medicine(
+                            id: medicine.id,
+                            type: medicine.type,
+                            name: value,
+                            genericName: medicine.genericName,
+                            composition: medicine.composition,
+                            dosage: medicine.dosage,
+                            duration: medicine.duration,
+                            advice: medicine.advice,
+                          );
+                          if (widget.onUpdate != null) {
+                            widget.onUpdate!(medicine.id, updatedMedicine);
+                          }
+                        },
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                // Generic Name
-                TextField(
-                  controller: genericController,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF64748B),
-                    fontFamily: 'ProductSans',
-                  ),
-                  decoration: const InputDecoration(
-                    hintText: 'Generic Name (e.g., Paracetamol)',
-                    hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
+                // Generic Name with Autocomplete
+                MedicineAutocompleteField(
+                  label: 'Generic Name',
+                  initialValue: medicine.genericName,
+                  searchByGeneric: true,
+                  onMedicineSelected: (medicineData) {
+                    // Auto-fill all fields when medicine is selected by generic
+                    final updatedMedicine = Medicine(
+                      id: medicine.id,
+                      type: medicineData.dosageForm.isNotEmpty ? medicineData.dosageForm : medicine.type,
+                      name: '${medicineData.medicineName}${medicineData.powerStrength.isNotEmpty ? " ${medicineData.powerStrength}" : ""}',
+                      genericName: medicineData.genericName,
+                      composition: medicineData.company,
+                      dosage: medicine.dosage,
+                      duration: medicine.duration,
+                      advice: medicine.advice,
+                    );
+                    if (widget.onUpdate != null) {
+                      widget.onUpdate!(medicine.id, updatedMedicine);
+                    }
+                  },
+                  onTextChanged: (value) {
+                    // Update generic name as user types
+                    final updatedMedicine = Medicine(
+                      id: medicine.id,
+                      type: medicine.type,
+                      name: medicine.name,
+                      genericName: value,
+                      composition: medicine.composition,
+                      dosage: medicine.dosage,
+                      duration: medicine.duration,
+                      advice: medicine.advice,
+                    );
+                    if (widget.onUpdate != null) {
+                      widget.onUpdate!(medicine.id, updatedMedicine);
+                    }
+                  },
                 ),
                 const SizedBox(height: 4),
                 // Composition
