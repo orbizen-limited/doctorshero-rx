@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
             seedColor: const Color(0xFFFE3001),
             primary: const Color(0xFFFE3001),
           ),
+          scaffoldBackgroundColor: const Color(0xFFF5F5F5),
           useMaterial3: true,
         ),
         home: const SplashScreen(),
