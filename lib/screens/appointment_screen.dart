@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/appointment_model.dart';
 import '../services/appointment_service.dart';
+import 'create_prescription_screen.dart';
 
 class AppointmentScreen extends StatefulWidget {
   const AppointmentScreen({super.key});
@@ -792,7 +793,19 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 const SizedBox(width: 8),
                 // RX (Prescription)
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CreatePrescriptionScreen(
+                          patientId: appointment.patientPid ?? '',
+                          patientName: appointment.patientName,
+                          patientAge: appointment.age.toString(),
+                          patientGender: appointment.gender,
+                        ),
+                      ),
+                    );
+                  },
                   icon: const Icon(Icons.medication, color: Color(0xFFFE3001), size: 20),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
