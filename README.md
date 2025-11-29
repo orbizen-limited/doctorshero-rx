@@ -12,7 +12,7 @@ A modern Flutter desktop application for DoctorsHero prescription management sys
 
 ## 📋 Prerequisites
 
-- Flutter SDK (3.24.0 or higher)
+- Flutter SDK (3.35.2)
 - Dart SDK
 - For macOS: Xcode
 - For Windows: Visual Studio 2022 with C++ development tools
