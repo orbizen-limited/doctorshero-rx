@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/prescription_model.dart';
 import 'clinical_drawer.dart';
+import 'examination_drawer.dart';
 
 class ClinicalSections extends StatelessWidget {
   final ClinicalData clinicalData;
@@ -43,6 +44,38 @@ class ClinicalSections extends StatelessWidget {
   };
 
   void _openDrawer(BuildContext context, String title, String field) {
+    // Use special examination drawer for examination field
+    if (field == 'examination') {
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        barrierColor: Colors.black54,
+        transitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return Align(
+            alignment: Alignment.centerRight,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: ExaminationDrawer(
+                onSave: (data) {
+                  if (onUpdate != null) {
+                    onUpdate!(field, data['preview'] ?? '');
+                  }
+                },
+                onClose: () => Navigator.of(context).pop(),
+              ),
+            ),
+          );
+        },
+      );
+      return;
+    }
+    
+    // Use regular drawer for other fields
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -151,16 +184,50 @@ class ClinicalSections extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              content.isEmpty ? 'Enter details...' : content,
-              style: TextStyle(
-                fontSize: 14,
-                color: content.isEmpty ? const Color(0xFF94A3B8) : const Color(0xFF1E293B),
-                fontFamily: 'ProductSans',
-              ),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
+            content.isEmpty
+                ? const Text(
+                    'Enter details...',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF94A3B8),
+                      fontFamily: 'ProductSans',
+                    ),
+                  )
+                : field == 'examination' && content.contains('\n•')
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: content.split('\n•').where((line) => line.trim().isNotEmpty).map((line) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('• ', style: TextStyle(fontSize: 14, color: Color(0xFF1E293B))),
+                                Expanded(
+                                  child: Text(
+                                    line.trim(),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF1E293B),
+                                      fontFamily: 'ProductSans',
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      )
+                    : Text(
+                        content,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF1E293B),
+                          fontFamily: 'ProductSans',
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
           ],
         ),
       ),
