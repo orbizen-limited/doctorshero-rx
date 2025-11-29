@@ -12,6 +12,7 @@ class Appointment {
   final String paymentStatus;
   final int paymentAmount;
   final String? location;
+  final int? patientId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -29,6 +30,7 @@ class Appointment {
     required this.paymentStatus,
     required this.paymentAmount,
     this.location,
+    this.patientId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -48,6 +50,7 @@ class Appointment {
       paymentStatus: json['payment_status'] ?? '',
       paymentAmount: _parseInt(json['payment_amount']),
       location: json['location'],
+      patientId: json['patient_id'] != null ? _parseInt(json['patient_id']) : null,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );

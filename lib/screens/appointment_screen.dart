@@ -274,7 +274,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 children: [
                   // Table Header
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade50,
                       borderRadius: const BorderRadius.only(
@@ -291,9 +291,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                         _buildTableHeader('DATE', flex: 1),
                         _buildTableHeader('TIME', flex: 1),
                         _buildTableHeader('LOCATION', flex: 2),
+                        _buildTableHeader('PAYMENT STATUS', flex: 1),
                         _buildTableHeader('PRICE', flex: 1),
                         _buildTableHeader('STATUS', flex: 1),
-                        _buildTableHeader('PAYMENT STATUS', flex: 1),
                         _buildTableHeader('ACTIONS', flex: 1),
                       ],
                     ),
@@ -547,7 +547,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     final isPaid = appointment.paymentStatus.toLowerCase() == 'paid';
     
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: isPaid
             ? const Color(0xFFE8F5E9) // Light green for paid
@@ -607,11 +607,14 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           Expanded(
             flex: 1,
             child: Text(
-              appointment.id.toString().padLeft(8, '0'),
+              appointment.patientId != null 
+                  ? 'P${appointment.patientId}'
+                  : 'P${appointment.id.toString().padLeft(8, '0')}',
               style: const TextStyle(
                 fontFamily: 'ProductSans',
-                fontSize: 14,
-                color: Color(0xFF1A1A1A),
+                fontSize: 13,
+                color: Color(0xFF2196F3),
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -622,7 +625,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               appointment.gender,
               style: const TextStyle(
                 fontFamily: 'ProductSans',
-                fontSize: 14,
+                fontSize: 13,
                 color: Color(0xFF1A1A1A),
               ),
             ),
@@ -634,7 +637,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               appointment.age.toString(),
               style: const TextStyle(
                 fontFamily: 'ProductSans',
-                fontSize: 14,
+                fontSize: 13,
                 color: Color(0xFF1A1A1A),
               ),
             ),
@@ -646,7 +649,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               DateFormat('MM/dd/yyyy').format(DateTime.parse(appointment.appointmentDate)),
               style: const TextStyle(
                 fontFamily: 'ProductSans',
-                fontSize: 14,
+                fontSize: 13,
                 color: Color(0xFF1A1A1A),
               ),
             ),
@@ -658,7 +661,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               appointment.appointmentTime,
               style: const TextStyle(
                 fontFamily: 'ProductSans',
-                fontSize: 14,
+                fontSize: 13,
                 color: Color(0xFF1A1A1A),
               ),
             ),
@@ -670,11 +673,36 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               appointment.location ?? 'Dhaka,Bangladesh',
               style: const TextStyle(
                 fontFamily: 'ProductSans',
-                fontSize: 14,
+                fontSize: 13,
                 color: Color(0xFF1A1A1A),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          // Payment Status
+          Expanded(
+            flex: 1,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: appointment.paymentStatus.toLowerCase() == 'paid'
+                    ? const Color(0xFF4CAF50).withOpacity(0.1)
+                    : Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                appointment.paymentStatus,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'ProductSans',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: appointment.paymentStatus.toLowerCase() == 'paid'
+                      ? const Color(0xFF4CAF50)
+                      : Colors.grey.shade700,
+                ),
+              ),
             ),
           ),
           // Price
@@ -688,13 +716,13 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                     '৳${appointment.paymentAmount.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontFamily: 'ProductSans',
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF1A1A1A),
                     ),
                   ),
                   const SizedBox(width: 4),
-                  Icon(Icons.edit, size: 16, color: Colors.blue.shade400),
+                  Icon(Icons.edit, size: 14, color: Colors.blue.shade400),
                 ],
               ),
             ),
@@ -705,7 +733,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             child: InkWell(
               onTap: () => _showStatusMenu(context, appointment),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: _getStatusColor(appointment.status).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -720,45 +748,20 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'ProductSans',
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: _getStatusColor(appointment.status),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 2),
                     Icon(
                       Icons.arrow_drop_down,
-                      size: 16,
+                      size: 14,
                       color: _getStatusColor(appointment.status),
                     ),
                   ],
-                ),
-              ),
-            ),
-          ),
-          // Payment Status
-          Expanded(
-            flex: 1,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: appointment.paymentStatus.toLowerCase() == 'paid'
-                    ? const Color(0xFF4CAF50).withOpacity(0.1)
-                    : Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                appointment.paymentStatus,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'ProductSans',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: appointment.paymentStatus.toLowerCase() == 'paid'
-                      ? const Color(0xFF4CAF50)
-                      : Colors.grey.shade700,
                 ),
               ),
             ),
