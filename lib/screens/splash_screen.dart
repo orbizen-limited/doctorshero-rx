@@ -52,10 +52,7 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: Colors.transparent,
       body: Center(
         child: Container(
-          width: 576,  // Half of 1152 for better screen fit
-          height: 768, // Half of 1536 for better screen fit
           decoration: BoxDecoration(
-            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
@@ -69,9 +66,9 @@ class _SplashScreenState extends State<SplashScreen> {
             borderRadius: BorderRadius.circular(12),
             child: Image.asset(
               'assets/launch-loading.gif',
+              width: 480,  // Smaller size for laptop screens
+              height: 640, // Maintains 3:4 aspect ratio
               fit: BoxFit.cover,
-              width: 576,
-              height: 768,
             ),
           ),
         ),
