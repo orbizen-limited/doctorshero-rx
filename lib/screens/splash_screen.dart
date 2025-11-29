@@ -16,11 +16,14 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize and check authentication
-    _initializeApp();
+    // Initialize and check authentication after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeApp();
+    });
   }
 
   Future<void> _initializeApp() async {
+    if (!mounted) return;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     
     // Start minimum 5 second timer
