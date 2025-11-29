@@ -36,6 +36,14 @@ class _MedicineAutocompleteFieldState extends State<MedicineAutocompleteField> {
   }
 
   @override
+  void didUpdateWidget(MedicineAutocompleteField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialValue != oldWidget.initialValue) {
+      _controller.text = widget.initialValue;
+    }
+  }
+
+  @override
   void dispose() {
     _removeOverlay();
     _controller.dispose();

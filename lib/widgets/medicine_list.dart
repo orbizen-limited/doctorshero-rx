@@ -274,7 +274,19 @@ class _MedicineListState extends State<MedicineList> {
                         return DropdownMenuItem(value: type, child: Text(type));
                       }).toList(),
                       onChanged: (value) {
-                        // TODO: Update medicine type
+                        if (value != null && widget.onUpdate != null) {
+                          final updatedMedicine = Medicine(
+                            id: medicine.id,
+                            type: value,
+                            name: medicine.name,
+                            genericName: medicine.genericName,
+                            composition: medicine.composition,
+                            dosage: medicine.dosage,
+                            duration: medicine.duration,
+                            advice: medicine.advice,
+                          );
+                          widget.onUpdate!(medicine.id, updatedMedicine);
+                        }
                       },
                     ),
                     const SizedBox(width: 8),
@@ -286,9 +298,21 @@ class _MedicineListState extends State<MedicineList> {
                         searchByGeneric: false,
                         onMedicineSelected: (medicineData) {
                           // Auto-fill all fields when medicine is selected
+                          // Format dosage form to match dropdown (e.g., "Tablet" -> "Tab.")
+                          String formattedType = medicine.type;
+                          if (medicineData.dosageForm.isNotEmpty) {
+                            final form = medicineData.dosageForm.toLowerCase();
+                            if (form.contains('tab')) formattedType = 'Tab.';
+                            else if (form.contains('cap')) formattedType = 'Cap.';
+                            else if (form.contains('syp') || form.contains('syrup')) formattedType = 'Syp.';
+                            else if (form.contains('inj')) formattedType = 'Inj.';
+                            else if (form.contains('susp')) formattedType = 'Susp.';
+                            else if (form.contains('drop')) formattedType = 'Drops';
+                          }
+                          
                           final updatedMedicine = Medicine(
                             id: medicine.id,
-                            type: medicineData.dosageForm.isNotEmpty ? medicineData.dosageForm : medicine.type,
+                            type: formattedType,
                             name: '${medicineData.medicineName}${medicineData.powerStrength.isNotEmpty ? " ${medicineData.powerStrength}" : ""}',
                             genericName: medicineData.genericName,
                             composition: medicineData.company,
@@ -328,9 +352,21 @@ class _MedicineListState extends State<MedicineList> {
                   searchByGeneric: true,
                   onMedicineSelected: (medicineData) {
                     // Auto-fill all fields when medicine is selected by generic
+                    // Format dosage form to match dropdown
+                    String formattedType = medicine.type;
+                    if (medicineData.dosageForm.isNotEmpty) {
+                      final form = medicineData.dosageForm.toLowerCase();
+                      if (form.contains('tab')) formattedType = 'Tab.';
+                      else if (form.contains('cap')) formattedType = 'Cap.';
+                      else if (form.contains('syp') || form.contains('syrup')) formattedType = 'Syp.';
+                      else if (form.contains('inj')) formattedType = 'Inj.';
+                      else if (form.contains('susp')) formattedType = 'Susp.';
+                      else if (form.contains('drop')) formattedType = 'Drops';
+                    }
+                    
                     final updatedMedicine = Medicine(
                       id: medicine.id,
-                      type: medicineData.dosageForm.isNotEmpty ? medicineData.dosageForm : medicine.type,
+                      type: formattedType,
                       name: '${medicineData.medicineName}${medicineData.powerStrength.isNotEmpty ? " ${medicineData.powerStrength}" : ""}',
                       genericName: medicineData.genericName,
                       composition: medicineData.company,
