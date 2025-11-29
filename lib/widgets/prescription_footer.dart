@@ -25,167 +25,69 @@ class PrescriptionFooter extends StatelessWidget {
           bottomRight: Radius.circular(12),
         ),
       ),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Advice and Follow-up Section
+          // Action Buttons
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'ADVICE',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF64748B),
-                        letterSpacing: 0.5,
-                        fontFamily: 'ProductSans',
-                      ),
+              if (onSave != null)
+                ElevatedButton.icon(
+                  onPressed: onSave,
+                  icon: const Icon(Icons.save, size: 18),
+                  label: const Text('Save Prescription'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3B82F6),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
                     ),
-                    const SizedBox(height: 8),
-                    const TextField(
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        hintText: 'General advice for the patient...',
-                        hintStyle: TextStyle(color: Color(0xFF94A3B8)),
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.all(12),
-                      ),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: 'ProductSans',
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'FOLLOW-UP',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF64748B),
-                        letterSpacing: 0.5,
-                        fontFamily: 'ProductSans',
-                      ),
+              if (onSave != null && onPrint != null) const SizedBox(width: 12),
+              if (onPrint != null)
+                OutlinedButton.icon(
+                  onPressed: onPrint,
+                  icon: const Icon(Icons.print, size: 18),
+                  label: const Text('Print'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF3B82F6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
                     ),
-                    const SizedBox(height: 8),
-                    const TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Next visit date or instructions...',
-                        hintStyle: TextStyle(color: Color(0xFF94A3B8)),
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.all(12),
-                      ),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: 'ProductSans',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'REFERRAL',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF64748B),
-                        letterSpacing: 0.5,
-                        fontFamily: 'ProductSans',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Referral to specialist...',
-                        hintStyle: TextStyle(color: Color(0xFF94A3B8)),
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.all(12),
-                      ),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: 'ProductSans',
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
             ],
           ),
-          const SizedBox(height: 32),
-          // Signature Section
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Signature
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // Action Buttons
-              Row(
-                children: [
-                  if (onSave != null)
-                    ElevatedButton.icon(
-                      onPressed: onSave,
-                      icon: const Icon(Icons.save, size: 18),
-                      label: const Text('Save Prescription'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3B82F6),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
-                        ),
-                      ),
-                    ),
-                  if (onSave != null && onPrint != null) const SizedBox(width: 12),
-                  if (onPrint != null)
-                    OutlinedButton.icon(
-                      onPressed: onPrint,
-                      icon: const Icon(Icons.print, size: 18),
-                      label: const Text('Print'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF3B82F6),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
-                        ),
-                      ),
-                    ),
-                ],
+              Container(
+                width: 200,
+                height: 1,
+                color: const Color(0xFF1E293B),
               ),
-              // Signature
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    width: 200,
-                    height: 1,
-                    color: const Color(0xFF1E293B),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    doctorName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1E293B),
-                      fontFamily: 'ProductSans',
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Reg No: $regNo',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF64748B),
-                      fontFamily: 'ProductSans',
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 8),
+              Text(
+                doctorName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E293B),
+                  fontFamily: 'ProductSans',
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Reg No: $regNo',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF64748B),
+                  fontFamily: 'ProductSans',
+                ),
               ),
             ],
           ),
