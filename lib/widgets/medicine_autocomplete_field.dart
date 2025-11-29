@@ -38,7 +38,8 @@ class _MedicineAutocompleteFieldState extends State<MedicineAutocompleteField> {
   @override
   void didUpdateWidget(MedicineAutocompleteField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.initialValue != oldWidget.initialValue) {
+    // Only update if not focused (user is not typing)
+    if (!_focusNode.hasFocus && widget.initialValue != oldWidget.initialValue) {
       _controller.text = widget.initialValue;
     }
   }

@@ -325,20 +325,8 @@ class _MedicineListState extends State<MedicineList> {
                           }
                         },
                         onTextChanged: (value) {
-                          // Update medicine name as user types
-                          final updatedMedicine = Medicine(
-                            id: medicine.id,
-                            type: medicine.type,
-                            name: value,
-                            genericName: medicine.genericName,
-                            composition: medicine.composition,
-                            dosage: medicine.dosage,
-                            duration: medicine.duration,
-                            advice: medicine.advice,
-                          );
-                          if (widget.onUpdate != null) {
-                            widget.onUpdate!(medicine.id, updatedMedicine);
-                          }
+                          // Don't update medicine object on every keystroke
+                          // Just let the user type freely
                         },
                       ),
                     ),
@@ -379,20 +367,8 @@ class _MedicineListState extends State<MedicineList> {
                     }
                   },
                   onTextChanged: (value) {
-                    // Update generic name as user types
-                    final updatedMedicine = Medicine(
-                      id: medicine.id,
-                      type: medicine.type,
-                      name: medicine.name,
-                      genericName: value,
-                      composition: medicine.composition,
-                      dosage: medicine.dosage,
-                      duration: medicine.duration,
-                      advice: medicine.advice,
-                    );
-                    if (widget.onUpdate != null) {
-                      widget.onUpdate!(medicine.id, updatedMedicine);
-                    }
+                    // Don't update medicine object on every keystroke
+                    // Just let the user type freely
                   },
                 ),
                 const SizedBox(height: 4),
