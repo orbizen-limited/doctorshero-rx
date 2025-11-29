@@ -31,7 +31,7 @@ class _MedicineCardState extends State<MedicineCard> {
   late TextEditingController _durationNumberController;
   late TextEditingController _adviceController;
   late String _currentType;
-  late String _durationUnit;
+  String _durationUnit = 'Days';
 
   @override
   void initState() {
@@ -45,17 +45,26 @@ class _MedicineCardState extends State<MedicineCard> {
     
     // Parse duration into number and unit
     final durationParts = _parseDuration(widget.medicine.duration);
-    _durationNumberController = TextEditingController(text: durationParts['number']);
+    _durationNumberController = TextEditingController(text: durationParts['number'] ?? '');
     _durationUnit = durationParts['unit'] ?? 'Days';
   }
 
   Map<String, String?> _parseDuration(String duration) {
+    if (duration.isEmpty) {
+      return {'number': '', 'unit': 'Days'};
+    }
+    
     final regex = RegExp(r'(\d+)\s*(Hour|Day|Week|Month|Year)s?', caseSensitive: false);
     final match = regex.firstMatch(duration);
     if (match != null) {
+      String unit = match.group(2)!;
+      // Capitalize first letter and add 's' if not present
+      unit = '${unit[0].toUpperCase()}${unit.substring(1).toLowerCase()}';
+      if (!unit.endsWith('s')) unit += 's';
+      
       return {
         'number': match.group(1),
-        'unit': '${match.group(2)![0].toUpperCase()}${match.group(2)!.substring(1).toLowerCase()}s',
+        'unit': unit,
       };
     }
     return {'number': '', 'unit': 'Days'};
