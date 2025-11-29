@@ -30,6 +30,15 @@ class _MedicineCardState extends State<MedicineCard> {
   late TextEditingController _durationController;
   late TextEditingController _adviceController;
   late String _currentType;
+  
+  final FocusNode _nameFocusNode = FocusNode();
+  final FocusNode _genericFocusNode = FocusNode();
+  final LayerLink _nameLayerLink = LayerLink();
+  final LayerLink _genericLayerLink = LayerLink();
+  OverlayEntry? _nameOverlayEntry;
+  OverlayEntry? _genericOverlayEntry;
+  List<MedicineData> _nameSuggestions = [];
+  List<MedicineData> _genericSuggestions = [];
 
   @override
   void initState() {
@@ -41,16 +50,32 @@ class _MedicineCardState extends State<MedicineCard> {
     _durationController = TextEditingController(text: widget.medicine.duration);
     _adviceController = TextEditingController(text: widget.medicine.advice);
     _currentType = widget.medicine.type;
+    
+    _nameFocusNode.addListener(() {
+      if (!_nameFocusNode.hasFocus) {
+        _removeNameOverlay();
+      }
+    });
+    
+    _genericFocusNode.addListener(() {
+      if (!_genericFocusNode.hasFocus) {
+        _removeGenericOverlay();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _removeNameOverlay();
+    _removeGenericOverlay();
     _nameController.dispose();
     _genericController.dispose();
     _compositionController.dispose();
     _dosageController.dispose();
     _durationController.dispose();
     _adviceController.dispose();
+    _nameFocusNode.dispose();
+    _genericFocusNode.dispose();
     super.dispose();
   }
 
@@ -90,6 +115,188 @@ class _MedicineCardState extends State<MedicineCard> {
     });
     
     _updateMedicine();
+  }
+
+  void _removeNameOverlay() {
+    _nameOverlayEntry?.remove();
+    _nameOverlayEntry = null;
+  }
+
+  void _removeGenericOverlay() {
+    _genericOverlayEntry?.remove();
+    _genericOverlayEntry = null;
+  }
+
+  void _showNameSuggestions(BuildContext context) {
+    _removeNameOverlay();
+    
+    if (_nameSuggestions.isEmpty) return;
+
+    final RenderBox renderBox = context.findRenderObject() as RenderBox;
+    final size = renderBox.size;
+
+    _nameOverlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        width: size.width,
+        child: CompositedTransformFollower(
+          link: _nameLayerLink,
+          showWhenUnlinked: false,
+          offset: Offset(0, size.height + 4),
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              constraints: const BoxConstraints(maxHeight: 300),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: _nameSuggestions.length,
+                itemBuilder: (context, index) {
+                  final medicine = _nameSuggestions[index];
+                  return InkWell(
+                    onTap: () {
+                      _autoFillFromMedicine(medicine);
+                      _removeNameOverlay();
+                      _nameFocusNode.unfocus();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: index < _nameSuggestions.length - 1
+                                ? const Color(0xFFE2E8F0)
+                                : Colors.transparent,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            medicine.displayName,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1E293B),
+                              fontFamily: 'ProductSans',
+                            ),
+                          ),
+                          if (medicine.genericName.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              medicine.genericName,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF64748B),
+                                fontFamily: 'ProductSans',
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_nameOverlayEntry!);
+  }
+
+  void _showGenericSuggestions(BuildContext context) {
+    _removeGenericOverlay();
+    
+    if (_genericSuggestions.isEmpty) return;
+
+    final RenderBox renderBox = context.findRenderObject() as RenderBox;
+    final size = renderBox.size;
+
+    _genericOverlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        width: size.width,
+        child: CompositedTransformFollower(
+          link: _genericLayerLink,
+          showWhenUnlinked: false,
+          offset: Offset(0, size.height + 4),
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              constraints: const BoxConstraints(maxHeight: 300),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: _genericSuggestions.length,
+                itemBuilder: (context, index) {
+                  final medicine = _genericSuggestions[index];
+                  return InkWell(
+                    onTap: () {
+                      _autoFillFromMedicine(medicine);
+                      _removeGenericOverlay();
+                      _genericFocusNode.unfocus();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: index < _genericSuggestions.length - 1
+                                ? const Color(0xFFE2E8F0)
+                                : Colors.transparent,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            medicine.displayName,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1E293B),
+                              fontFamily: 'ProductSans',
+                            ),
+                          ),
+                          if (medicine.genericName.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              medicine.genericName,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF64748B),
+                                fontFamily: 'ProductSans',
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_genericOverlayEntry!);
   }
 
   @override
@@ -141,59 +348,79 @@ class _MedicineCardState extends State<MedicineCard> {
                     const SizedBox(width: 8),
                     // Medicine Name with Autocomplete
                     Expanded(
-                      child: TextField(
-                        controller: _nameController,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1E293B),
-                          fontFamily: 'ProductSans',
-                        ),
-                        decoration: const InputDecoration(
-                          hintText: 'Medicine Name (e.g., Tab. Napa)',
-                          hintStyle: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
-                          contentPadding: EdgeInsets.zero,
-                          border: InputBorder.none,
-                          isDense: true,
-                        ),
-                        onChanged: (value) {
-                          // Search for medicines
-                          if (value.length >= 2) {
-                            final suggestions = MedicineDatabaseService.searchByMedicineName(value);
-                            if (suggestions.isNotEmpty) {
-                              // Show suggestions in overlay
-                              _showMedicineSuggestions(context, suggestions);
+                      child: CompositedTransformTarget(
+                        link: _nameLayerLink,
+                        child: TextField(
+                          controller: _nameController,
+                          focusNode: _nameFocusNode,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1E293B),
+                            fontFamily: 'ProductSans',
+                          ),
+                          decoration: const InputDecoration(
+                            hintText: 'Medicine Name (e.g., Tab. Napa)',
+                            hintStyle: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                            contentPadding: EdgeInsets.zero,
+                            border: InputBorder.none,
+                            isDense: true,
+                          ),
+                          onChanged: (value) {
+                            // Search for medicines - only show after 3 characters
+                            if (value.length >= 3) {
+                              setState(() {
+                                _nameSuggestions = MedicineDatabaseService.searchByMedicineName(value);
+                              });
+                              if (_nameSuggestions.isNotEmpty) {
+                                _showNameSuggestions(context);
+                              } else {
+                                _removeNameOverlay();
+                              }
+                            } else {
+                              _removeNameOverlay();
                             }
-                          }
-                        },
+                          },
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 // Generic Name
-                TextField(
-                  controller: _genericController,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF64748B),
-                    fontFamily: 'ProductSans',
-                  ),
-                  decoration: const InputDecoration(
-                    hintText: 'Generic Name (e.g., Paracetamol)',
-                    hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  onChanged: (value) {
-                    if (value.length >= 2) {
-                      final suggestions = MedicineDatabaseService.searchByGenericName(value);
-                      if (suggestions.isNotEmpty) {
-                        _showMedicineSuggestions(context, suggestions);
+                CompositedTransformTarget(
+                  link: _genericLayerLink,
+                  child: TextField(
+                    controller: _genericController,
+                    focusNode: _genericFocusNode,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF64748B),
+                      fontFamily: 'ProductSans',
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: 'Generic Name (e.g., Paracetamol)',
+                      hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    onChanged: (value) {
+                      // Search by generic - only show after 3 characters
+                      if (value.length >= 3) {
+                        setState(() {
+                          _genericSuggestions = MedicineDatabaseService.searchByGenericName(value);
+                        });
+                        if (_genericSuggestions.isNotEmpty) {
+                          _showGenericSuggestions(context);
+                        } else {
+                          _removeGenericOverlay();
+                        }
+                      } else {
+                        _removeGenericOverlay();
                       }
-                    }
-                  },
+                    },
+                  ),
                 ),
                 const SizedBox(height: 4),
                 // Composition
@@ -327,31 +554,4 @@ class _MedicineCardState extends State<MedicineCard> {
     );
   }
 
-  void _showMedicineSuggestions(BuildContext context, List<MedicineData> suggestions) {
-    // This is a simplified version - we'll show a dialog with suggestions
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Medicine'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: suggestions.length,
-            itemBuilder: (context, index) {
-              final medicine = suggestions[index];
-              return ListTile(
-                title: Text(medicine.displayName),
-                subtitle: medicine.genericName.isNotEmpty ? Text(medicine.genericName) : null,
-                onTap: () {
-                  _autoFillFromMedicine(medicine);
-                  Navigator.of(context).pop();
-                },
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
 }
