@@ -103,134 +103,147 @@ class _MedicineCardState extends State<MedicineCard> {
     );
   }
 
+  String _formatDosage(String input) {
+    // Remove all non-digit characters
+    String digitsOnly = input.replaceAll(RegExp(r'[^0-9]'), '');
+    
+    // Limit to 4 digits
+    if (digitsOnly.length > 4) {
+      digitsOnly = digitsOnly.substring(0, 4);
+    }
+    
+    // Add + between each digit
+    if (digitsOnly.isEmpty) return '';
+    
+    List<String> chars = digitsOnly.split('');
+    return chars.join('+');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       key: ValueKey(widget.medicine.id),
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Left: Medicine Name Section
+          // Type Dropdown
+          SizedBox(
+            width: 70,
+            child: DropdownButton<String>(
+              value: _currentType,
+              isDense: true,
+              isExpanded: true,
+              underline: Container(),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFFFE3001),
+                fontFamily: 'ProductSans',
+              ),
+              items: widget.medicineTypes.map((type) {
+                return DropdownMenuItem(value: type, child: Text(type));
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _currentType = value;
+                  });
+                  _updateMedicine();
+                }
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          
+          // Medicine Name Section (Vertical)
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Type + Medicine Name
-                Row(
-                  children: [
-                    // Type Dropdown
-                    DropdownButton<String>(
-                      value: _currentType,
-                      isDense: true,
-                      underline: Container(),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFFE3001),
-                        fontFamily: 'ProductSans',
-                      ),
-                      items: widget.medicineTypes.map((type) {
-                        return DropdownMenuItem(value: type, child: Text(type));
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _currentType = value;
-                          });
-                          _updateMedicine();
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    // Medicine Name - Clickable
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => _showMedicineSearchDialog('name'),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Text(
-                            _nameController.text.isEmpty 
-                                ? 'Medicine Name (e.g., Tab. Napa)' 
-                                : _nameController.text,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: _nameController.text.isEmpty 
-                                  ? const Color(0xFF94A3B8) 
-                                  : const Color(0xFF1E293B),
-                              fontFamily: 'ProductSans',
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Generic Name - Clickable
+                // Medicine Name - Clickable
                 InkWell(
-                  onTap: () => _showMedicineSearchDialog('generic'),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Text(
-                      _genericController.text.isEmpty 
-                          ? 'Generic Name (e.g., Paracetamol)' 
-                          : _genericController.text,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: _genericController.text.isEmpty 
-                            ? const Color(0xFF94A3B8) 
-                            : const Color(0xFF64748B),
-                        fontFamily: 'ProductSans',
-                      ),
+                  onTap: () => _showMedicineSearchDialog('name'),
+                  child: Text(
+                    _nameController.text.isEmpty 
+                        ? 'Medicine Name (e.g., Tab. Napa)' 
+                        : _nameController.text,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: _nameController.text.isEmpty 
+                          ? const Color(0xFF94A3B8) 
+                          : const Color(0xFF1E293B),
+                      fontFamily: 'ProductSans',
                     ),
                   ),
                 ),
                 const SizedBox(height: 4),
-                // Composition
-                TextField(
-                  controller: _compositionController,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF94A3B8),
-                    fontFamily: 'ProductSans',
+                // Generic Name - Clickable
+                InkWell(
+                  onTap: () => _showMedicineSearchDialog('generic'),
+                  child: Text(
+                    _genericController.text.isEmpty 
+                        ? 'Generic Name (e.g., Paracetamol)' 
+                        : _genericController.text,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _genericController.text.isEmpty 
+                          ? const Color(0xFF94A3B8) 
+                          : const Color(0xFF64748B),
+                      fontFamily: 'ProductSans',
+                    ),
                   ),
-                  decoration: const InputDecoration(
-                    hintText: 'Composition / Note',
-                    hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
+                ),
+                const SizedBox(height: 2),
+                // Composition - Editable
+                SizedBox(
+                  height: 20,
+                  child: TextField(
+                    controller: _compositionController,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF94A3B8),
+                      fontFamily: 'ProductSans',
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: 'Composition / Note',
+                      hintStyle: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    onChanged: (value) => _updateMedicine(),
                   ),
-                  onChanged: (value) => _updateMedicine(),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 24),
-          // Right: Dosage, Duration, Advice
+          const SizedBox(width: 16),
+          
+          // Dosage, Duration, Advice (Horizontal)
           Expanded(
-            flex: 3,
+            flex: 4,
             child: Row(
               children: [
                 // Dosage
                 Expanded(
                   child: TextField(
                     controller: _dosageController,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
                     decoration: InputDecoration(
-                      labelText: 'Dosage',
                       hintText: '1+0+1',
-                      labelStyle: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                       hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6),
                         borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -245,20 +258,29 @@ class _MedicineCardState extends State<MedicineCard> {
                       ),
                     ),
                     style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans'),
-                    onChanged: (value) => _updateMedicine(),
+                    onChanged: (value) {
+                      // Auto-format dosage: add + between numbers, max 4 digits
+                      String formatted = _formatDosage(value);
+                      if (formatted != value) {
+                        _dosageController.value = TextEditingValue(
+                          text: formatted,
+                          selection: TextSelection.collapsed(offset: formatted.length),
+                        );
+                      }
+                      _updateMedicine();
+                    },
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 // Duration
                 Expanded(
                   child: TextField(
                     controller: _durationController,
+                    textAlign: TextAlign.center,
                     decoration: InputDecoration(
-                      labelText: 'Duration',
-                      hintText: '7 Days',
-                      labelStyle: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                      hintText: '5 Days',
                       hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6),
                         borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -276,17 +298,16 @@ class _MedicineCardState extends State<MedicineCard> {
                     onChanged: (value) => _updateMedicine(),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 // Advice
                 Expanded(
+                  flex: 2,
                   child: TextField(
                     controller: _adviceController,
                     decoration: InputDecoration(
-                      labelText: 'Advice',
-                      hintText: 'After food',
-                      labelStyle: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                      hintText: 'After food, no alcohol',
                       hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6),
                         borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
