@@ -19,9 +19,8 @@ class _DiagnosisDrawerState extends State<DiagnosisDrawer> {
   final TextEditingController _customController = TextEditingController();
   
   List<Map<String, String>> _selectedDiagnoses = [];
-  String _selectedTab = 'Favourite';
   
-  final List<String> _favouriteDiagnoses = [
+  final List<String> _allDiagnoses = [
     'Viral infection',
     'Bacterial infection',
     'Hypertension',
@@ -30,47 +29,49 @@ class _DiagnosisDrawerState extends State<DiagnosisDrawer> {
     'Migraine',
     'Common cold',
     'Urinary tract infection',
+    'Acute lymphoblastic leukaemia',
+    'Abdominal aortic aneurysm',
+    'Allergic rhinitis',
+    'Bronchial Asthma',
+    'Benign prostate enlargement',
+    'Cervical Spondylosis',
+    'Chronic kidney disease',
+    'Chronic pancreatitis',
+    'Chronic Rhinosinusitis',
+    'COPD',
+    'Diabetes mellitus (DM)',
+    'Dyslipidaemia',
+    'GAD',
+    'GERD',
+    'Hypo thyroidism',
+    'Ischaemic Stroke',
+    'IHD',
+    'Iron deficiency anaemia',
+    'Myelo-Radiculopathy',
+    'Motor neuron disease (MND)',
+    'Mechanical Low Back Pain',
+    'Non Ulcer Dyspepsia',
+    'Osteoporosis',
+    'Osteoarthritis',
+    'Onychomycosis',
+    'Peptic Ulcer Disease',
+    'Peripheral neuropathy',
+    'PID',
+    'PLID',
+    'PMS',
+    'PVD',
+    'Rhinosinusitis',
+    'RTI',
+    'Tennis Elbow',
   ];
   
-  final Map<String, List<String>> _groupedDiagnoses = {
-    'A': ['Acute lymphoblastic leukaemia', 'Abdominal aortic aneurysm', 'Allergic rhinitis'],
-    'B': ['Bacterial infection', 'Bronchial Asthma', 'Benign prostate enlargement'],
-    'C': ['Cervical Spondylosis', 'Chronic kidney disease', 'Chronic pancreatitis', 'Chronic Rhinosinusitis', 'COPD', 'Common cold'],
-    'D': ['Diabetes mellitus (DM)', 'Dyslipidaemia'],
-    'G': ['Gastritis', 'GAD', 'GERD'],
-    'H': ['Hypertension', 'Hypo thyroidism'],
-    'I': ['Ischaemic Stroke', 'IHD', 'Iron deficiency anaemia'],
-    'M': ['Migraine', 'Myelo-Radiculopathy', 'Motor neuron disease (MND)', 'Mechanical Low Back Pain'],
-    'N': ['Non Ulcer Dyspepsia'],
-    'O': ['Osteoporosis', 'Osteoarthritis', 'Onychomycosis'],
-    'P': ['Peptic Ulcer Disease', 'Peripheral neuropathy', 'PID', 'PLID', 'PMS', 'PVD'],
-    'R': ['Rhinosinusitis', 'RTI'],
-    'T': ['Tennis Elbow'],
-    'U': ['Urinary tract infection'],
-    'V': ['Viral infection'],
-  };
-  
   List<String> _getFilteredDiagnoses() {
-    if (_selectedTab == 'Favourite') {
-      if (_searchController.text.isEmpty) {
-        return _favouriteDiagnoses;
-      }
-      return _favouriteDiagnoses
-          .where((d) => d.toLowerCase().contains(_searchController.text.toLowerCase()))
-          .toList();
-    } else {
-      // Group tab
-      List<String> allDiagnoses = [];
-      _groupedDiagnoses.forEach((key, value) {
-        allDiagnoses.addAll(value);
-      });
-      if (_searchController.text.isEmpty) {
-        return allDiagnoses;
-      }
-      return allDiagnoses
-          .where((d) => d.toLowerCase().contains(_searchController.text.toLowerCase()))
-          .toList();
+    if (_searchController.text.isEmpty) {
+      return _allDiagnoses;
     }
+    return _allDiagnoses
+        .where((d) => d.toLowerCase().contains(_searchController.text.toLowerCase()))
+        .toList();
   }
   
   void _addDiagnosis(String name) {
@@ -191,20 +192,6 @@ class _DiagnosisDrawerState extends State<DiagnosisDrawer> {
                 onChanged: (value) => setState(() {}),
               ),
             ),
-            
-            // Tabs
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  _buildTab('Favourite'),
-                  const SizedBox(width: 16),
-                  _buildTab('Group'),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 16),
             
             // Diagnosis Tags
             Padding(
@@ -470,33 +457,6 @@ class _DiagnosisDrawerState extends State<DiagnosisDrawer> {
                 ),
               ),
           ],
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildTab(String title) {
-    final isSelected = _selectedTab == title;
-    return InkWell(
-      onTap: () => setState(() => _selectedTab = title),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: isSelected ? const Color(0xFFFE3001) : Colors.transparent,
-              width: 2,
-            ),
-          ),
-        ),
-        child: Text(
-          title,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            color: isSelected ? const Color(0xFFFE3001) : const Color(0xFF64748B),
-            fontFamily: 'ProductSans',
-          ),
         ),
       ),
     );
