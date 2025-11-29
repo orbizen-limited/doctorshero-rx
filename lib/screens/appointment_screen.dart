@@ -2,10 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/appointment_model.dart';
 import '../services/appointment_service.dart';
-import 'create_prescription_screen.dart';
 
 class AppointmentScreen extends StatefulWidget {
-  const AppointmentScreen({super.key});
+  final Function({
+    required String patientId,
+    required String patientName,
+    required String patientAge,
+    required String patientGender,
+  })? onCreateRx;
+
+  const AppointmentScreen({
+    super.key,
+    this.onCreateRx,
+  });
 
   @override
   State<AppointmentScreen> createState() => _AppointmentScreenState();
@@ -794,17 +803,14 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 // RX (Prescription)
                 IconButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CreatePrescriptionScreen(
-                          patientId: appointment.patientPid ?? '',
-                          patientName: appointment.patientName,
-                          patientAge: appointment.age.toString(),
-                          patientGender: appointment.gender,
-                        ),
-                      ),
-                    );
+                    if (widget.onCreateRx != null) {
+                      widget.onCreateRx!(
+                        patientId: appointment.patientPid ?? '',
+                        patientName: appointment.patientName,
+                        patientAge: appointment.age.toString(),
+                        patientGender: appointment.gender,
+                      );
+                    }
                   },
                   icon: const Icon(Icons.medication, color: Color(0xFFFE3001), size: 20),
                   padding: EdgeInsets.zero,

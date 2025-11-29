@@ -16,6 +16,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _selectedMenu = 'Dashboard';
   bool _showProfileDropdown = false;
   bool _prescriptionExpanded = false;
+  
+  // Patient data for prescription
+  String? _patientId;
+  String? _patientName;
+  String? _patientAge;
+  String? _patientGender;
+  
+  void _navigateToCreateRx({
+    required String patientId,
+    required String patientName,
+    required String patientAge,
+    required String patientGender,
+  }) {
+    setState(() {
+      _patientId = patientId;
+      _patientName = patientName;
+      _patientAge = patientAge;
+      _patientGender = patientGender;
+      _selectedMenu = 'Create New RX';
+      _prescriptionExpanded = true;
+    });
+  }
 
   final List<Map<String, dynamic>> _menuItems = [
     {'icon': Icons.dashboard_outlined, 'title': 'Dashboard', 'hasSubmenu': false},
@@ -361,9 +383,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _getContentWidget() {
     switch (_selectedMenu) {
       case 'Appointment':
-        return const AppointmentScreen();
+        return AppointmentScreen(
+          onCreateRx: _navigateToCreateRx,
+        );
       case 'Create New RX':
-        return const CreatePrescriptionScreen();
+        return CreatePrescriptionScreen(
+          patientId: _patientId,
+          patientName: _patientName,
+          patientAge: _patientAge,
+          patientGender: _patientGender,
+        );
       case 'Dashboard':
       case 'All Prescription':
       case 'Configuration':
