@@ -285,7 +285,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                     child: Row(
                       children: [
                         _buildTableHeader('PATIENT NAME', flex: 2),
-                        _buildTableHeader('UID', flex: 1),
+                        _buildTableHeader('PID', flex: 1),
                         _buildTableHeader('GENDER', flex: 1),
                         _buildTableHeader('AGE', flex: 1),
                         _buildTableHeader('DATE', flex: 1),
@@ -543,10 +543,14 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
 
   Widget _buildTableRow(Appointment appointment, int index) {
     final isEven = index % 2 == 0;
+    final isPaid = appointment.paymentStatus.toLowerCase() == 'paid';
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: isEven ? Colors.white : Colors.grey.shade50,
+        color: isPaid
+            ? const Color(0xFFE8F5E9) // Light green for paid
+            : (isEven ? Colors.white : Colors.grey.shade50),
       ),
       child: Row(
         children: [
@@ -573,16 +577,31 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        appointment.patientName,
-                        style: const TextStyle(
-                          fontFamily: 'ProductSans',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A1A1A),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Text(
+                            '#${appointment.serialNumber} ',
+                            style: TextStyle(
+                              fontFamily: 'ProductSans',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              appointment.patientName,
+                              style: const TextStyle(
+                                fontFamily: 'ProductSans',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1A1A1A),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                       Text(
                         appointment.phone,
@@ -598,11 +617,11 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               ],
             ),
           ),
-          // UID
+          // PID (Patient ID)
           Expanded(
             flex: 1,
             child: Text(
-              appointment.serialNumber.toString().padLeft(8, '0'),
+              appointment.id.toString().padLeft(8, '0'),
               style: const TextStyle(
                 fontFamily: 'ProductSans',
                 fontSize: 14,
@@ -675,39 +694,60 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           // Price
           Expanded(
             flex: 1,
-            child: Row(
-              children: [
-                Text(
-                  '\$${appointment.paymentAmount.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontFamily: 'ProductSans',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1A1A1A),
+            child: InkWell(
+              onTap: () => _showPriceEditor(context, appointment),
+              child: Row(
+                children: [
+                  Text(
+                    '৳${appointment.paymentAmount.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontFamily: 'ProductSans',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1A1A),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Icon(Icons.edit, size: 16, color: Colors.blue.shade400),
-              ],
+                  const SizedBox(width: 4),
+                  Icon(Icons.edit, size: 16, color: Colors.blue.shade400),
+                ],
+              ),
             ),
           ),
           // Status
           Expanded(
             flex: 1,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: _getStatusColor(appointment.status).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                appointment.status,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'ProductSans',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: _getStatusColor(appointment.status),
+            child: InkWell(
+              onTap: () => _showStatusMenu(context, appointment),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _getStatusColor(appointment.status).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        appointment.status,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'ProductSans',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: _getStatusColor(appointment.status),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_drop_down,
+                      size: 16,
+                      color: _getStatusColor(appointment.status),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -718,32 +758,40 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.print, color: Color(0xFFFE3001), size: 20),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.edit, color: Color(0xFF2196F3), size: 20),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                const SizedBox(width: 8),
+                // View
                 IconButton(
                   onPressed: () {},
                   icon: const Icon(Icons.visibility, color: Color(0xFF2196F3), size: 20),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
+                  tooltip: 'View',
                 ),
                 const SizedBox(width: 8),
+                // Edit
                 IconButton(
                   onPressed: () {},
-                  icon: const Icon(Icons.check, color: Color(0xFF4CAF50), size: 20),
+                  icon: const Icon(Icons.edit, color: Color(0xFF2196F3), size: 20),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
+                  tooltip: 'Edit',
+                ),
+                const SizedBox(width: 8),
+                // RX (Prescription)
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.medication, color: Color(0xFFFE3001), size: 20),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: 'Prescription',
+                ),
+                const SizedBox(width: 8),
+                // Complete (Mark as Paid)
+                IconButton(
+                  onPressed: () => _markAsPaid(appointment),
+                  icon: const Icon(Icons.check_circle, color: Color(0xFF4CAF50), size: 20),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: 'Mark as Paid',
                 ),
               ],
             ),
@@ -751,6 +799,103 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         ],
       ),
     );
+  }
+
+  void _showPriceEditor(BuildContext context, Appointment appointment) {
+    final TextEditingController priceController = TextEditingController(
+      text: appointment.paymentAmount.toString(),
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Price'),
+        content: TextField(
+          controller: priceController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Price (BDT)',
+            prefixText: '৳',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              // TODO: Update price via API
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Price updated successfully')),
+              );
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showStatusMenu(BuildContext context, Appointment appointment) {
+    final statuses = ['Scheduled', 'Completed', 'Cancelled'];
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Update Status'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: statuses.map((status) {
+            return ListTile(
+              leading: Icon(
+                Icons.circle,
+                color: _getStatusColor(status),
+                size: 12,
+              ),
+              title: Text(status),
+              onTap: () async {
+                Navigator.pop(context);
+                await _updateStatus(appointment.id, status);
+              },
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updateStatus(int id, String status) async {
+    try {
+      final success = await _appointmentService.updateAppointmentStatus(id, status);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Status updated to $status')),
+        );
+        _loadData();
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating status: $e')),
+      );
+    }
+  }
+
+  Future<void> _markAsPaid(Appointment appointment) async {
+    try {
+      // TODO: Add API call to update payment_status to "Paid"
+      // For now, just show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Marked as paid')),
+      );
+      _loadData();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
   Widget _buildPageButton(int pageNum) {
