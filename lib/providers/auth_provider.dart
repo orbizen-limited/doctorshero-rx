@@ -61,6 +61,32 @@ class AuthProvider with ChangeNotifier {
     return await _apiService.isAuthenticated();
   }
 
+  // Initialize - check for existing session
+  Future<bool> initialize() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      // Check if token exists and is valid
+      final token = await _apiService.getToken();
+      if (token != null && token.isNotEmpty) {
+        // Try to load user profile with existing token
+        _user = await _apiService.getCurrentUser();
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      // Token invalid or expired, clear it
+      await _apiService.clearToken();
+      _user = null;
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
   // Clear error
   void clearError() {
     _errorMessage = null;
