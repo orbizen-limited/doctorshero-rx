@@ -116,24 +116,69 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
   }
 
   Future<void> _printPrescription() async {
+    // Show loading indicator
+    if (!mounted) return;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: Color(0xFFFE3001)),
+      ),
+    );
+
     try {
-      // TODO: Get actual data from clinical sections and medicine list
+      // Parse clinical data into lists
+      final chiefComplaints = clinicalData.chiefComplaint
+          .split('\n')
+          .where((s) => s.trim().isNotEmpty)
+          .map((s) => s.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), ''))
+          .toList();
+      
+      final diagnosisList = clinicalData.diagnosis
+          .split('\n')
+          .where((s) => s.trim().isNotEmpty)
+          .map((s) => s.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), ''))
+          .toList();
+      
+      final investigationList = clinicalData.investigation
+          .split('\n')
+          .where((s) => s.trim().isNotEmpty)
+          .map((s) => s.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), ''))
+          .toList();
+
+      // Parse examination into map
+      final examinationMap = <String, dynamic>{};
+      clinicalData.examination.split('\n').where((s) => s.trim().isNotEmpty).forEach((line) {
+        final parts = line.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), '').split(':');
+        if (parts.length >= 2) {
+          examinationMap[parts[0].trim()] = parts.sublist(1).join(':').trim();
+        }
+      });
+
       await PrescriptionPrintService.printPrescription(
-        patientName: patientInfo.name,
-        age: patientInfo.age,
+        patientName: patientInfo.name.isEmpty ? 'Patient Name' : patientInfo.name,
+        age: patientInfo.age.isEmpty ? 'N/A' : patientInfo.age,
         date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
-        patientId: patientInfo.patientId,
-        chiefComplaints: [], // TODO: Get from clinical data
-        examination: {}, // TODO: Get from clinical data
-        diagnosis: [], // TODO: Get from clinical data
-        investigation: [], // TODO: Get from clinical data
+        patientId: patientInfo.patientId.isEmpty ? 'N/A' : patientInfo.patientId,
+        chiefComplaints: chiefComplaints,
+        examination: examinationMap,
+        diagnosis: diagnosisList,
+        investigation: investigationList,
         medicines: medicines,
-        advice: [], // TODO: Get from medicine list
-        followUpDate: null, // TODO: Get from medicine list
-        referral: null, // TODO: Get from medicine list
+        advice: [], // TODO: Get from medicine list widget
+        followUpDate: null, // TODO: Get from medicine list widget
+        referral: null, // TODO: Get from medicine list widget
       );
-    } catch (e) {
+
+      // Close loading dialog
       if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error printing: $e'),
