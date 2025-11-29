@@ -66,8 +66,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 // Logo Section
                 Container(
-                  height: 70,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  height: 100,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   decoration: const BoxDecoration(
                     border: Border(
                       bottom: BorderSide(
@@ -79,7 +79,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Center(
                     child: Image.asset(
                       'assets/horizental-logo-white.png',
-                      height: 40,
+                      height: 60,
                       fit: BoxFit.contain,
                     ),
                   ),
