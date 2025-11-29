@@ -94,9 +94,23 @@ class MedicineDatabaseService {
     if (_medicines == null || query.isEmpty) return [];
     
     final lowerQuery = query.toLowerCase();
-    return _medicines!.where((medicine) {
+    
+    // Get all matching medicines
+    final matches = _medicines!.where((medicine) {
       // Only match if generic name starts with the query
       return medicine.genericName.toLowerCase().startsWith(lowerQuery);
-    }).take(10).toList(); // Limit to 10 results
+    }).toList();
+    
+    // Sort: Renata PLC first, then others
+    matches.sort((a, b) {
+      final aIsRenata = a.company.toLowerCase().contains('renata');
+      final bIsRenata = b.company.toLowerCase().contains('renata');
+      
+      if (aIsRenata && !bIsRenata) return -1; // a comes first
+      if (!aIsRenata && bIsRenata) return 1;  // b comes first
+      return 0; // keep original order
+    });
+    
+    return matches.take(10).toList(); // Limit to 10 results
   }
 }
