@@ -281,7 +281,7 @@ class _MedicineListState extends State<MedicineList> {
                     // Medicine Name with Autocomplete
                     Expanded(
                       child: MedicineAutocompleteField(
-                        label: 'Medicine Name',
+                        label: 'Medicine Name (e.g., Tab. Napa)',
                         initialValue: medicine.name,
                         searchByGeneric: false,
                         onMedicineSelected: (medicineData) {
@@ -323,7 +323,7 @@ class _MedicineListState extends State<MedicineList> {
                 const SizedBox(height: 8),
                 // Generic Name with Autocomplete
                 MedicineAutocompleteField(
-                  label: 'Generic Name',
+                  label: 'Generic Name (e.g., Paracetamol)',
                   initialValue: medicine.genericName,
                   searchByGeneric: true,
                   onMedicineSelected: (medicineData) {

@@ -61,6 +61,15 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
     });
   }
 
+  void _updateMedicine(String id, Medicine updatedMedicine) {
+    setState(() {
+      final index = medicines.indexWhere((medicine) => medicine.id == id);
+      if (index != -1) {
+        medicines[index] = updatedMedicine;
+      }
+    });
+  }
+
   void _reorderMedicines(int oldIndex, int newIndex) {
     setState(() {
       if (newIndex > oldIndex) {
@@ -198,6 +207,7 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
                                     onAdd: _addMedicine,
                                     onDelete: _deleteMedicine,
                                     onReorder: _reorderMedicines,
+                                    onUpdate: _updateMedicine,
                                   ),
                                 ),
                               ],
@@ -214,6 +224,7 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
                                   onAdd: _addMedicine,
                                   onDelete: _deleteMedicine,
                                   onReorder: _reorderMedicines,
+                                  onUpdate: _updateMedicine,
                                 ),
                               ],
                             ),

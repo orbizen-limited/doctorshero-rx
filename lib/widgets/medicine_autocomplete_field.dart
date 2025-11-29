@@ -176,23 +176,18 @@ class _MedicineAutocompleteFieldState extends State<MedicineAutocompleteField> {
         controller: _controller,
         focusNode: _focusNode,
         decoration: InputDecoration(
-          labelText: widget.label,
-          labelStyle: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: const BorderSide(color: Color(0xFFFE3001)),
-          ),
+          hintText: widget.label,
+          hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+          contentPadding: EdgeInsets.zero,
+          border: InputBorder.none,
+          isDense: true,
         ),
-        style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans'),
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF1E293B),
+          fontFamily: 'ProductSans',
+        ),
         onChanged: _onTextChanged,
       ),
     );
