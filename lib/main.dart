@@ -11,9 +11,13 @@ void main() async {
   await windowManager.ensureInitialized();
   
   WindowOptions windowOptions = const WindowOptions(
+    size: Size(1200, 800),  // Fixed window size
+    minimumSize: Size(1000, 700),  // Minimum size
+    center: true,  // Center on screen
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.normal,
+    title: 'DoctorsHero RX',
   );
   
   windowManager.waitUntilReadyToShow(windowOptions, () async {
