@@ -607,13 +607,13 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           Expanded(
             flex: 1,
             child: Text(
-              appointment.patientId != null 
-                  ? 'P${appointment.patientId}'
-                  : 'P${appointment.id.toString().padLeft(8, '0')}',
-              style: const TextStyle(
+              appointment.patientPid ?? '-',
+              style: TextStyle(
                 fontFamily: 'ProductSans',
                 fontSize: 13,
-                color: Color(0xFF2196F3),
+                color: appointment.hasPatientRecord 
+                    ? const Color(0xFF2196F3) 
+                    : Colors.grey.shade500,
                 fontWeight: FontWeight.w600,
               ),
             ),

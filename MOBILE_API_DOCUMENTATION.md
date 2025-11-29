@@ -259,7 +259,19 @@ GET /api/v1/appointments?date=2025-10-26&status=Scheduled&per_page=10
             "payment_status": "Pending",
             "doctor_id": 1,
             "created_at": "2025-10-26T05:30:00.000000Z",
-            "updated_at": "2025-10-26T05:30:00.000000Z"
+            "updated_at": "2025-10-26T05:30:00.000000Z",
+            "patient_pid": "P123456789",
+            "has_patient_record": true,
+            "patient_info": {
+                "id": 5,
+                "patient_id": "P123456789",
+                "name": "John Doe",
+                "phone": "8801234567890",
+                "age": 35,
+                "gender": "Male",
+                "blood_group": "A+",
+                "address": "123 Main St, Dhaka"
+            }
         }
     ],
     "pagination": {
@@ -271,6 +283,14 @@ GET /api/v1/appointments?date=2025-10-26&status=Scheduled&per_page=10
     }
 }
 ```
+
+**📌 Important Notes about Patient PID:**
+- `patient_pid`: The unique patient ID from the patients table (format: P + 9 digits, e.g., "P123456789")
+- `has_patient_record`: Boolean indicating if a matching patient record exists
+- `patient_info`: Full patient details if a matching record is found (null if no match)
+- **Matching Logic**: System searches for exact match of both `patient_name` AND `phone` number
+- If no patient record exists, `patient_pid` will be `null` and `has_patient_record` will be `false`
+- Use this PID for RX/Prescription system integration
 
 ### 2. Get Single Appointment
 ```http
@@ -294,10 +314,24 @@ GET /api/v1/appointments/{id}
         "payment_amount": 500,
         "status": "Scheduled",
         "payment_status": "Pending",
-        "doctor_id": 1
+        "doctor_id": 1,
+        "patient_pid": "P123456789",
+        "has_patient_record": true,
+        "patient_info": {
+            "id": 5,
+            "patient_id": "P123456789",
+            "name": "John Doe",
+            "phone": "8801234567890",
+            "age": 35,
+            "gender": "Male",
+            "blood_group": "A+",
+            "address": "123 Main St, Dhaka"
+        }
     }
 }
 ```
+
+**Note:** Same patient PID fields as in the list endpoint above.
 
 ### 3. Create New Appointment (with duplicate validation)
 ```http

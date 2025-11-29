@@ -13,6 +13,9 @@ class Appointment {
   final int paymentAmount;
   final String? location;
   final int? patientId;
+  final String? patientPid; // P123456789 format
+  final bool hasPatientRecord;
+  final PatientInfo? patientInfo;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -31,6 +34,9 @@ class Appointment {
     required this.paymentAmount,
     this.location,
     this.patientId,
+    this.patientPid,
+    required this.hasPatientRecord,
+    this.patientInfo,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -51,6 +57,11 @@ class Appointment {
       paymentAmount: _parseInt(json['payment_amount']),
       location: json['location'],
       patientId: json['patient_id'] != null ? _parseInt(json['patient_id']) : null,
+      patientPid: json['patient_pid'],
+      hasPatientRecord: json['has_patient_record'] ?? false,
+      patientInfo: json['patient_info'] != null 
+          ? PatientInfo.fromJson(json['patient_info']) 
+          : null,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );
@@ -109,6 +120,41 @@ class AppointmentStats {
       pendingTasks: json['today_pending'] ?? 0,
       completedTask: json['today_completed'] ?? 0,
       cancelledTask: json['today_cancelled'] ?? 0,
+    );
+  }
+}
+
+class PatientInfo {
+  final int id;
+  final String patientId; // P123456789 format
+  final String name;
+  final String phone;
+  final int age;
+  final String gender;
+  final String? bloodGroup;
+  final String? address;
+
+  PatientInfo({
+    required this.id,
+    required this.patientId,
+    required this.name,
+    required this.phone,
+    required this.age,
+    required this.gender,
+    this.bloodGroup,
+    this.address,
+  });
+
+  factory PatientInfo.fromJson(Map<String, dynamic> json) {
+    return PatientInfo(
+      id: json['id'] ?? 0,
+      patientId: json['patient_id'] ?? '',
+      name: json['name'] ?? '',
+      phone: json['phone'] ?? '',
+      age: json['age'] ?? 0,
+      gender: json['gender'] ?? '',
+      bloodGroup: json['blood_group'],
+      address: json['address'],
     );
   }
 }
