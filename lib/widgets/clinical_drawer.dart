@@ -41,15 +41,19 @@ class _ClinicalDrawerState extends State<ClinicalDrawer> {
   }
 
   void _addItem(String name) {
-    setState(() {
-      _selectedItems.add(ClinicalItem(
-        name: name,
-        value: '',
-        forField: '',
-        duration: 'Day',
-        note: '',
-      ));
-    });
+    // Check if item already exists
+    final exists = _selectedItems.any((item) => item.name == name);
+    if (!exists) {
+      setState(() {
+        _selectedItems.add(ClinicalItem(
+          name: name,
+          value: '',
+          forField: '',
+          duration: 'Day',
+          note: '',
+        ));
+      });
+    }
   }
 
   void _addCustomItem() {
@@ -162,22 +166,40 @@ class _ClinicalDrawerState extends State<ClinicalDrawer> {
               spacing: 8,
               runSpacing: 8,
               children: _filteredItems.map((item) {
+                final isSelected = _selectedItems.any((selected) => selected.name == item);
                 return InkWell(
                   onTap: () => _addItem(item),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: isSelected ? const Color(0xFFFFE5DD) : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: Text(
-                      item,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF475569),
-                        fontFamily: 'ProductSans',
+                      border: Border.all(
+                        color: isSelected ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0),
                       ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isSelected)
+                          const Padding(
+                            padding: EdgeInsets.only(right: 6),
+                            child: Icon(
+                              Icons.check_circle,
+                              size: 16,
+                              color: Color(0xFFFE3001),
+                            ),
+                          ),
+                        Text(
+                          item,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isSelected ? const Color(0xFFFE3001) : const Color(0xFF475569),
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            fontFamily: 'ProductSans',
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
