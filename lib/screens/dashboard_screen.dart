@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'login_screen.dart';
 import 'appointment_screen.dart';
+import 'create_prescription_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -361,9 +362,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     switch (_selectedMenu) {
       case 'Appointment':
         return const AppointmentScreen();
+      case 'Create New RX':
+        return const CreatePrescriptionScreen();
       case 'Dashboard':
       case 'All Prescription':
-      case 'Create New RX':
       case 'Configuration':
       case 'Analytics':
       case 'Drug Database':
