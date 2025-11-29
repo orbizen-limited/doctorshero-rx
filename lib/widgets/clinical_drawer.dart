@@ -78,19 +78,20 @@ class _ClinicalDrawerState extends State<ClinicalDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.5,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 10,
-            offset: Offset(-2, 0),
-          ),
-        ],
-      ),
-      child: Column(
+    return Material(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.5,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 10,
+              offset: Offset(-2, 0),
+            ),
+          ],
+        ),
+        child: Column(
         children: [
           // Header
           Container(
@@ -242,6 +243,7 @@ class _ClinicalDrawerState extends State<ClinicalDrawer> {
             ),
           ],
         ],
+      ),
       ),
     );
   }
