@@ -15,7 +15,6 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
-  bool _isCheckingAuth = true;
 
   @override
   void initState() {
@@ -49,10 +48,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // Wait for both minimum time and auth check to complete
     await Future.wait([minimumLoadTime, authCheckFuture]);
     
-    setState(() {
-      _isCheckingAuth = false;
-    });
-    
     // Navigate based on authentication status
     if (mounted) {
       if (authProvider.isAuthenticated) {
@@ -76,95 +71,98 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F5F5),
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo or App Name
-              Container(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFE3001),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.medical_services,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Doctors',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1E293B),
-                            fontFamily: 'ProductSans',
-                            height: 1,
-                          ),
-                        ),
-                        Text(
-                          'Hero',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFFFE3001),
-                            fontFamily: 'ProductSans',
-                            height: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+          child: Container(
+            width: 450,
+            padding: const EdgeInsets.all(50),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
                 ),
-              ),
-              const SizedBox(height: 40),
-              // Loading GIF
-              Image.asset(
-                'assets/launch-loading.gif',
-                width: 200,
-                height: 200,
-                fit: BoxFit.contain,
-              ),
-              const SizedBox(height: 40),
-              // Loading Text
-              if (_isCheckingAuth)
-                const Column(
-                  children: [
-                    Text(
-                      'Loading...',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF64748B),
-                        fontFamily: 'ProductSans',
-                      ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Logo Icon
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFF3B82F6),
+                      width: 3,
                     ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Please wait while we set things up',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF94A3B8),
-                        fontFamily: 'ProductSans',
-                      ),
-                    ),
-                  ],
+                  ),
+                  child: const Icon(
+                    Icons.medical_services,
+                    size: 50,
+                    color: Color(0xFF3B82F6),
+                  ),
                 ),
-            ],
+                const SizedBox(height: 30),
+                // App Title
+                const Text(
+                  'DoctorsHero RX',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1E293B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Subtitle
+                const Text(
+                  'Professional Medical Practice Management',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF64748B),
+                    fontFamily: 'ProductSans',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 40),
+                // Loading Spinner
+                const SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Loading Text
+                const Text(
+                  'Loading application...',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF94A3B8),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+                const SizedBox(height: 40),
+                // Version
+                const Text(
+                  'Version 1.0.0',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFFCBD5E1),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
