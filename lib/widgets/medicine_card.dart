@@ -28,9 +28,10 @@ class _MedicineCardState extends State<MedicineCard> {
   late TextEditingController _genericController;
   late TextEditingController _compositionController;
   late TextEditingController _dosageController;
-  late TextEditingController _durationController;
+  late TextEditingController _durationNumberController;
   late TextEditingController _adviceController;
   late String _currentType;
+  late String _durationUnit;
 
   @override
   void initState() {
@@ -39,9 +40,25 @@ class _MedicineCardState extends State<MedicineCard> {
     _genericController = TextEditingController(text: widget.medicine.genericName);
     _compositionController = TextEditingController(text: widget.medicine.composition);
     _dosageController = TextEditingController(text: widget.medicine.dosage);
-    _durationController = TextEditingController(text: widget.medicine.duration);
     _adviceController = TextEditingController(text: widget.medicine.advice);
     _currentType = widget.medicine.type;
+    
+    // Parse duration into number and unit
+    final durationParts = _parseDuration(widget.medicine.duration);
+    _durationNumberController = TextEditingController(text: durationParts['number']);
+    _durationUnit = durationParts['unit'] ?? 'Days';
+  }
+
+  Map<String, String?> _parseDuration(String duration) {
+    final regex = RegExp(r'(\d+)\s*(Hour|Day|Week|Month|Year)s?', caseSensitive: false);
+    final match = regex.firstMatch(duration);
+    if (match != null) {
+      return {
+        'number': match.group(1),
+        'unit': '${match.group(2)![0].toUpperCase()}${match.group(2)!.substring(1).toLowerCase()}s',
+      };
+    }
+    return {'number': '', 'unit': 'Days'};
   }
 
   @override
@@ -50,13 +67,17 @@ class _MedicineCardState extends State<MedicineCard> {
     _genericController.dispose();
     _compositionController.dispose();
     _dosageController.dispose();
-    _durationController.dispose();
+    _durationNumberController.dispose();
     _adviceController.dispose();
     super.dispose();
   }
 
   void _updateMedicine() {
     if (widget.onUpdate != null) {
+      final duration = _durationNumberController.text.isEmpty 
+          ? '' 
+          : '${_durationNumberController.text} $_durationUnit';
+      
       final updatedMedicine = Medicine(
         id: widget.medicine.id,
         type: _currentType,
@@ -64,7 +85,7 @@ class _MedicineCardState extends State<MedicineCard> {
         genericName: _genericController.text,
         composition: _compositionController.text,
         dosage: _dosageController.text,
-        duration: _durationController.text,
+        duration: duration,
         advice: _adviceController.text,
       );
       widget.onUpdate!(widget.medicine.id, updatedMedicine);
@@ -117,6 +138,85 @@ class _MedicineCardState extends State<MedicineCard> {
     
     List<String> chars = digitsOnly.split('');
     return chars.join('+');
+  }
+
+  void _showAdviceDrawer() {
+    final adviceOptions = [
+      'After food',
+      'Before food',
+      'With food',
+      'Empty stomach',
+      'After meal',
+      'Before meal',
+      'At bedtime',
+      'In the morning',
+      'No alcohol',
+      'Drink plenty of water',
+      'Avoid direct sunlight',
+      'Take with milk',
+      'Do not crush or chew',
+      'Dissolve in water',
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Select Advice',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1E293B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: adviceOptions.length,
+                itemBuilder: (context, index) {
+                  final advice = adviceOptions[index];
+                  return ListTile(
+                    title: Text(
+                      advice,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontFamily: 'ProductSans',
+                      ),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        _adviceController.text = advice;
+                      });
+                      _updateMedicine();
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -252,40 +352,90 @@ class _MedicineCardState extends State<MedicineCard> {
                   ),
                 ),
                 const SizedBox(width: 12),
+                // Duration - Split into number and unit
                 Expanded(
-                  child: TextField(
-                    controller: _durationController,
-                    textAlign: TextAlign.center,
-                    decoration: InputDecoration(
-                      labelText: 'DURATION',
-                      hintText: '5 Days',
-                      labelStyle: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
-                      hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: TextField(
+                          controller: _durationNumberController,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          decoration: InputDecoration(
+                            labelText: 'DURATION',
+                            hintText: '5',
+                            labelStyle: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                            hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                          style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans'),
+                          onChanged: (value) => _updateMedicine(),
+                        ),
                       ),
-                    ),
-                    style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans'),
-                    onChanged: (value) => _updateMedicine(),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        flex: 3,
+                        child: DropdownButtonFormField<String>(
+                          value: _durationUnit,
+                          isDense: true,
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                          style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans', color: Color(0xFF1E293B)),
+                          items: ['Hours', 'Days', 'Weeks', 'Months', 'Years'].map((unit) {
+                            return DropdownMenuItem(value: unit, child: Text(unit));
+                          }).toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _durationUnit = value;
+                              });
+                              _updateMedicine();
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 12),
+                // Advice - Clickable
                 Expanded(
-                  child: TextField(
-                    controller: _adviceController,
-                    decoration: InputDecoration(
-                      labelText: 'ADVICE (E.G., AFTER MEAL)',
-                      hintText: 'After food, no alcohol',
-                      labelStyle: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
-                      hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      border: OutlineInputBorder(
+                  child: InkWell(
+                    onTap: () => _showAdviceDrawer(),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
                         borderRadius: BorderRadius.circular(6),
                       ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _adviceController.text.isEmpty 
+                                  ? 'After food, no alcohol' 
+                                  : _adviceController.text,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: _adviceController.text.isEmpty 
+                                    ? const Color(0xFF94A3B8) 
+                                    : const Color(0xFF1E293B),
+                                fontFamily: 'ProductSans',
+                              ),
+                            ),
+                          ),
+                          const Icon(Icons.arrow_drop_down, color: Color(0xFF64748B)),
+                        ],
+                      ),
                     ),
-                    style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans'),
-                    onChanged: (value) => _updateMedicine(),
                   ),
                 ),
               ],
