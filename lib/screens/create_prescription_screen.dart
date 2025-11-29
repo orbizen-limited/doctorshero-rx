@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/medicine_model.dart';
 import '../models/prescription_model.dart';
 import '../widgets/patient_info_card.dart';
 import '../widgets/clinical_sections.dart';
 import '../widgets/medicine_list.dart';
 import '../widgets/prescription_footer.dart';
+import '../services/prescription_print_service.dart';
+import 'print_settings_screen.dart';
 
 class CreatePrescriptionScreen extends StatefulWidget {
   final String? patientId;
@@ -112,19 +115,57 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
     );
   }
 
-  void _printPrescription() {
-    // TODO: Implement print functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Print functionality coming soon!'),
-      ),
-    );
+  Future<void> _printPrescription() async {
+    try {
+      // TODO: Get actual data from clinical sections and medicine list
+      await PrescriptionPrintService.printPrescription(
+        patientName: patientInfo.name,
+        age: patientInfo.age,
+        date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
+        patientId: patientInfo.patientId,
+        chiefComplaints: [], // TODO: Get from clinical data
+        examination: {}, // TODO: Get from clinical data
+        diagnosis: [], // TODO: Get from clinical data
+        investigation: [], // TODO: Get from clinical data
+        medicines: medicines,
+        advice: [], // TODO: Get from medicine list
+        followUpDate: null, // TODO: Get from medicine list
+        referral: null, // TODO: Get from medicine list
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error printing: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PrintSettingsScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.settings, color: Color(0xFF64748B)),
+            tooltip: 'Print Settings',
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: LayoutBuilder(
           builder: (context, constraints) {
