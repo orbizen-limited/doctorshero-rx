@@ -131,6 +131,29 @@ class AppointmentService {
     }
   }
 
+  Future<bool> updatePaymentStatus(int id, String paymentStatus) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/appointments/$id'),
+        headers: headers,
+        body: json.encode({'payment_status': paymentStatus}),
+      );
+
+      print('Update payment status response: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      print('Error updating payment status: $e');
+      throw Exception('Error: $e');
+    }
+  }
+
   Future<bool> deleteAppointment(int id) async {
     try {
       final headers = await _getHeaders();

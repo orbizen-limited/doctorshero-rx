@@ -293,6 +293,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                         _buildTableHeader('LOCATION', flex: 2),
                         _buildTableHeader('PRICE', flex: 1),
                         _buildTableHeader('STATUS', flex: 1),
+                        _buildTableHeader('PAYMENT STATUS', flex: 1),
                         _buildTableHeader('ACTIONS', flex: 1),
                       ],
                     ),
@@ -561,12 +562,12 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               children: [
                 CircleAvatar(
                   radius: 18,
-                  backgroundColor: const Color(0xFF4CAF50),
+                  backgroundColor: const Color(0xFFE53935), // Red background
                   child: Text(
-                    appointment.patientName.substring(0, 1).toUpperCase(),
+                    appointment.serialNumber.toString(),
                     style: const TextStyle(
                       fontFamily: 'ProductSans',
-                      fontSize: 14,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -577,31 +578,16 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            '#${appointment.serialNumber} ',
-                            style: TextStyle(
-                              fontFamily: 'ProductSans',
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              appointment.patientName,
-                              style: const TextStyle(
-                                fontFamily: 'ProductSans',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF1A1A1A),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        appointment.patientName,
+                        style: const TextStyle(
+                          fontFamily: 'ProductSans',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         appointment.phone,
@@ -752,6 +738,31 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               ),
             ),
           ),
+          // Payment Status
+          Expanded(
+            flex: 1,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: appointment.paymentStatus.toLowerCase() == 'paid'
+                    ? const Color(0xFF4CAF50).withOpacity(0.1)
+                    : Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                appointment.paymentStatus,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'ProductSans',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: appointment.paymentStatus.toLowerCase() == 'paid'
+                      ? const Color(0xFF4CAF50)
+                      : Colors.grey.shade700,
+                ),
+              ),
+            ),
+          ),
           // Actions
           Expanded(
             flex: 1,
@@ -885,15 +896,33 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
 
   Future<void> _markAsPaid(Appointment appointment) async {
     try {
-      // TODO: Add API call to update payment_status to "Paid"
-      // For now, just show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Marked as paid')),
+      final success = await _appointmentService.updatePaymentStatus(
+        appointment.id,
+        'Paid',
       );
-      _loadData();
+      
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment status updated to Paid'),
+            backgroundColor: Color(0xFF4CAF50),
+          ),
+        );
+        _loadData(); // Reload data to show updated status
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to update payment status'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
