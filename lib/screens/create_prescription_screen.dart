@@ -117,123 +117,119 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          // Responsive padding based on screen width
-          double horizontalPadding = 16;
-          double maxWidth = 768;
+      body: SingleChildScrollView(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Responsive padding based on screen width
+            double horizontalPadding = 16;
+            double maxWidth = 768;
 
-          if (constraints.maxWidth >= 640) {
-            horizontalPadding = 24;
-          }
-          if (constraints.maxWidth >= 768) {
-            horizontalPadding = 32;
-            maxWidth = 896;
-          }
-          if (constraints.maxWidth >= 1024) {
-            horizontalPadding = 40;
-            maxWidth = 1152;
-          }
-          if (constraints.maxWidth >= 1280) {
-            horizontalPadding = 48;
-            maxWidth = 1280;
-          }
-          if (constraints.maxWidth >= 1536) {
-            horizontalPadding = 64;
-            maxWidth = 1600;
-          }
-          if (constraints.maxWidth >= 1920) {
-            horizontalPadding = 80;
-            maxWidth = 1760;
-          }
+            if (constraints.maxWidth >= 640) {
+              horizontalPadding = 24;
+            }
+            if (constraints.maxWidth >= 768) {
+              horizontalPadding = 32;
+              maxWidth = 896;
+            }
+            if (constraints.maxWidth >= 1024) {
+              horizontalPadding = 40;
+              maxWidth = 1152;
+            }
+            if (constraints.maxWidth >= 1280) {
+              horizontalPadding = 48;
+              maxWidth = 1280;
+            }
+            if (constraints.maxWidth >= 1536) {
+              horizontalPadding = 64;
+              maxWidth = 1600;
+            }
+            if (constraints.maxWidth >= 1920) {
+              horizontalPadding = 80;
+              maxWidth = 1760;
+            }
 
-          return Center(
-            child: Container(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              margin: EdgeInsets.symmetric(
-                horizontal: horizontalPadding,
-                vertical: 32,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 25,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  const PrescriptionHeader(),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          PatientInfoCard(patientInfo: patientInfo),
-                          Padding(
-                            padding: const EdgeInsets.all(32.0),
-                            child: constraints.maxWidth >= 1024
-                                ? Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Left Column - Clinical Sections
-                                      SizedBox(
-                                        width: 380,
-                                        child: ClinicalSections(
-                                          clinicalData: clinicalData,
-                                          onUpdate: _updateClinicalData,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 48),
-                                      // Vertical Separator
-                                      Container(
-                                        width: 1,
-                                        color: const Color(0xFFE2E8F0),
-                                      ),
-                                      const SizedBox(width: 48),
-                                      // Right Column - Prescription
-                                      Expanded(
-                                        child: MedicineList(
-                                          medicines: medicines,
-                                          onAdd: _addMedicine,
-                                          onDelete: _deleteMedicine,
-                                          onReorder: _reorderMedicines,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : Column(
-                                    children: [
-                                      ClinicalSections(
-                                        clinicalData: clinicalData,
-                                        onUpdate: _updateClinicalData,
-                                      ),
-                                      const SizedBox(height: 32),
-                                      MedicineList(
-                                        medicines: medicines,
-                                        onAdd: _addMedicine,
-                                        onDelete: _deleteMedicine,
-                                        onReorder: _reorderMedicines,
-                                      ),
-                                    ],
-                                  ),
-                          ),
-                        ],
-                      ),
+            return Center(
+              child: Container(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                margin: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                  vertical: 32,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 25,
+                      offset: const Offset(0, 10),
                     ),
-                  ),
-                  PrescriptionFooter(
-                    onSave: _savePrescription,
-                    onPrint: _printPrescription,
-                  ),
-                ],
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const PrescriptionHeader(),
+                    PatientInfoCard(patientInfo: patientInfo),
+                    Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: constraints.maxWidth >= 1024
+                          ? Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Left Column - Clinical Sections
+                                SizedBox(
+                                  width: 380,
+                                  child: ClinicalSections(
+                                    clinicalData: clinicalData,
+                                    onUpdate: _updateClinicalData,
+                                  ),
+                                ),
+                                const SizedBox(width: 48),
+                                // Vertical Separator
+                                Container(
+                                  width: 1,
+                                  height: 600,
+                                  color: const Color(0xFFE2E8F0),
+                                ),
+                                const SizedBox(width: 48),
+                                // Right Column - Prescription
+                                Expanded(
+                                  child: MedicineList(
+                                    medicines: medicines,
+                                    onAdd: _addMedicine,
+                                    onDelete: _deleteMedicine,
+                                    onReorder: _reorderMedicines,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Column(
+                              children: [
+                                ClinicalSections(
+                                  clinicalData: clinicalData,
+                                  onUpdate: _updateClinicalData,
+                                ),
+                                const SizedBox(height: 32),
+                                MedicineList(
+                                  medicines: medicines,
+                                  onAdd: _addMedicine,
+                                  onDelete: _deleteMedicine,
+                                  onReorder: _reorderMedicines,
+                                ),
+                              ],
+                            ),
+                    ),
+                    PrescriptionFooter(
+                      onSave: _savePrescription,
+                      onPrint: _printPrescription,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
