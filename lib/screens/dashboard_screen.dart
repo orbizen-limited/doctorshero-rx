@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'login_screen.dart';
+import 'appointment_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -227,53 +228,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 
                 // Content Area
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(30),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.dashboard_outlined,
-                              size: 80,
-                              color: Colors.grey.shade300,
-                            ),
-                            const SizedBox(height: 20),
-                            Text(
-                              'Content Area',
-                              style: TextStyle(
-                                fontFamily: 'ProductSans',
-                                fontSize: 24,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Selected: $_selectedMenu',
-                              style: TextStyle(
-                                fontFamily: 'ProductSans',
-                                fontSize: 16,
-                                color: Colors.grey.shade500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  child: _getContentWidget(),
                 ),
               ],
             ),
@@ -400,6 +355,68 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
     );
+  }
+
+  Widget _getContentWidget() {
+    switch (_selectedMenu) {
+      case 'Appointment':
+        return const AppointmentScreen();
+      case 'Dashboard':
+      case 'All Prescription':
+      case 'Create New RX':
+      case 'Configuration':
+      case 'Analytics':
+      case 'Drug Database':
+      case 'Settings':
+      default:
+        return Padding(
+          padding: const EdgeInsets.all(30),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.construction,
+                    size: 80,
+                    color: Colors.grey.shade300,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    _selectedMenu,
+                    style: TextStyle(
+                      fontFamily: 'ProductSans',
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Coming Soon',
+                    style: TextStyle(
+                      fontFamily: 'ProductSans',
+                      fontSize: 16,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+    }
   }
 
   List<Widget> _buildMenuItems() {

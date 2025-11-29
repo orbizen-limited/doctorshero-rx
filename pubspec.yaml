@@ -46,6 +46,9 @@ dependencies:
   
   # State management
   provider: ^6.1.1
+  
+  # Date formatting
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:
