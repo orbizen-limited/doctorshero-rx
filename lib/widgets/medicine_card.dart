@@ -123,71 +123,70 @@ class _MedicineCardState extends State<MedicineCard> {
   Widget build(BuildContext context) {
     return Container(
       key: ValueKey(widget.medicine.id),
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Type Dropdown
-          SizedBox(
-            width: 70,
-            child: DropdownButton<String>(
-              value: _currentType,
-              isDense: true,
-              isExpanded: true,
-              underline: Container(),
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFFFE3001),
-                fontFamily: 'ProductSans',
-              ),
-              items: widget.medicineTypes.map((type) {
-                return DropdownMenuItem(value: type, child: Text(type));
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _currentType = value;
-                  });
-                  _updateMedicine();
-                }
-              },
-            ),
-          ),
-          const SizedBox(width: 12),
-          
-          // Medicine Name Section (Vertical)
+          // Left: Medicine Info
           Expanded(
-            flex: 3,
+            flex: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
               children: [
-                // Medicine Name - Clickable
-                InkWell(
-                  onTap: () => _showMedicineSearchDialog('name'),
-                  child: Text(
-                    _nameController.text.isEmpty 
-                        ? 'Medicine Name (e.g., Tab. Napa)' 
-                        : _nameController.text,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: _nameController.text.isEmpty 
-                          ? const Color(0xFF94A3B8) 
-                          : const Color(0xFF1E293B),
-                      fontFamily: 'ProductSans',
+                // Type + Name
+                Row(
+                  children: [
+                    DropdownButton<String>(
+                      value: _currentType,
+                      isDense: true,
+                      underline: Container(),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFFE3001),
+                        fontFamily: 'ProductSans',
+                      ),
+                      items: widget.medicineTypes.map((type) {
+                        return DropdownMenuItem(value: type, child: Text(type));
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _currentType = value;
+                          });
+                          _updateMedicine();
+                        }
+                      },
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => _showMedicineSearchDialog('name'),
+                        child: Text(
+                          _nameController.text.isEmpty 
+                              ? 'napa' 
+                              : _nameController.text,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: _nameController.text.isEmpty 
+                                ? const Color(0xFF94A3B8) 
+                                : const Color(0xFF1E293B),
+                            fontFamily: 'ProductSans',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
-                // Generic Name - Clickable
+                // Generic Name
                 InkWell(
                   onTap: () => _showMedicineSearchDialog('generic'),
                   child: Text(
@@ -195,7 +194,7 @@ class _MedicineCardState extends State<MedicineCard> {
                         ? 'Generic Name (e.g., Paracetamol)' 
                         : _genericController.text,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: _genericController.text.isEmpty 
                           ? const Color(0xFF94A3B8) 
                           : const Color(0xFF64748B),
@@ -203,63 +202,44 @@ class _MedicineCardState extends State<MedicineCard> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 2),
-                // Composition - Editable
-                SizedBox(
-                  height: 20,
-                  child: TextField(
-                    controller: _compositionController,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF94A3B8),
-                      fontFamily: 'ProductSans',
-                    ),
-                    decoration: const InputDecoration(
-                      hintText: 'Composition / Note',
-                      hintStyle: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    onChanged: (value) => _updateMedicine(),
+                const SizedBox(height: 4),
+                // Composition
+                Text(
+                  _compositionController.text.isEmpty 
+                      ? 'Composition / Note' 
+                      : _compositionController.text,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF94A3B8),
+                    fontFamily: 'ProductSans',
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 16),
-          
-          // Dosage, Duration, Advice (Horizontal)
+          const SizedBox(width: 24),
+          // Right: Dosage, Duration, Advice
           Expanded(
-            flex: 4,
+            flex: 3,
             child: Row(
               children: [
-                // Dosage
                 Expanded(
                   child: TextField(
                     controller: _dosageController,
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
+                      labelText: 'DOSAGE',
                       hintText: '1+0+1',
+                      labelStyle: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
                       hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
                       ),
                     ),
                     style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans'),
                     onChanged: (value) {
-                      // Auto-format dosage: add + between numbers, max 4 digits
                       String formatted = _formatDosage(value);
                       if (formatted != value) {
                         _dosageController.value = TextEditingValue(
@@ -271,54 +251,37 @@ class _MedicineCardState extends State<MedicineCard> {
                     },
                   ),
                 ),
-                const SizedBox(width: 8),
-                // Duration
+                const SizedBox(width: 12),
                 Expanded(
                   child: TextField(
                     controller: _durationController,
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
+                      labelText: 'DURATION',
                       hintText: '5 Days',
+                      labelStyle: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
                       hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
                       ),
                     ),
                     style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans'),
                     onChanged: (value) => _updateMedicine(),
                   ),
                 ),
-                const SizedBox(width: 8),
-                // Advice
+                const SizedBox(width: 12),
                 Expanded(
-                  flex: 2,
                   child: TextField(
                     controller: _adviceController,
                     decoration: InputDecoration(
+                      labelText: 'ADVICE (E.G., AFTER MEAL)',
                       hintText: 'After food, no alcohol',
+                      labelStyle: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
                       hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
                       ),
                     ),
                     style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans'),
@@ -329,7 +292,7 @@ class _MedicineCardState extends State<MedicineCard> {
             ),
           ),
           const SizedBox(width: 16),
-          // Delete Button
+          // Delete & Drag
           Column(
             children: [
               IconButton(
