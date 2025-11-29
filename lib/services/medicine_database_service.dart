@@ -32,7 +32,12 @@ class MedicineData {
   String get displayName {
     String name = '';
     if (dosageForm.isNotEmpty) {
-      name += '$dosageForm ';
+      // Show only first 3 letters of dosage form (e.g., "Tab." -> "Tab")
+      String shortForm = dosageForm.replaceAll('.', '').trim();
+      if (shortForm.length > 3) {
+        shortForm = shortForm.substring(0, 3);
+      }
+      name += '$shortForm ';
     }
     name += medicineName;
     if (powerStrength.isNotEmpty) {
