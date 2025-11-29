@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/medicine_model.dart';
 import 'medicine_card.dart';
+import 'advice_drawer.dart';
 
 class MedicineList extends StatefulWidget {
   final List<Medicine> medicines;
@@ -24,6 +26,9 @@ class MedicineList extends StatefulWidget {
 
 class _MedicineListState extends State<MedicineList> {
   final List<String> medicineTypes = ['Tab.', 'Cap.', 'Syp.', 'Inj.', 'Susp.', 'Drops'];
+  List<String> _selectedAdvice = [];
+  DateTime? _followUpDate;
+  final TextEditingController _referralController = TextEditingController();
   
   void _addEmptyMedicine() {
     final medicine = Medicine(
@@ -116,43 +121,75 @@ class _MedicineListState extends State<MedicineList> {
           ),
         
         // Advice Section
-        const SizedBox(height: 32),
-        Row(
-          children: [
-            const Icon(Icons.info_outline, color: Color(0xFFFE3001), size: 18),
-            const SizedBox(width: 8),
-            const Text(
-              'ADVICE',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF64748B),
-                letterSpacing: 0.5,
-                fontFamily: 'ProductSans',
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+        const SizedBox(height: 24),
+        const Text(
+          'ADVICE',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF64748B),
+            letterSpacing: 0.5,
+            fontFamily: 'ProductSans',
           ),
-          child: const TextField(
-            maxLines: 4,
-            decoration: InputDecoration(
-              hintText: 'Take medicines after meals for better absorption.\nDrink plenty of water (2-3 liters daily).\nAvoid direct sunlight exposure.',
-              hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () {
+            Scaffold.of(context).openEndDrawer();
+            Future.delayed(const Duration(milliseconds: 100), () {
+              showGeneralDialog(
+                context: context,
+                barrierDismissible: true,
+                barrierLabel: '',
+                transitionDuration: const Duration(milliseconds: 300),
+                pageBuilder: (context, animation, secondaryAnimation) {
+                  return Align(
+                    alignment: Alignment.centerRight,
+                    child: AdviceDrawer(
+                      selectedAdvice: _selectedAdvice,
+                      onAdviceSelected: (advice) {
+                        setState(() {
+                          _selectedAdvice = advice;
+                        });
+                      },
+                    ),
+                  );
+                },
+                transitionBuilder: (context, animation, secondaryAnimation, child) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(1, 0),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  );
+                },
+              );
+            });
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF1E293B),
-              fontFamily: 'ProductSans',
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _selectedAdvice.isEmpty
+                        ? 'Take medicines after meals for better absorption.\nDrink plenty of water (2-3 liters daily).\nAvoid direct sunlight exposure.'
+                        : _selectedAdvice.join('\n'),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: _selectedAdvice.isEmpty ? const Color(0xFF94A3B8) : const Color(0xFF1E293B),
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                ),
+                const Icon(Icons.edit, color: Color(0xFF64748B), size: 18),
+              ],
             ),
           ),
         ),
@@ -178,20 +215,52 @@ class _MedicineListState extends State<MedicineList> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  TextField(
-                    decoration: InputDecoration(
-                      hintText: 'dd/mm/yyyy',
-                      hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                      border: OutlineInputBorder(
+                  InkWell(
+                    onTap: () async {
+                      final DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: _followUpDate ?? DateTime.now().add(const Duration(days: 7)),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: const ColorScheme.light(
+                                primary: Color(0xFFFE3001),
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          _followUpDate = picked;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                       ),
-                      contentPadding: const EdgeInsets.all(12),
-                      suffixIcon: const Icon(Icons.calendar_today, size: 18),
-                    ),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontFamily: 'ProductSans',
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _followUpDate == null
+                                ? 'dd/mm/yyyy'
+                                : DateFormat('dd/MM/yyyy').format(_followUpDate!),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: _followUpDate == null ? const Color(0xFF94A3B8) : const Color(0xFF1E293B),
+                              fontFamily: 'ProductSans',
+                            ),
+                          ),
+                          const Icon(Icons.calendar_today, size: 18, color: Color(0xFF64748B)),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -215,6 +284,7 @@ class _MedicineListState extends State<MedicineList> {
                   ),
                   const SizedBox(height: 8),
                   TextField(
+                    controller: _referralController,
                     decoration: InputDecoration(
                       hintText: 'Refer to specialist...',
                       hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
