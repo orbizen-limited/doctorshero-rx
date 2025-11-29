@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/medicine_model.dart';
 import '../models/prescription_model.dart';
-import '../widgets/prescription_header.dart';
 import '../widgets/patient_info_card.dart';
 import '../widgets/clinical_sections.dart';
 import '../widgets/medicine_list.dart';
@@ -169,7 +168,6 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const PrescriptionHeader(),
                     PatientInfoCard(patientInfo: patientInfo),
                     Padding(
                       padding: const EdgeInsets.all(32.0),
