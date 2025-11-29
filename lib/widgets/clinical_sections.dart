@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/prescription_model.dart';
 import 'clinical_drawer.dart';
 import 'examination_drawer.dart';
+import 'diagnosis_drawer.dart';
 
 class ClinicalSections extends StatelessWidget {
   final ClinicalData clinicalData;
@@ -64,6 +65,51 @@ class ClinicalSections extends StatelessWidget {
                 onSave: (data) {
                   if (onUpdate != null) {
                     onUpdate!(field, data['preview'] ?? '');
+                  }
+                },
+                onClose: () => Navigator.of(context).pop(),
+              ),
+            ),
+          );
+        },
+      );
+      return;
+    }
+    
+    // Use special diagnosis drawer for diagnosis field
+    if (field == 'diagnosis') {
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        barrierColor: Colors.black54,
+        transitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return Align(
+            alignment: Alignment.centerRight,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: DiagnosisDrawer(
+                onSave: (diagnoses) {
+                  if (onUpdate != null) {
+                    // Format diagnoses as bullet list
+                    String preview = diagnoses.map((d) {
+                      String line = d['name']!;
+                      if (d['value']!.isNotEmpty) {
+                        line += ' - ${d['value']}';
+                      }
+                      if (d['note']!.isNotEmpty) {
+                        line += ' (${d['note']})';
+                      }
+                      return line;
+                    }).join('\n• ');
+                    if (preview.isNotEmpty) {
+                      preview = '• $preview';
+                    }
+                    onUpdate!(field, preview);
                   }
                 },
                 onClose: () => Navigator.of(context).pop(),
@@ -193,7 +239,7 @@ class ClinicalSections extends StatelessWidget {
                       fontFamily: 'ProductSans',
                     ),
                   )
-                : field == 'examination' && content.contains('\n•')
+                : (field == 'examination' || field == 'diagnosis') && content.contains('\n•')
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: content.split('\n•').where((line) => line.trim().isNotEmpty).map((line) {
