@@ -665,13 +665,22 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
               child: TabBar(
                 controller: _tabController,
                 isScrollable: true,
+                tabAlignment: TabAlignment.start,
                 labelColor: const Color(0xFFFE3001),
                 unselectedLabelColor: const Color(0xFF64748B),
                 indicatorColor: const Color(0xFFFE3001),
                 labelStyle: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
+                  fontFamily: 'ProductSans',
                 ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'ProductSans',
+                ),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 16),
+                indicatorSize: TabBarIndicatorSize.tab,
                 tabs: const [
                   Tab(text: 'General Examination'),
                   Tab(text: 'Integumentary'),
