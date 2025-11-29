@@ -248,15 +248,13 @@ class _MedicineListState extends State<MedicineList> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Drag Handle
-          const Icon(Icons.drag_indicator, color: Color(0xFF94A3B8), size: 20),
-          const SizedBox(width: 12),
-          // Medicine Details
+          // Left: Medicine Name Section
           Expanded(
+            flex: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Medicine Name Row
+                // Type + Medicine Name
                 Row(
                   children: [
                     // Type Dropdown
@@ -337,128 +335,132 @@ class _MedicineListState extends State<MedicineList> {
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-                const SizedBox(height: 12),
-                // Dosage, Duration, Advice Row
-                Row(
-                  children: [
-                    // Dosage
-                    Expanded(
-                      flex: 1,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'DOSAGE',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF94A3B8),
-                              fontFamily: 'ProductSans',
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          TextField(
-                            controller: dosageController,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF64748B),
-                              fontFamily: 'ProductSans',
-                            ),
-                            decoration: const InputDecoration(
-                              hintText: '1+0+1',
-                              hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 24),
+          // Right: Dosage, Duration, Advice
+          Expanded(
+            flex: 3,
+            child: Row(
+              children: [
+                // Dosage
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'DOSAGE',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF94A3B8),
+                          fontFamily: 'ProductSans',
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    // Duration
-                    Expanded(
-                      flex: 1,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'DURATION',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF94A3B8),
-                              fontFamily: 'ProductSans',
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          TextField(
-                            controller: durationController,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF64748B),
-                              fontFamily: 'ProductSans',
-                            ),
-                            decoration: const InputDecoration(
-                              hintText: '5 Days',
-                              hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ],
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: dosageController,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF64748B),
+                          fontFamily: 'ProductSans',
+                        ),
+                        decoration: const InputDecoration(
+                          hintText: '1+0+1',
+                          hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    // Advice
-                    Expanded(
-                      flex: 2,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'ADVICE (E.G., AFTER MEAL)',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF94A3B8),
-                              fontFamily: 'ProductSans',
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          TextField(
-                            controller: adviceController,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF64748B),
-                              fontFamily: 'ProductSans',
-                            ),
-                            decoration: const InputDecoration(
-                              hintText: 'After food, no alcohol',
-                              hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Duration
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'DURATION',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF94A3B8),
+                          fontFamily: 'ProductSans',
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: durationController,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF64748B),
+                          fontFamily: 'ProductSans',
+                        ),
+                        decoration: const InputDecoration(
+                          hintText: '5 Days',
+                          hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Advice
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'ADVICE (E.G., AFTER MEAL)',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF94A3B8),
+                          fontFamily: 'ProductSans',
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: adviceController,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF64748B),
+                          fontFamily: 'ProductSans',
+                        ),
+                        decoration: const InputDecoration(
+                          hintText: 'After food, no alcohol',
+                          hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 16),
           // Delete Button
           IconButton(
             onPressed: () {
               widget.onDelete(medicine.id);
             },
             icon: const Icon(Icons.close, color: Color(0xFF94A3B8), size: 20),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
             tooltip: 'Delete',
           ),
         ],
