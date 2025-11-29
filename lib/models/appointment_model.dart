@@ -35,22 +35,29 @@ class Appointment {
 
   factory Appointment.fromJson(Map<String, dynamic> json) {
     return Appointment(
-      id: json['id'],
-      serialNumber: json['serial_number'],
-      appointmentDate: json['appointment_date'],
-      appointmentTime: json['appointment_time'],
-      patientName: json['patient_name'],
-      phone: json['phone'],
-      patientType: json['patient_type'],
-      gender: json['gender'],
-      age: json['age'],
-      status: json['status'],
-      paymentStatus: json['payment_status'],
-      paymentAmount: json['payment_amount'],
+      id: _parseInt(json['id']),
+      serialNumber: _parseInt(json['serial_number']),
+      appointmentDate: json['appointment_date'] ?? '',
+      appointmentTime: json['appointment_time'] ?? '',
+      patientName: json['patient_name'] ?? '',
+      phone: json['phone'] ?? '',
+      patientType: json['patient_type'] ?? '',
+      gender: json['gender'] ?? '',
+      age: _parseInt(json['age']),
+      status: json['status'] ?? '',
+      paymentStatus: json['payment_status'] ?? '',
+      paymentAmount: _parseInt(json['payment_amount']),
       location: json['location'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
   }
 
   Map<String, dynamic> toJson() {

@@ -40,13 +40,27 @@ class AppointmentService {
       final uri = Uri.parse('$baseUrl/appointments')
           .replace(queryParameters: queryParams);
       
+      print('Fetching appointments from: $uri');
       final response = await http.get(uri, headers: headers);
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success'] == true) {
-          final appointments = (data['data'] as List)
-              .map((json) => Appointment.fromJson(json))
+          final appointmentsList = data['data'] as List;
+          print('Found ${appointmentsList.length} appointments');
+          
+          final appointments = appointmentsList
+              .map((json) {
+                try {
+                  return Appointment.fromJson(json);
+                } catch (e) {
+                  print('Error parsing appointment: $e');
+                  print('Problematic JSON: $json');
+                  rethrow;
+                }
+              })
               .toList();
           
           return {
@@ -55,10 +69,14 @@ class AppointmentService {
             'current_page': data['current_page'] ?? 1,
             'last_page': data['last_page'] ?? 1,
           };
+        } else {
+          throw Exception(data['message'] ?? 'API returned success: false');
         }
+      } else {
+        throw Exception('HTTP ${response.statusCode}: ${response.body}');
       }
-      throw Exception('Failed to load appointments');
     } catch (e) {
+      print('Exception in getAppointments: $e');
       throw Exception('Error: $e');
     }
   }
@@ -73,16 +91,23 @@ class AppointmentService {
       final uri = Uri.parse('$baseUrl/stats/appointments')
           .replace(queryParameters: queryParams);
       
+      print('Fetching stats from: $uri');
       final response = await http.get(uri, headers: headers);
+      print('Stats response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print('Stats response: $data');
         if (data['success'] == true) {
           return AppointmentStats.fromJson(data['data']);
+        } else {
+          throw Exception(data['message'] ?? 'API returned success: false');
         }
+      } else {
+        throw Exception('HTTP ${response.statusCode}: ${response.body}');
       }
-      throw Exception('Failed to load stats');
     } catch (e) {
+      print('Exception in getAppointmentStats: $e');
       throw Exception('Error: $e');
     }
   }
