@@ -85,8 +85,8 @@ class MedicineDatabaseService {
     
     final lowerQuery = query.toLowerCase();
     return _medicines!.where((medicine) {
-      final searchText = '${medicine.dosageForm} ${medicine.medicineName} ${medicine.powerStrength}'.toLowerCase();
-      return searchText.contains(lowerQuery);
+      // Only match if medicine name starts with the query
+      return medicine.medicineName.toLowerCase().startsWith(lowerQuery);
     }).take(10).toList(); // Limit to 10 results
   }
   
@@ -95,7 +95,8 @@ class MedicineDatabaseService {
     
     final lowerQuery = query.toLowerCase();
     return _medicines!.where((medicine) {
-      return medicine.genericName.toLowerCase().contains(lowerQuery);
+      // Only match if generic name starts with the query
+      return medicine.genericName.toLowerCase().startsWith(lowerQuery);
     }).take(10).toList(); // Limit to 10 results
   }
 }

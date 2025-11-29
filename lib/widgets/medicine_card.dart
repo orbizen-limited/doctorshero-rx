@@ -137,9 +137,9 @@ class _MedicineCardState extends State<MedicineCard> {
     // Remove all non-digit characters
     String digitsOnly = input.replaceAll(RegExp(r'[^0-9]'), '');
     
-    // Limit to 4 digits
-    if (digitsOnly.length > 4) {
-      digitsOnly = digitsOnly.substring(0, 4);
+    // Limit to 5 digits
+    if (digitsOnly.length > 5) {
+      digitsOnly = digitsOnly.substring(0, 5);
     }
     
     // Add + between each digit
