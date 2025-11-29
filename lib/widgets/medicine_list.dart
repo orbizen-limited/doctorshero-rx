@@ -47,7 +47,7 @@ class _MedicineListState extends State<MedicineList> {
           children: [
             Row(
               children: [
-                const Icon(Icons.medical_services, color: Color(0xFF3B82F6), size: 20),
+                const Icon(Icons.medical_services, color: Color(0xFFFE3001), size: 20),
                 const SizedBox(width: 8),
                 const Text(
                   'PRESCRIPTION',
@@ -66,7 +66,7 @@ class _MedicineListState extends State<MedicineList> {
               icon: const Icon(Icons.add, size: 18),
               label: const Text('Add Medicine'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B82F6),
+                backgroundColor: const Color(0xFFFE3001),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
@@ -109,7 +109,7 @@ class _MedicineListState extends State<MedicineList> {
         const SizedBox(height: 32),
         Row(
           children: [
-            const Icon(Icons.info_outline, color: Color(0xFF3B82F6), size: 18),
+            const Icon(Icons.info_outline, color: Color(0xFFFE3001), size: 18),
             const SizedBox(width: 8),
             const Text(
               'ADVICE',
@@ -265,7 +265,7 @@ class _MedicineListState extends State<MedicineList> {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF3B82F6),
+                        color: Color(0xFFFE3001),
                         fontFamily: 'ProductSans',
                       ),
                       items: medicineTypes.map((type) {

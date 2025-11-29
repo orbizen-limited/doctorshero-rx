@@ -37,7 +37,7 @@ class PrescriptionFooter extends StatelessWidget {
                   icon: const Icon(Icons.save, size: 18),
                   label: const Text('Save Prescription'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3B82F6),
+                    backgroundColor: const Color(0xFFFE3001),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
@@ -52,7 +52,8 @@ class PrescriptionFooter extends StatelessWidget {
                   icon: const Icon(Icons.print, size: 18),
                   label: const Text('Print'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF3B82F6),
+                    foregroundColor: const Color(0xFFFE3001),
+                    side: const BorderSide(color: Color(0xFFFE3001)),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
                       vertical: 16,
