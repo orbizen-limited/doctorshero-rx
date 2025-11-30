@@ -9,7 +9,9 @@ class DosageDrawer extends StatefulWidget {
   final String currentDurationNumber;
   final String currentDurationUnit;
   final String currentInterval;
-  final Function(String dosage, String quantity, String frequency, String route, String durationNumber, String durationUnit, String interval) onSave;
+  final String currentTillNumber;
+  final String currentTillUnit;
+  final Function(String dosage, String quantity, String frequency, String route, String durationNumber, String durationUnit, String interval, String tillNumber, String tillUnit) onSave;
 
   const DosageDrawer({
     Key? key,
@@ -21,6 +23,8 @@ class DosageDrawer extends StatefulWidget {
     required this.currentDurationNumber,
     required this.currentDurationUnit,
     required this.currentInterval,
+    required this.currentTillNumber,
+    required this.currentTillUnit,
     required this.onSave,
   }) : super(key: key);
 
@@ -35,7 +39,9 @@ class _DosageDrawerState extends State<DosageDrawer> {
   late TextEditingController _routeController;
   late TextEditingController _durationNumberController;
   late TextEditingController _intervalController;
+  late TextEditingController _tillNumberController;
   String _durationUnit = 'Days';
+  String _tillUnit = 'Days';
 
   @override
   void initState() {
@@ -46,7 +52,9 @@ class _DosageDrawerState extends State<DosageDrawer> {
     _routeController = TextEditingController(text: widget.currentRoute);
     _durationNumberController = TextEditingController(text: widget.currentDurationNumber);
     _intervalController = TextEditingController(text: widget.currentInterval);
+    _tillNumberController = TextEditingController(text: widget.currentTillNumber);
     _durationUnit = widget.currentDurationUnit.isEmpty ? 'Days' : widget.currentDurationUnit;
+    _tillUnit = widget.currentTillUnit.isEmpty ? 'Days' : widget.currentTillUnit;
   }
 
   @override
@@ -57,6 +65,7 @@ class _DosageDrawerState extends State<DosageDrawer> {
     _routeController.dispose();
     _durationNumberController.dispose();
     _intervalController.dispose();
+    _tillNumberController.dispose();
     super.dispose();
   }
 
@@ -320,6 +329,87 @@ class _DosageDrawerState extends State<DosageDrawer> {
                         _buildIntervalChip('Monthly'),
                       ],
                     ),
+
+                    const SizedBox(height: 32),
+
+                    // TILL SECTION (Optional - When to stop)
+                    const Text(
+                      'Till / Until (Optional)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                        fontFamily: 'ProductSans',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'When should the medicine be stopped?',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Number',
+                                style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                              ),
+                              const SizedBox(height: 4),
+                              TextField(
+                                controller: _tillNumberController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  hintText: '7',
+                                  hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                  contentPadding: const EdgeInsets.all(12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Unit',
+                                style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                              ),
+                              const SizedBox(height: 4),
+                              DropdownButtonFormField<String>(
+                                value: _tillUnit,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                ),
+                                items: ['Days', 'Weeks', 'Months', 'Years'].map((unit) {
+                                  return DropdownMenuItem(value: unit, child: Text(unit));
+                                }).toList(),
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    setState(() {
+                                      _tillUnit = value;
+                                    });
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -343,6 +433,8 @@ class _DosageDrawerState extends State<DosageDrawer> {
                       _durationNumberController.text,
                       _durationUnit,
                       _intervalController.text,
+                      _tillNumberController.text,
+                      _tillUnit,
                     );
                     Navigator.pop(context);
                   },

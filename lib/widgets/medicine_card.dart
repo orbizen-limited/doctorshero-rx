@@ -38,6 +38,8 @@ class _MedicineCardState extends State<MedicineCard> {
   late TextEditingController _intervalController;
   late String _currentType;
   String _durationUnit = 'Days';
+  String _tillNumber = '';
+  String _tillUnit = 'Days';
 
   @override
   void initState() {
@@ -52,6 +54,8 @@ class _MedicineCardState extends State<MedicineCard> {
     _quantityController = TextEditingController(text: widget.medicine.quantity);
     _frequencyController = TextEditingController(text: widget.medicine.frequency);
     _intervalController = TextEditingController(text: widget.medicine.interval);
+    _tillNumber = widget.medicine.tillNumber;
+    _tillUnit = widget.medicine.tillUnit.isEmpty ? 'Days' : widget.medicine.tillUnit;
     _currentType = widget.medicine.type;
     
     // Parse duration into number and unit
@@ -117,6 +121,8 @@ class _MedicineCardState extends State<MedicineCard> {
         quantity: _quantityController.text,
         frequency: _frequencyController.text,
         interval: _intervalController.text,
+        tillNumber: _tillNumber,
+        tillUnit: _tillUnit,
       );
       widget.onUpdate!(widget.medicine.id, updatedMedicine);
     }
@@ -178,7 +184,9 @@ class _MedicineCardState extends State<MedicineCard> {
             currentDurationNumber: _durationNumberController.text,
             currentDurationUnit: _durationUnit,
             currentInterval: _intervalController.text,
-            onSave: (dosage, quantity, frequency, route, durationNumber, durationUnit, interval) {
+            currentTillNumber: _tillNumber,
+            currentTillUnit: _tillUnit,
+            onSave: (dosage, quantity, frequency, route, durationNumber, durationUnit, interval, tillNumber, tillUnit) {
               setState(() {
                 _dosageController.text = dosage;
                 _quantityController.text = quantity;
@@ -187,6 +195,8 @@ class _MedicineCardState extends State<MedicineCard> {
                 _durationNumberController.text = durationNumber;
                 _durationUnit = durationUnit;
                 _intervalController.text = interval;
+                _tillNumber = tillNumber;
+                _tillUnit = tillUnit;
               });
               _updateMedicine();
             },
@@ -519,7 +529,7 @@ class _MedicineCardState extends State<MedicineCard> {
                                     Text(
                                       _durationNumberController.text.isEmpty
                                           ? 'Click to set'
-                                          : '${_durationNumberController.text} $_durationUnit${_intervalController.text.isNotEmpty ? " ($_intervalController.text)" : ""}',
+                                          : '${_durationNumberController.text} $_durationUnit${_intervalController.text.isNotEmpty ? " (${_intervalController.text})" : ""}${_tillNumber.isNotEmpty ? " till $_tillNumber $_tillUnit" : ""}',
                                       style: const TextStyle(
                                         fontSize: 12,
                                         fontFamily: 'ProductSans',

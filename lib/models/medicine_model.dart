@@ -12,6 +12,8 @@ class Medicine {
   final String quantity; // For Inj/Spray: "1 Capsule", "1 Ampoule", etc.
   final String frequency; // For Inj/Spray: "1 Time", "2 Times", etc.
   final String interval; // Optional: "Por Por", "Daily", etc.
+  final String tillNumber; // Optional: When to stop - number
+  final String tillUnit; // Optional: When to stop - unit (Days, Weeks, etc.)
 
   Medicine({
     required this.id,
@@ -27,6 +29,8 @@ class Medicine {
     this.quantity = '',
     this.frequency = '',
     this.interval = '',
+    this.tillNumber = '',
+    this.tillUnit = '',
   });
 
   String get fullName => '$type $name';
@@ -45,6 +49,8 @@ class Medicine {
     String? quantity,
     String? frequency,
     String? interval,
+    String? tillNumber,
+    String? tillUnit,
   }) {
     return Medicine(
       id: id ?? this.id,
@@ -60,6 +66,8 @@ class Medicine {
       quantity: quantity ?? this.quantity,
       frequency: frequency ?? this.frequency,
       interval: interval ?? this.interval,
+      tillNumber: tillNumber ?? this.tillNumber,
+      tillUnit: tillUnit ?? this.tillUnit,
     );
   }
 
@@ -78,6 +86,8 @@ class Medicine {
       'quantity': quantity,
       'frequency': frequency,
       'interval': interval,
+      'till_number': tillNumber,
+      'till_unit': tillUnit,
     };
   }
 
@@ -96,6 +106,8 @@ class Medicine {
       quantity: json['quantity'] ?? '',
       frequency: json['frequency'] ?? '',
       interval: json['interval'] ?? '',
+      tillNumber: json['till_number'] ?? '',
+      tillUnit: json['till_unit'] ?? '',
     );
   }
 }
