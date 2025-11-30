@@ -357,7 +357,7 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
                     decoration: InputDecoration(
                       hintText: 'e.g., 7.0',
                       suffixText: 'cm',
-                      helperText: 'Width for Chief Complaint, Examination, etc.',
+                      helperText: 'Set width for clinical data area (Chief Complaint, Examination, etc.) based on your hospital paper layout',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
