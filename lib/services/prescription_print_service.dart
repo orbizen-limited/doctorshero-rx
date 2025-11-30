@@ -127,17 +127,21 @@ class PrescriptionPrintService {
                 ),
               ),
 
+              // Spacing before separator
+              pw.SizedBox(width: 10),
+
               // Vertical Divider
               pw.Container(
                 width: 1,
                 height: double.infinity,
-                margin: const pw.EdgeInsets.symmetric(horizontal: 15),
                 color: PdfColors.grey400,
               ),
 
+              // Spacing after separator
+              pw.SizedBox(width: 10),
+
               // Right Column - Rx (Medicines)
               pw.Expanded(
-                flex: 3,
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
@@ -334,17 +338,21 @@ class PrescriptionPrintService {
                 ),
               ),
 
+              // Spacing before separator
+              pw.SizedBox(width: 10),
+
               // Vertical Divider
               pw.Container(
                 width: 1,
                 height: double.infinity,
-                margin: const pw.EdgeInsets.symmetric(horizontal: 15),
                 color: PdfColors.grey400,
               ),
 
+              // Spacing after separator
+              pw.SizedBox(width: 10),
+
               // Right Column - Rx (Medicines)
               pw.Expanded(
-                flex: 3,
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
