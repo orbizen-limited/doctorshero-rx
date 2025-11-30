@@ -567,6 +567,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   onTap: () {
                     setState(() {
                       _selectedMenu = subItem;
+                      // Clear saved prescription data when creating new RX
+                      if (subItem == 'Create New RX') {
+                        _savedPrescription = null;
+                        _patientId = null;
+                        _patientName = null;
+                        _patientAge = null;
+                        _patientGender = null;
+                      }
                     });
                   },
                   borderRadius: BorderRadius.circular(8),

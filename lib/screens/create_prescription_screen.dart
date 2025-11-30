@@ -20,6 +20,7 @@ class CreatePrescriptionScreen extends StatefulWidget {
   final String? patientGender;
   final String? patientPhone;
   final SavedPrescription? savedPrescription;
+  final Future<bool> Function()? onWillPop;
 
   const CreatePrescriptionScreen({
     Key? key,
@@ -29,6 +30,7 @@ class CreatePrescriptionScreen extends StatefulWidget {
     this.patientGender,
     this.patientPhone,
     this.savedPrescription,
+    this.onWillPop,
   }) : super(key: key);
 
   @override
@@ -42,6 +44,7 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
   List<String> adviceList = [];
   DateTime? followUpDate;
   String? referralText;
+  bool _hasUnsavedChanges = false;
 
   @override
   void initState() {
@@ -72,9 +75,53 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
     }
   }
 
+  bool _hasChanges() {
+    // Check if any data has been entered
+    return patientInfo.name.isNotEmpty ||
+           medicines.isNotEmpty ||
+           clinicalData.chiefComplaint.isNotEmpty ||
+           clinicalData.examination.isNotEmpty ||
+           clinicalData.history.isNotEmpty ||
+           clinicalData.diagnosis.isNotEmpty ||
+           clinicalData.investigation.isNotEmpty ||
+           adviceList.isNotEmpty ||
+           followUpDate != null ||
+           (referralText != null && referralText!.isNotEmpty);
+  }
+
+  Future<bool> _showExitConfirmation() async {
+    if (!_hasChanges()) return true;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Unsaved Changes'),
+        content: const Text(
+          'You have unsaved changes. Are you sure you want to leave?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFE3001),
+            ),
+            child: const Text('Leave'),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
+  }
+
   void _addMedicine(Medicine medicine) {
     setState(() {
       medicines.add(medicine);
+      _hasUnsavedChanges = true;
     });
   }
 
@@ -194,6 +241,11 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
       final dbService = PrescriptionDatabaseService();
       await dbService.savePrescription(savedPrescription);
 
+      // Clear unsaved changes flag
+      setState(() {
+        _hasUnsavedChanges = false;
+      });
+
       // Close loading dialog
       if (mounted) {
         Navigator.of(context).pop();
@@ -302,9 +354,11 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SingleChildScrollView(
+    return WillPopScope(
+      onWillPop: _showExitConfirmation,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: SingleChildScrollView(
         child: LayoutBuilder(
           builder: (context, constraints) {
             // Responsive padding based on screen width
@@ -423,6 +477,7 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
               ),
             );
           },
+        ),
         ),
       ),
     );
