@@ -46,6 +46,7 @@ class PrescriptionPrintService {
     required String age,
     required String date,
     required String patientId,
+    String? phone,
     String? doctorName,
     String? registrationNumber,
     required List<String> chiefComplaints,
@@ -76,44 +77,14 @@ class PrescriptionPrintService {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // Doctor Info - Right aligned at top
-              if (doctorName != null || registrationNumber != null)
-                pw.Align(
-                  alignment: pw.Alignment.centerRight,
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.end,
-                    children: [
-                      if (doctorName != null)
-                        pw.Text(
-                          doctorName,
-                          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                        ),
-                      if (registrationNumber != null)
-                        pw.Text(
-                          'Reg No: $registrationNumber',
-                          style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
-                        ),
-                    ],
-                  ),
-                ),
-              if (doctorName != null || registrationNumber != null)
-                pw.SizedBox(height: 8),
-              
-              // Divider
-              if (doctorName != null || registrationNumber != null)
-                pw.Container(
-                  height: 1,
-                  color: PdfColors.grey300,
-                ),
-              if (doctorName != null || registrationNumber != null)
-                pw.SizedBox(height: 12),
-              
               // Patient Info - Full width at top with proper spacing
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text('Name: $patientName', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
                   pw.Text('Age: $age', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  if (phone != null && phone.isNotEmpty)
+                    pw.Text('Phone: $phone', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
                   pw.Text('Date: $date', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
                   pw.Text('ID: $patientId', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
                 ],
@@ -318,6 +289,7 @@ class PrescriptionPrintService {
     required String age,
     required String date,
     required String patientId,
+    String? phone,
     required List<String> chiefComplaints,
     required Map<String, dynamic> examination,
     required List<String> diagnosis,
@@ -352,6 +324,8 @@ class PrescriptionPrintService {
                 children: [
                   pw.Text('Name: $patientName', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
                   pw.Text('Age: $age', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  if (phone != null && phone.isNotEmpty)
+                    pw.Text('Phone: $phone', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
                   pw.Text('Date: $date', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
                   pw.Text('ID: $patientId', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
                 ],

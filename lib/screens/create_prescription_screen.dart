@@ -401,16 +401,12 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
         }
       });
 
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final user = authProvider.user;
-      
       await PrescriptionPrintService.printPrescription(
         patientName: patientInfo.name.isEmpty ? 'Patient Name' : patientInfo.name,
         age: patientInfo.age.isEmpty ? 'N/A' : patientInfo.age,
         date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
         patientId: patientInfo.patientId.isEmpty ? 'N/A' : patientInfo.patientId,
-        doctorName: user?.name,
-        registrationNumber: user?.registrationNumber,
+        phone: patientInfo.phone,
         chiefComplaints: chiefComplaints,
         examination: examinationMap,
         diagnosis: diagnosisList,

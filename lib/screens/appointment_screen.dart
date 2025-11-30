@@ -679,24 +679,26 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           // Payment Status
           Expanded(
             flex: 2,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: appointment.paymentStatus.toLowerCase() == 'paid'
-                    ? const Color(0xFF4CAF50).withOpacity(0.1)
-                    : Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                appointment.paymentStatus,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'ProductSans',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
                   color: appointment.paymentStatus.toLowerCase() == 'paid'
-                      ? const Color(0xFF4CAF50)
-                      : Colors.grey.shade700,
+                      ? const Color(0xFF4CAF50).withOpacity(0.1)
+                      : Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  appointment.paymentStatus,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'ProductSans',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: appointment.paymentStatus.toLowerCase() == 'paid'
+                        ? const Color(0xFF4CAF50)
+                        : Colors.grey.shade700,
+                  ),
                 ),
               ),
             ),
