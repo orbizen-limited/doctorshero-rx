@@ -32,6 +32,9 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
   List<Medicine> medicines = [];
   late PrescriptionPatientInfo patientInfo;
   late ClinicalData clinicalData;
+  List<String> adviceList = [];
+  DateTime? followUpDate;
+  String? referralText;
 
   @override
   void initState() {
@@ -104,6 +107,24 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
     });
   }
 
+  void _updateAdvice(List<String> advice) {
+    setState(() {
+      adviceList = advice;
+    });
+  }
+
+  void _updateFollowUpDate(DateTime? date) {
+    setState(() {
+      followUpDate = date;
+    });
+  }
+
+  void _updateReferral(String? referral) {
+    setState(() {
+      referralText = referral;
+    });
+  }
+
   Future<void> _savePrescription() async {
     // Show loading indicator
     if (!mounted) return;
@@ -154,9 +175,9 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
         diagnosis: diagnosisList,
         investigation: investigationList,
         medicines: medicines,
-        advice: [], // TODO: Get from medicine list widget
-        followUpDate: null, // TODO: Get from medicine list widget
-        referral: null, // TODO: Get from medicine list widget
+        advice: adviceList,
+        followUpDate: followUpDate != null ? DateFormat('dd/MM/yyyy').format(followUpDate!) : null,
+        referral: referralText,
       );
 
       // Close loading dialog
@@ -235,9 +256,9 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
         diagnosis: diagnosisList,
         investigation: investigationList,
         medicines: medicines,
-        advice: [], // TODO: Get from medicine list widget
-        followUpDate: null, // TODO: Get from medicine list widget
-        referral: null, // TODO: Get from medicine list widget
+        advice: adviceList,
+        followUpDate: followUpDate != null ? DateFormat('dd/MM/yyyy').format(followUpDate!) : null,
+        referral: referralText,
       );
 
       // Close loading dialog
@@ -345,6 +366,9 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
                                     onDelete: _deleteMedicine,
                                     onReorder: _reorderMedicines,
                                     onUpdate: _updateMedicine,
+                                    onAdviceUpdate: _updateAdvice,
+                                    onFollowUpUpdate: _updateFollowUpDate,
+                                    onReferralUpdate: _updateReferral,
                                   ),
                                 ),
                               ],
@@ -362,6 +386,9 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
                                   onDelete: _deleteMedicine,
                                   onReorder: _reorderMedicines,
                                   onUpdate: _updateMedicine,
+                                  onAdviceUpdate: _updateAdvice,
+                                  onFollowUpUpdate: _updateFollowUpDate,
+                                  onReferralUpdate: _updateReferral,
                                 ),
                               ],
                             ),

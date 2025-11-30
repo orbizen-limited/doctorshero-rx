@@ -10,6 +10,9 @@ class MedicineList extends StatefulWidget {
   final Function(String) onDelete;
   final Function(int, int) onReorder;
   final Function(String id, Medicine updatedMedicine)? onUpdate;
+  final Function(List<String>)? onAdviceUpdate;
+  final Function(DateTime?)? onFollowUpUpdate;
+  final Function(String?)? onReferralUpdate;
 
   const MedicineList({
     Key? key,
@@ -18,6 +21,9 @@ class MedicineList extends StatefulWidget {
     required this.onDelete,
     required this.onReorder,
     this.onUpdate,
+    this.onAdviceUpdate,
+    this.onFollowUpUpdate,
+    this.onReferralUpdate,
   }) : super(key: key);
 
   @override
@@ -151,6 +157,7 @@ class _MedicineListState extends State<MedicineList> {
                         setState(() {
                           _selectedAdvice = advice;
                         });
+                        widget.onAdviceUpdate?.call(advice);
                       },
                     ),
                   );
@@ -237,6 +244,7 @@ class _MedicineListState extends State<MedicineList> {
                         setState(() {
                           _followUpDate = picked;
                         });
+                        widget.onFollowUpUpdate?.call(picked);
                       }
                     },
                     child: Container(
@@ -285,6 +293,9 @@ class _MedicineListState extends State<MedicineList> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: _referralController,
+                    onChanged: (value) {
+                      widget.onReferralUpdate?.call(value.isEmpty ? null : value);
+                    },
                     decoration: InputDecoration(
                       hintText: 'Refer to specialist...',
                       hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
