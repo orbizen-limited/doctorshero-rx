@@ -1,10 +1,21 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/appointment_model.dart';
 
 class AppointmentService {
   static const String baseUrl = 'https://demo.doctorshero.com/api/v1';
+  
+  // Create HTTP client with SSL bypass
+  static http.Client _createHttpClient() {
+    final ioClient = HttpClient()
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+    return IOClient(ioClient);
+  }
+  
+  static final http.Client _client = _createHttpClient();
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -41,7 +52,7 @@ class AppointmentService {
           .replace(queryParameters: queryParams);
       
       print('Fetching appointments from: $uri');
-      final response = await http.get(uri, headers: headers);
+      final response = await _client.get(uri, headers: headers);
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
@@ -92,7 +103,7 @@ class AppointmentService {
           .replace(queryParameters: queryParams);
       
       print('Fetching stats from: $uri');
-      final response = await http.get(uri, headers: headers);
+      final response = await _client.get(uri, headers: headers);
       print('Stats response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {

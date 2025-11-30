@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'package:url_launcher/url_launcher.dart';
 
 class UpdateService {
   // Update this URL to your actual update server
   static const String updateCheckUrl = 'https://api.doctorshero.com/app/version';
   static const String downloadUrl = 'https://doctorshero.com/downloads/latest';
+  
+  // Create HTTP client with SSL bypass
+  static http.Client _createHttpClient() {
+    final ioClient = HttpClient()
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+    return IOClient(ioClient);
+  }
+  
+  static final http.Client _client = _createHttpClient();
 
   static Future<void> checkForUpdates(BuildContext context) async {
     try {
@@ -15,7 +26,7 @@ class UpdateService {
       final currentVersion = packageInfo.version;
 
       // Check for updates from server
-      final response = await http.get(Uri.parse(updateCheckUrl));
+      final response = await _client.get(Uri.parse(updateCheckUrl));
       
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

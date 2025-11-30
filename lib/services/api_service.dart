@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 
@@ -8,6 +10,19 @@ class ApiService {
   static const String authBaseUrl = '$baseUrl/api/mobile/auth';
   
   String? _token;
+  
+  // Create HTTP client with SSL bypass for development
+  static http.Client _createHttpClient() {
+    final ioClient = HttpClient()
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) {
+        // Allow all certificates in development
+        // TODO: Remove this in production and use proper SSL certificates
+        return true;
+      };
+    return IOClient(ioClient);
+  }
+  
+  static final http.Client _client = _createHttpClient();
 
   // Get token from storage
   Future<String?> getToken() async {
@@ -34,7 +49,7 @@ class ApiService {
   // Login
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse('$authBaseUrl/login'),
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +81,7 @@ class ApiService {
       final token = await getToken();
       if (token == null) return null;
 
-      final response = await http.get(
+      final response = await _client.get(
         Uri.parse('$authBaseUrl/me'),
         headers: {
           'Authorization': 'Bearer $token',
@@ -91,7 +106,7 @@ class ApiService {
     try {
       final token = await getToken();
       if (token != null) {
-        await http.post(
+        await _client.post(
           Uri.parse('$authBaseUrl/logout'),
           headers: {
             'Authorization': 'Bearer $token',
@@ -113,7 +128,7 @@ class ApiService {
       final token = await getToken();
       if (token == null) return false;
 
-      final response = await http.get(
+      final response = await _client.get(
         Uri.parse('$authBaseUrl/check'),
         headers: {
           'Authorization': 'Bearer $token',
