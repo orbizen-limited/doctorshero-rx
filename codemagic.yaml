@@ -61,12 +61,6 @@ workflows:
         notify:
           success: true
           failure: true
-          
-      github_releases:
-        prerelease: false
-        artifact_patterns:
-          - DoctorsHero_Core_*.zip
-          - version.json
 
   windows-installer:
     name: DoctorsHero Core - Windows Installer
@@ -153,12 +147,6 @@ workflows:
         notify:
           success: true
           failure: true
-          
-      github_releases:
-        prerelease: false
-        artifact_patterns:
-          - DoctorsHero_Core_Setup_*.exe
-          - version.json
 
   windows-development:
     name: DoctorsHero Core - Windows Dev Build
