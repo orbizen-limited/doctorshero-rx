@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../models/medicine_model.dart';
 import '../models/prescription_model.dart';
 import '../widgets/patient_info_card.dart';
@@ -7,6 +8,7 @@ import '../widgets/clinical_sections.dart';
 import '../widgets/medicine_list.dart';
 import '../widgets/prescription_footer.dart';
 import '../services/prescription_print_service.dart';
+import '../providers/auth_provider.dart';
 
 class CreatePrescriptionScreen extends StatefulWidget {
   final String? patientId;
@@ -246,11 +248,16 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
         }
       });
 
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
+      
       await PrescriptionPrintService.printPrescription(
         patientName: patientInfo.name.isEmpty ? 'Patient Name' : patientInfo.name,
         age: patientInfo.age.isEmpty ? 'N/A' : patientInfo.age,
         date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
         patientId: patientInfo.patientId.isEmpty ? 'N/A' : patientInfo.patientId,
+        doctorName: user?.name,
+        registrationNumber: user?.registrationNumber,
         chiefComplaints: chiefComplaints,
         examination: examinationMap,
         diagnosis: diagnosisList,
