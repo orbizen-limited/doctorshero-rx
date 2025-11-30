@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/medicine_service.dart';
-import '../models/medicine_data.dart';
+import '../services/medicine_database_service.dart';
 
 class DrugDatabaseScreen extends StatefulWidget {
   const DrugDatabaseScreen({super.key});
@@ -32,7 +31,9 @@ class _DrugDatabaseScreenState extends State<DrugDatabaseScreen> {
     setState(() => _isLoading = true);
     
     try {
-      final medicines = await MedicineService.getAllMedicines();
+      await MedicineDatabaseService.loadDatabase();
+      // Get all medicines from the database
+      final medicines = MedicineDatabaseService.getAllMedicines();
       setState(() {
         _allMedicines = medicines;
         _filteredMedicines = medicines;
@@ -56,9 +57,10 @@ class _DrugDatabaseScreenState extends State<DrugDatabaseScreen> {
         _filteredMedicines = _allMedicines;
       } else {
         _filteredMedicines = _allMedicines.where((medicine) {
-          return medicine.brandName.toLowerCase().contains(query) ||
+          return medicine.medicineName.toLowerCase().contains(query) ||
                  medicine.genericName.toLowerCase().contains(query) ||
-                 medicine.manufacturer.toLowerCase().contains(query);
+                 medicine.company.toLowerCase().contains(query) ||
+                 medicine.category.toLowerCase().contains(query);
         }).toList();
       }
     });
@@ -94,7 +96,7 @@ class _DrugDatabaseScreenState extends State<DrugDatabaseScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            medicine.brandName,
+                            medicine.medicineName,
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -130,24 +132,10 @@ class _DrugDatabaseScreenState extends State<DrugDatabaseScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildInfoSection('Generic Name', medicine.genericName),
-                      _buildInfoSection('Manufacturer', medicine.manufacturer),
+                      _buildInfoSection('Manufacturer', medicine.company),
                       _buildInfoSection('Dosage Form', medicine.dosageForm),
-                      _buildInfoSection('Strength', medicine.strength),
-                      
-                      if (medicine.indication.isNotEmpty)
-                        _buildInfoSection('Indication', medicine.indication),
-                      
-                      if (medicine.sideEffects.isNotEmpty)
-                        _buildInfoSection('Side Effects', medicine.sideEffects),
-                      
-                      if (medicine.contraindications.isNotEmpty)
-                        _buildInfoSection('Contraindications', medicine.contraindications),
-                      
-                      if (medicine.dosage.isNotEmpty)
-                        _buildInfoSection('Dosage', medicine.dosage),
-                      
-                      if (medicine.price.isNotEmpty)
-                        _buildInfoSection('Price', medicine.price),
+                      _buildInfoSection('Strength', medicine.powerStrength),
+                      _buildInfoSection('Category', medicine.category),
                     ],
                   ),
                 ),
@@ -395,7 +383,7 @@ class _DrugDatabaseScreenState extends State<DrugDatabaseScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      medicine.brandName,
+                      medicine.medicineName,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -423,20 +411,20 @@ class _DrugDatabaseScreenState extends State<DrugDatabaseScreen> {
                             fontFamily: 'ProductSans',
                           ),
                         ),
-                        if (medicine.strength.isNotEmpty) ...[
+                        if (medicine.powerStrength.isNotEmpty) ...[
                           const Text(
                             ' • ',
                             style: TextStyle(color: Color(0xFF94A3B8)),
                           ),
                           Text(
-                            medicine.strength,
+                            medicine.powerStrength,
                             style: const TextStyle(
                               fontSize: 12,
                               color: Color(0xFF94A3B8),
                               fontFamily: 'ProductSans',
                             ),
                           ),
-                        ],
+                        ]
                       ],
                     ),
                   ],

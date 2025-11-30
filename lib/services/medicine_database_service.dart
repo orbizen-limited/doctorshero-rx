@@ -80,6 +80,10 @@ class MedicineDatabaseService {
     }
   }
   
+  static List<MedicineData> getAllMedicines() {
+    return _medicines ?? [];
+  }
+  
   static List<MedicineData> searchByMedicineName(String query) {
     if (_medicines == null || query.isEmpty) return [];
     
