@@ -349,10 +349,10 @@ class _DosageDrawerState extends State<DosageDrawer> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        _buildIntervalChip('Por Por'),
-                        _buildIntervalChip('Daily'),
-                        _buildIntervalChip('Weekly'),
-                        _buildIntervalChip('Monthly'),
+                        _buildIntervalChip('পর পর'),
+                        _buildIntervalChip('দিনের মধ্যে'),
+                        _buildIntervalChip('প্রতি সপ্তাহে'),
+                        _buildIntervalChip('প্রতি মাসে'),
                       ],
                     ),
 

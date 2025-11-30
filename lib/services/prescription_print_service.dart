@@ -4,9 +4,31 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:open_file/open_file.dart';
+import 'package:http/http.dart' as http;
 import '../models/medicine_model.dart';
 
 class PrescriptionPrintService {
+  // Cache for the loaded font
+  static pw.Font? _cachedFont;
+  
+  // Load font that supports Bangla and special characters
+  static Future<pw.Font> _loadBanglaFont() async {
+    if (_cachedFont != null) return _cachedFont!;
+    
+    // Download Noto Sans Bengali from Google Fonts
+    // This font supports Bangla, English, numbers, and all special characters
+    final response = await http.get(Uri.parse(
+      'https://github.com/google/fonts/raw/main/ofl/notosansbengali/NotoSansBengali-Regular.ttf'
+    ));
+    
+    if (response.statusCode == 200) {
+      _cachedFont = pw.Font.ttf(response.bodyBytes.buffer.asByteData());
+      return _cachedFont!;
+    }
+    
+    // Fallback to default font if download fails
+    throw Exception('Failed to load Bangla font');
+  }
   // Get margin settings from SharedPreferences
   static Future<Map<String, double>> getMarginSettings() async {
     final prefs = await SharedPreferences.getInstance();
@@ -59,7 +81,15 @@ class PrescriptionPrintService {
     required String? referral,
   }) async {
     final margins = await getMarginSettings();
-    final pdf = pw.Document();
+    final banglaFont = await _loadBanglaFont();
+    final pdf = pw.Document(
+      theme: pw.ThemeData.withFont(
+        base: banglaFont,
+        bold: banglaFont,
+        italic: banglaFont,
+        boldItalic: banglaFont,
+      ),
+    );
 
     pdf.addPage(
       pw.Page(
@@ -300,7 +330,15 @@ class PrescriptionPrintService {
     required String? referral,
   }) async {
     final margins = await getMarginSettings();
-    final pdf = pw.Document();
+    final banglaFont = await _loadBanglaFont();
+    final pdf = pw.Document(
+      theme: pw.ThemeData.withFont(
+        base: banglaFont,
+        bold: banglaFont,
+        italic: banglaFont,
+        boldItalic: banglaFont,
+      ),
+    );
 
     pdf.addPage(
       pw.Page(
