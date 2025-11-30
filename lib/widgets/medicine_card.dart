@@ -490,29 +490,43 @@ class _MedicineCardState extends State<MedicineCard> {
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    // Show quantity x frequency for Inj/Spray
+                                    // Show dosage or quantity x frequency
                                     if (_isInjectionOrSpray() && _quantityController.text.isNotEmpty && _frequencyController.text.isNotEmpty)
                                       Text(
                                         '${_quantityController.text} x ${_frequencyController.text}',
                                         style: const TextStyle(
-                                          fontSize: 11,
+                                          fontSize: 10,
                                           fontFamily: 'ProductSans',
                                           color: Color(0xFF64748B),
                                         ),
                                         overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      )
+                                    else if (!_isInjectionOrSpray() && _dosageController.text.isNotEmpty)
+                                      Text(
+                                        _dosageController.text,
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          fontFamily: 'ProductSans',
+                                          color: Color(0xFF64748B),
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
                                       ),
                                     // Show duration
                                     Text(
                                       _durationNumberController.text.isEmpty
                                           ? 'Click to set'
-                                          : '${_durationNumberController.text} $_durationUnit',
+                                          : '${_durationNumberController.text} $_durationUnit${_intervalController.text.isNotEmpty ? " ($_intervalController.text)" : ""}',
                                       style: const TextStyle(
-                                        fontSize: 13,
+                                        fontSize: 12,
                                         fontFamily: 'ProductSans',
                                         color: Color(0xFF1E293B),
                                       ),
                                       overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
                                     ),
                                   ],
                                 ),

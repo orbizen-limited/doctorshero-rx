@@ -207,7 +207,12 @@ class PrescriptionPrintService {
                             if (medicine.duration.isNotEmpty)
                               pw.Padding(
                                 padding: const pw.EdgeInsets.only(left: 10),
-                                child: pw.Text(medicine.duration, style: const pw.TextStyle(fontSize: 8)),
+                                child: pw.Text(
+                                  medicine.interval.isNotEmpty
+                                      ? '${medicine.duration} (${medicine.interval})'
+                                      : medicine.duration,
+                                  style: const pw.TextStyle(fontSize: 8),
+                                ),
                               ),
                             if (medicine.advice.isNotEmpty)
                               pw.Padding(
@@ -442,7 +447,12 @@ class PrescriptionPrintService {
                             if (medicine.duration.isNotEmpty)
                               pw.Padding(
                                 padding: const pw.EdgeInsets.only(left: 10),
-                                child: pw.Text(medicine.duration, style: const pw.TextStyle(fontSize: 8)),
+                                child: pw.Text(
+                                  medicine.interval.isNotEmpty
+                                      ? '${medicine.duration} (${medicine.interval})'
+                                      : medicine.duration,
+                                  style: const pw.TextStyle(fontSize: 8),
+                                ),
                               ),
                             if (medicine.advice.isNotEmpty)
                               pw.Padding(
