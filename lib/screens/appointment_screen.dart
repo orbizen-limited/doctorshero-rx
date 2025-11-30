@@ -294,17 +294,16 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                     ),
                     child: Row(
                       children: [
-                        _buildTableHeader('PATIENT NAME', flex: 2),
-                        _buildTableHeader('PID', flex: 1),
+                        _buildTableHeader('PATIENT NAME', flex: 3),
+                        _buildTableHeader('PID', flex: 2),
                         _buildTableHeader('GENDER', flex: 1),
                         _buildTableHeader('AGE', flex: 1),
-                        _buildTableHeader('DATE', flex: 1),
+                        _buildTableHeader('DATE', flex: 2),
                         _buildTableHeader('TIME', flex: 1),
-                        _buildTableHeader('LOCATION', flex: 2),
-                        _buildTableHeader('PAYMENT STATUS', flex: 1),
+                        _buildTableHeader('PAYMENT STATUS', flex: 2),
                         _buildTableHeader('PRICE', flex: 1),
-                        _buildTableHeader('STATUS', flex: 1),
-                        _buildTableHeader('ACTIONS', flex: 1),
+                        _buildTableHeader('STATUS', flex: 2),
+                        _buildTableHeader('ACTIONS', flex: 2),
                       ],
                     ),
                   ),
@@ -567,7 +566,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         children: [
           // Patient Name with Avatar
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Row(
               children: [
                 CircleAvatar(
@@ -615,7 +614,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           ),
           // PID (Patient ID)
           Expanded(
-            flex: 1,
+            flex: 2,
             child: Text(
               appointment.patientPid ?? '-',
               style: TextStyle(
@@ -654,7 +653,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           ),
           // Date
           Expanded(
-            flex: 1,
+            flex: 2,
             child: Text(
               DateFormat('MM/dd/yyyy').format(DateTime.parse(appointment.appointmentDate)),
               style: const TextStyle(
@@ -676,23 +675,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               ),
             ),
           ),
-          // Location
-          Expanded(
-            flex: 2,
-            child: Text(
-              appointment.location ?? 'Dhaka,Bangladesh',
-              style: const TextStyle(
-                fontFamily: 'ProductSans',
-                fontSize: 13,
-                color: Color(0xFF1A1A1A),
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
           // Payment Status
           Expanded(
-            flex: 1,
+            flex: 2,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
@@ -739,7 +724,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           ),
           // Status
           Expanded(
-            flex: 1,
+            flex: 2,
             child: InkWell(
               onTap: () => _showStatusMenu(context, appointment),
               child: Container(
@@ -778,7 +763,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           ),
           // Actions
           Expanded(
-            flex: 1,
+            flex: 2,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
