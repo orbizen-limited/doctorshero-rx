@@ -13,14 +13,26 @@ class PrescriptionPrintService {
     return {
       'top': prefs.getDouble('print_margin_top') ?? 3.0, // Default 3 cm
       'bottom': prefs.getDouble('print_margin_bottom') ?? 3.0, // Default 3 cm
+      'left': prefs.getDouble('print_margin_left') ?? 1.5, // Default 1.5 cm
+      'right': prefs.getDouble('print_margin_right') ?? 0.8, // Default 0.8 cm
+      'leftColumnWidth': prefs.getDouble('print_left_column_width') ?? 7.0, // Default 7 cm
     };
   }
 
   // Save margin settings
-  static Future<void> saveMarginSettings(double top, double bottom) async {
+  static Future<void> saveMarginSettings(
+    double top, 
+    double bottom, {
+    double? left,
+    double? right,
+    double? leftColumnWidth,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('print_margin_top', top);
     await prefs.setDouble('print_margin_bottom', bottom);
+    if (left != null) await prefs.setDouble('print_margin_left', left);
+    if (right != null) await prefs.setDouble('print_margin_right', right);
+    if (leftColumnWidth != null) await prefs.setDouble('print_left_column_width', leftColumnWidth);
   }
 
   static Future<String> printPrescription({
@@ -46,16 +58,16 @@ class PrescriptionPrintService {
         margin: pw.EdgeInsets.only(
           top: margins['top']! * PdfPageFormat.cm,
           bottom: margins['bottom']! * PdfPageFormat.cm,
-          left: 1.5 * PdfPageFormat.cm,
-          right: 1.5 * PdfPageFormat.cm,
+          left: margins['left']! * PdfPageFormat.cm,
+          right: margins['right']! * PdfPageFormat.cm,
         ),
         build: (context) {
           return pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               // Left Column - Chief Complaint, Examination, Diagnosis, Investigation
-              pw.Expanded(
-                flex: 2,
+              pw.SizedBox(
+                width: margins['leftColumnWidth']! * PdfPageFormat.cm,
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
@@ -256,16 +268,16 @@ class PrescriptionPrintService {
         margin: pw.EdgeInsets.only(
           top: margins['top']! * PdfPageFormat.cm,
           bottom: margins['bottom']! * PdfPageFormat.cm,
-          left: 1.5 * PdfPageFormat.cm,
-          right: 1.5 * PdfPageFormat.cm,
+          left: margins['left']! * PdfPageFormat.cm,
+          right: margins['right']! * PdfPageFormat.cm,
         ),
         build: (context) {
           return pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               // Left Column - Chief Complaint, Examination, Diagnosis, Investigation
-              pw.Expanded(
-                flex: 2,
+              pw.SizedBox(
+                width: margins['leftColumnWidth']! * PdfPageFormat.cm,
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [

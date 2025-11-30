@@ -24,6 +24,9 @@ class PrintSettingsScreen extends StatefulWidget {
 class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
   final TextEditingController _topMarginController = TextEditingController();
   final TextEditingController _bottomMarginController = TextEditingController();
+  final TextEditingController _leftMarginController = TextEditingController();
+  final TextEditingController _rightMarginController = TextEditingController();
+  final TextEditingController _leftColumnWidthController = TextEditingController();
   bool _isLoading = true;
   String? _selectedPreset;
 
@@ -48,6 +51,9 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
     setState(() {
       _topMarginController.text = margins['top']!.toStringAsFixed(1);
       _bottomMarginController.text = margins['bottom']!.toStringAsFixed(1);
+      _leftMarginController.text = (margins['left'] ?? 1.5).toStringAsFixed(1);
+      _rightMarginController.text = (margins['right'] ?? 0.8).toStringAsFixed(1);
+      _leftColumnWidthController.text = (margins['leftColumnWidth'] ?? 7.0).toStringAsFixed(1);
       _selectedPreset = 'Custom';
       _isLoading = false;
     });
@@ -71,8 +77,17 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
   Future<void> _saveSettings() async {
     final top = double.tryParse(_topMarginController.text) ?? 3.0;
     final bottom = double.tryParse(_bottomMarginController.text) ?? 3.0;
+    final left = double.tryParse(_leftMarginController.text) ?? 1.5;
+    final right = double.tryParse(_rightMarginController.text) ?? 0.8;
+    final leftColumnWidth = double.tryParse(_leftColumnWidthController.text) ?? 7.0;
 
-    await PrescriptionPrintService.saveMarginSettings(top, bottom);
+    await PrescriptionPrintService.saveMarginSettings(
+      top, 
+      bottom, 
+      left: left,
+      right: right,
+      leftColumnWidth: leftColumnWidth,
+    );
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -88,6 +103,9 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
   void dispose() {
     _topMarginController.dispose();
     _bottomMarginController.dispose();
+    _leftMarginController.dispose();
+    _rightMarginController.dispose();
+    _leftColumnWidthController.dispose();
     super.dispose();
   }
 
@@ -231,6 +249,115 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
                     decoration: InputDecoration(
                       hintText: 'e.g., 3.0',
                       suffixText: 'cm',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001), width: 2),
+                      ),
+                      contentPadding: const EdgeInsets.all(16),
+                    ),
+                    style: const TextStyle(fontSize: 16, fontFamily: 'ProductSans'),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Left Margin Input
+                  const Text(
+                    'Left Margin (cm)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _leftMarginController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    onChanged: (_) {
+                      setState(() {
+                        _selectedPreset = 'Custom';
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'e.g., 1.5',
+                      suffixText: 'cm',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001), width: 2),
+                      ),
+                      contentPadding: const EdgeInsets.all(16),
+                    ),
+                    style: const TextStyle(fontSize: 16, fontFamily: 'ProductSans'),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Right Margin Input
+                  const Text(
+                    'Right Margin (cm)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _rightMarginController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    onChanged: (_) {
+                      setState(() {
+                        _selectedPreset = 'Custom';
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'e.g., 0.8',
+                      suffixText: 'cm',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001), width: 2),
+                      ),
+                      contentPadding: const EdgeInsets.all(16),
+                    ),
+                    style: const TextStyle(fontSize: 16, fontFamily: 'ProductSans'),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Left Column Width Input
+                  const Text(
+                    'Left Column Width (cm)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _leftColumnWidthController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    onChanged: (_) {
+                      setState(() {
+                        _selectedPreset = 'Custom';
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'e.g., 7.0',
+                      suffixText: 'cm',
+                      helperText: 'Width for Chief Complaint, Examination, etc.',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
