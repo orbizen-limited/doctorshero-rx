@@ -316,6 +316,9 @@ class _DosageDrawerState extends State<DosageDrawer> {
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                         contentPadding: const EdgeInsets.all(12),
                       ),
+                      onChanged: (value) {
+                        setState(() {}); // Trigger rebuild to show/hide Till section
+                      },
                     ),
 
                     const SizedBox(height: 24),
@@ -334,16 +337,17 @@ class _DosageDrawerState extends State<DosageDrawer> {
 
                     const SizedBox(height: 32),
 
-                    // TILL SECTION (Optional - When to stop)
-                    const Text(
-                      'Till / Until (Optional)',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
-                        fontFamily: 'ProductSans',
+                    // TILL SECTION (Only show if interval has input)
+                    if (_intervalController.text.isNotEmpty) ...[
+                      const Text(
+                        'Till / Until (Optional)',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                          fontFamily: 'ProductSans',
+                        ),
                       ),
-                    ),
                     const SizedBox(height: 8),
                     const Text(
                       'When should the medicine be stopped?',
@@ -444,6 +448,7 @@ class _DosageDrawerState extends State<DosageDrawer> {
                         ),
                       ],
                     ),
+                    ], // End of Till section conditional
                   ],
                 ),
               ),
