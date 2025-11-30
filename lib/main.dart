@@ -25,12 +25,15 @@ void main() async {
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.normal,
     title: 'DoctorsHero RX',
+    fullScreen: false,
   );
   
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
     await windowManager.maximize();
+    // Ensure maximized state on Windows
+    await windowManager.setMaximizable(true);
   });
   
   runApp(const MyApp());
