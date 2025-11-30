@@ -65,9 +65,16 @@ class PrescriptionPrintService {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // Patient Info - Full width at top
-              pw.Text('Name: $patientName    Age: $age    Date: $date    ID: $patientId', 
-                style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+              // Patient Info - Full width at top with proper spacing
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Name: $patientName', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('Age: $age', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('Date: $date', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('ID: $patientId', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                ],
+              ),
               pw.SizedBox(height: 15),
 
               // Two-column layout below patient info
@@ -276,9 +283,16 @@ class PrescriptionPrintService {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // Patient Info - Full width at top
-              pw.Text('Name: $patientName    Age: $age    Date: $date    ID: $patientId', 
-                style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+              // Patient Info - Full width at top with proper spacing
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Name: $patientName', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('Age: $age', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('Date: $date', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('ID: $patientId', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                ],
+              ),
               pw.SizedBox(height: 15),
 
               // Two-column layout below patient info
