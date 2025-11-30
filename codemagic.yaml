@@ -67,13 +67,6 @@ workflows:
         artifact_patterns:
           - DoctorsHero_Core_*.zip
           - version.json
-        commit_message: |
-          DoctorsHero Core v${CM_BUILD_VERSION}
-          
-          Build: ${CM_BUILD_NUMBER}
-          Commit: ${CM_COMMIT}
-          
-          Download and extract the ZIP file to install.
 
   windows-installer:
     name: DoctorsHero Core - Windows Installer
@@ -166,22 +159,6 @@ workflows:
         artifact_patterns:
           - DoctorsHero_Core_Setup_*.exe
           - version.json
-        commit_message: |
-          🚀 DoctorsHero Core v${CM_BUILD_VERSION}
-          
-          ## What's New
-          Build ${CM_BUILD_NUMBER}
-          
-          ## Installation
-          1. Download `DoctorsHero_Core_Setup_v${CM_BUILD_VERSION}.exe`
-          2. Run the installer
-          3. Follow the setup wizard
-          
-          ## Auto-Update
-          Existing users will be notified automatically.
-          
-          ## Version API
-          Use `version.json` for your update server endpoint.
 
   windows-development:
     name: DoctorsHero Core - Windows Dev Build
