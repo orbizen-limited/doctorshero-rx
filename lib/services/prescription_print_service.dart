@@ -62,21 +62,26 @@ class PrescriptionPrintService {
           right: margins['right']! * PdfPageFormat.cm,
         ),
         build: (context) {
-          return pw.Row(
+          return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // Left Column - Chief Complaint, Examination, Diagnosis, Investigation
-              pw.SizedBox(
-                width: margins['leftColumnWidth']! * PdfPageFormat.cm,
-                child: pw.Column(
+              // Patient Info - Full width at top
+              pw.Text('Name: $patientName    Age: $age    Date: $date    ID: $patientId', 
+                style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 15),
+
+              // Two-column layout below patient info
+              pw.Expanded(
+                child: pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    // Patient Info - Simple single line
-                    pw.Text('Name: $patientName    Age: $age    Date: $date    ID: $patientId', 
-                      style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-                    pw.SizedBox(height: 15),
-
-                    // Chief Complaint
+                    // Left Column - Chief Complaint, Examination, Diagnosis, Investigation
+                    pw.SizedBox(
+                      width: margins['leftColumnWidth']! * PdfPageFormat.cm,
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          // Chief Complaint
                     if (chiefComplaints.isNotEmpty) ...[
                       pw.Text('Chief Complaint', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
                       pw.SizedBox(height: 5),
@@ -209,6 +214,9 @@ class PrescriptionPrintService {
                         ],
                       ),
                     ],
+                  ],
+                ),
+              ),
                   ],
                 ),
               ),
@@ -261,21 +269,26 @@ class PrescriptionPrintService {
           right: margins['right']! * PdfPageFormat.cm,
         ),
         build: (context) {
-          return pw.Row(
+          return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // Left Column - Chief Complaint, Examination, Diagnosis, Investigation
-              pw.SizedBox(
-                width: margins['leftColumnWidth']! * PdfPageFormat.cm,
-                child: pw.Column(
+              // Patient Info - Full width at top
+              pw.Text('Name: $patientName    Age: $age    Date: $date    ID: $patientId', 
+                style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 15),
+
+              // Two-column layout below patient info
+              pw.Expanded(
+                child: pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    // Patient Info - Simple single line
-                    pw.Text('Name: $patientName    Age: $age    Date: $date    ID: $patientId', 
-                      style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-                    pw.SizedBox(height: 15),
-
-                    // Chief Complaint
+                    // Left Column - Chief Complaint, Examination, Diagnosis, Investigation
+                    pw.SizedBox(
+                      width: margins['leftColumnWidth']! * PdfPageFormat.cm,
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          // Chief Complaint
                     if (chiefComplaints.isNotEmpty) ...[
                       pw.Text('Chief Complaint', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
                       pw.SizedBox(height: 5),
@@ -408,6 +421,9 @@ class PrescriptionPrintService {
                         ],
                       ),
                     ],
+                  ],
+                ),
+              ),
                   ],
                 ),
               ),
