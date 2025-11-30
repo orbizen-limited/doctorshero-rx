@@ -1,10 +1,10 @@
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:open_file/open_file.dart';
-import 'package:http/http.dart' as http;
 import '../models/medicine_model.dart';
 
 class PrescriptionPrintService {
@@ -15,19 +15,11 @@ class PrescriptionPrintService {
   static Future<pw.Font> _loadBanglaFont() async {
     if (_cachedFont != null) return _cachedFont!;
     
-    // Download Noto Sans Bengali from Google Fonts
+    // Load Noto Sans Bengali from bundled assets
     // This font supports Bangla, English, numbers, and all special characters
-    final response = await http.get(Uri.parse(
-      'https://github.com/google/fonts/raw/main/ofl/notosansbengali/NotoSansBengali-Regular.ttf'
-    ));
-    
-    if (response.statusCode == 200) {
-      _cachedFont = pw.Font.ttf(response.bodyBytes.buffer.asByteData());
-      return _cachedFont!;
-    }
-    
-    // Fallback to default font if download fails
-    throw Exception('Failed to load Bangla font');
+    final fontData = await rootBundle.load('assets/fonts/NotoSansBengali-Regular.ttf');
+    _cachedFont = pw.Font.ttf(fontData);
+    return _cachedFont!;
   }
   // Get margin settings from SharedPreferences
   static Future<Map<String, double>> getMarginSettings() async {
@@ -243,7 +235,7 @@ class PrescriptionPrintService {
                               pw.Padding(
                                 padding: const pw.EdgeInsets.only(left: 10),
                                 child: pw.Text(
-                                  '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " till ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
+                                  '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " `-` ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
                                   style: const pw.TextStyle(fontSize: 8),
                                 ),
                               ),

@@ -109,10 +109,14 @@ flutter:
     - assets/horizental-logo-white.png
     - assets/doctor.png
     - assets/background-effect.svg
+    - assets/fonts/
     - medicine_db/medex_comprehensive_data.json
 
   # Fonts
   fonts:
+    - family: NotoSansBengali
+      fonts:
+        - asset: assets/fonts/NotoSansBengali-Regular.ttf
     - family: ProductSans
       fonts:
         - asset: font/ProductSans-Regular.ttf
