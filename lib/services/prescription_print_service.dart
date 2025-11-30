@@ -62,33 +62,32 @@ class PrescriptionPrintService {
           right: margins['right']! * PdfPageFormat.cm,
         ),
         build: (context) {
-          return pw.Row(
+          return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // Left Column - Chief Complaint, Examination, Diagnosis, Investigation
-              pw.SizedBox(
-                width: margins['leftColumnWidth']! * PdfPageFormat.cm,
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    // Patient Info
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text('Name: $patientName', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                        pw.Text('Age: $age', style: const pw.TextStyle(fontSize: 10)),
-                      ],
-                    ),
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text('Date: $date', style: const pw.TextStyle(fontSize: 10)),
-                        pw.Text('ID: $patientId', style: const pw.TextStyle(fontSize: 10)),
-                      ],
-                    ),
-                    pw.SizedBox(height: 15),
+              // Patient Info - Full Width Header
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Name: $patientName', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('Age: $age', style: const pw.TextStyle(fontSize: 10)),
+                  pw.Text('Date: $date', style: const pw.TextStyle(fontSize: 10)),
+                  pw.Text('ID: $patientId', style: const pw.TextStyle(fontSize: 10)),
+                ],
+              ),
+              pw.SizedBox(height: 15),
 
-                    // Chief Complaint
+              // Two Column Layout
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  // Left Column - Chief Complaint, Examination, Diagnosis, Investigation
+                  pw.SizedBox(
+                    width: margins['leftColumnWidth']! * PdfPageFormat.cm,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        // Chief Complaint
                     if (chiefComplaints.isNotEmpty) ...[
                       pw.Text('Chief Complaint', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
                       pw.SizedBox(height: 5),
@@ -222,6 +221,8 @@ class PrescriptionPrintService {
                     ],
                   ],
                 ),
+              ),
+                ],
               ),
             ],
           );
@@ -272,33 +273,32 @@ class PrescriptionPrintService {
           right: margins['right']! * PdfPageFormat.cm,
         ),
         build: (context) {
-          return pw.Row(
+          return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // Left Column - Chief Complaint, Examination, Diagnosis, Investigation
-              pw.SizedBox(
-                width: margins['leftColumnWidth']! * PdfPageFormat.cm,
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    // Patient Info
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text('Name: $patientName', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                        pw.Text('Age: $age', style: const pw.TextStyle(fontSize: 10)),
-                      ],
-                    ),
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text('Date: $date', style: const pw.TextStyle(fontSize: 10)),
-                        pw.Text('ID: $patientId', style: const pw.TextStyle(fontSize: 10)),
-                      ],
-                    ),
-                    pw.SizedBox(height: 15),
+              // Patient Info - Full Width Header
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Name: $patientName', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('Age: $age', style: const pw.TextStyle(fontSize: 10)),
+                  pw.Text('Date: $date', style: const pw.TextStyle(fontSize: 10)),
+                  pw.Text('ID: $patientId', style: const pw.TextStyle(fontSize: 10)),
+                ],
+              ),
+              pw.SizedBox(height: 15),
 
-                    // Chief Complaint
+              // Two Column Layout
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  // Left Column - Chief Complaint, Examination, Diagnosis, Investigation
+                  pw.SizedBox(
+                    width: margins['leftColumnWidth']! * PdfPageFormat.cm,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        // Chief Complaint
                     if (chiefComplaints.isNotEmpty) ...[
                       pw.Text('Chief Complaint', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
                       pw.SizedBox(height: 5),
@@ -432,6 +432,8 @@ class PrescriptionPrintService {
                     ],
                   ],
                 ),
+              ),
+                ],
               ),
             ],
           );
