@@ -27,6 +27,8 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
   final TextEditingController _leftMarginController = TextEditingController();
   final TextEditingController _rightMarginController = TextEditingController();
   final TextEditingController _leftColumnWidthController = TextEditingController();
+  final TextEditingController _pageWidthController = TextEditingController();
+  final TextEditingController _pageHeightController = TextEditingController();
   bool _isLoading = true;
   String? _selectedPreset;
 
@@ -54,6 +56,8 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
       _leftMarginController.text = (margins['left'] ?? 1.5).toStringAsFixed(1);
       _rightMarginController.text = (margins['right'] ?? 0.8).toStringAsFixed(1);
       _leftColumnWidthController.text = (margins['leftColumnWidth'] ?? 7.0).toStringAsFixed(1);
+      _pageWidthController.text = (margins['pageWidth'] ?? 21.0).toStringAsFixed(1); // A4 width
+      _pageHeightController.text = (margins['pageHeight'] ?? 29.7).toStringAsFixed(1); // A4 height
       _selectedPreset = 'Custom';
       _isLoading = false;
     });
@@ -80,6 +84,8 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
     final left = double.tryParse(_leftMarginController.text) ?? 1.5;
     final right = double.tryParse(_rightMarginController.text) ?? 0.8;
     final leftColumnWidth = double.tryParse(_leftColumnWidthController.text) ?? 7.0;
+    final pageWidth = double.tryParse(_pageWidthController.text) ?? 21.0;
+    final pageHeight = double.tryParse(_pageHeightController.text) ?? 29.7;
 
     await PrescriptionPrintService.saveMarginSettings(
       top, 
@@ -87,6 +93,8 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
       left: left,
       right: right,
       leftColumnWidth: leftColumnWidth,
+      pageWidth: pageWidth,
+      pageHeight: pageHeight,
     );
 
     if (mounted) {
@@ -106,6 +114,8 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
     _leftMarginController.dispose();
     _rightMarginController.dispose();
     _leftColumnWidthController.dispose();
+    _pageWidthController.dispose();
+    _pageHeightController.dispose();
     super.dispose();
   }
 
@@ -358,6 +368,92 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
                       hintText: 'e.g., 7.0',
                       suffixText: 'cm',
                       helperText: 'Set width for clinical data area (Chief Complaint, Examination, etc.) based on your hospital paper layout',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001), width: 2),
+                      ),
+                      contentPadding: const EdgeInsets.all(16),
+                    ),
+                    style: const TextStyle(fontSize: 16, fontFamily: 'ProductSans'),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Page Dimensions Section Header
+                  const Text(
+                    'Page Dimensions (Custom Paper Size)',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1E293B),
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Page Width Input
+                  const Text(
+                    'Page Width (cm)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _pageWidthController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    onChanged: (_) {
+                      setState(() {
+                        _selectedPreset = 'Custom';
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'e.g., 21.0 (A4 width)',
+                      suffixText: 'cm',
+                      helperText: 'Default: 21.0 cm (A4 width)',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001), width: 2),
+                      ),
+                      contentPadding: const EdgeInsets.all(16),
+                    ),
+                    style: const TextStyle(fontSize: 16, fontFamily: 'ProductSans'),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Page Height Input
+                  const Text(
+                    'Page Height (cm)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _pageHeightController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    onChanged: (_) {
+                      setState(() {
+                        _selectedPreset = 'Custom';
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'e.g., 29.7 (A4 height)',
+                      suffixText: 'cm',
+                      helperText: 'Default: 29.7 cm (A4 height)',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

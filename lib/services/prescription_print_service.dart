@@ -16,6 +16,8 @@ class PrescriptionPrintService {
       'left': prefs.getDouble('print_margin_left') ?? 1.5, // Default 1.5 cm
       'right': prefs.getDouble('print_margin_right') ?? 0.8, // Default 0.8 cm
       'leftColumnWidth': prefs.getDouble('print_left_column_width') ?? 7.0, // Default 7 cm
+      'pageWidth': prefs.getDouble('print_page_width') ?? 21.0, // Default A4 width (21 cm)
+      'pageHeight': prefs.getDouble('print_page_height') ?? 29.7, // Default A4 height (29.7 cm)
     };
   }
 
@@ -26,6 +28,8 @@ class PrescriptionPrintService {
     double? left,
     double? right,
     double? leftColumnWidth,
+    double? pageWidth,
+    double? pageHeight,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('print_margin_top', top);
@@ -33,6 +37,8 @@ class PrescriptionPrintService {
     if (left != null) await prefs.setDouble('print_margin_left', left);
     if (right != null) await prefs.setDouble('print_margin_right', right);
     if (leftColumnWidth != null) await prefs.setDouble('print_left_column_width', leftColumnWidth);
+    if (pageWidth != null) await prefs.setDouble('print_page_width', pageWidth);
+    if (pageHeight != null) await prefs.setDouble('print_page_height', pageHeight);
   }
 
   static Future<String> printPrescription({
@@ -54,7 +60,10 @@ class PrescriptionPrintService {
 
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: PdfPageFormat(
+          margins['pageWidth']! * PdfPageFormat.cm,
+          margins['pageHeight']! * PdfPageFormat.cm,
+        ),
         margin: pw.EdgeInsets.only(
           top: margins['top']! * PdfPageFormat.cm,
           bottom: margins['bottom']! * PdfPageFormat.cm,
@@ -272,7 +281,10 @@ class PrescriptionPrintService {
 
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: PdfPageFormat(
+          margins['pageWidth']! * PdfPageFormat.cm,
+          margins['pageHeight']! * PdfPageFormat.cm,
+        ),
         margin: pw.EdgeInsets.only(
           top: margins['top']! * PdfPageFormat.cm,
           bottom: margins['bottom']! * PdfPageFormat.cm,
