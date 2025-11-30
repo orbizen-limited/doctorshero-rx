@@ -53,19 +53,20 @@ class _DosageDrawerState extends State<DosageDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.4,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 10,
-            offset: Offset(-2, 0),
-          ),
-        ],
-      ),
-      child: Column(
+    return Material(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.4,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 10,
+              offset: Offset(-2, 0),
+            ),
+          ],
+        ),
+        child: Column(
         children: [
           // Header
           Container(
@@ -295,6 +296,7 @@ class _DosageDrawerState extends State<DosageDrawer> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

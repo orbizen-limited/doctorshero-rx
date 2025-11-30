@@ -481,16 +481,33 @@ class _MedicineCardState extends State<MedicineCard> {
                           Row(
                             children: [
                               Expanded(
-                                child: Text(
-                                  _durationNumberController.text.isEmpty
-                                      ? 'Click to set'
-                                      : '${_durationNumberController.text} $_durationUnit',
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontFamily: 'ProductSans',
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Show quantity x frequency for Inj/Spray
+                                    if (_isInjectionOrSpray() && _quantityController.text.isNotEmpty && _frequencyController.text.isNotEmpty)
+                                      Text(
+                                        '${_quantityController.text} x ${_frequencyController.text}',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontFamily: 'ProductSans',
+                                          color: Color(0xFF64748B),
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    // Show duration
+                                    Text(
+                                      _durationNumberController.text.isEmpty
+                                          ? 'Click to set'
+                                          : '${_durationNumberController.text} $_durationUnit',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontFamily: 'ProductSans',
+                                        color: Color(0xFF1E293B),
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ),
                               ),
                               const Icon(Icons.edit, size: 16, color: Color(0xFF64748B)),
