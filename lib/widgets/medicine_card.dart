@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/medicine_model.dart';
 import '../services/medicine_database_service.dart';
 import 'medicine_search_dialog.dart';
+import 'dosage_drawer.dart';
 
 class MedicineCard extends StatefulWidget {
   final Medicine medicine;
@@ -32,6 +33,8 @@ class _MedicineCardState extends State<MedicineCard> {
   late TextEditingController _adviceController;
   late TextEditingController _routeController;
   late TextEditingController _specialInstructionsController;
+  late TextEditingController _quantityController;
+  late TextEditingController _frequencyController;
   late String _currentType;
   String _durationUnit = 'Days';
 
@@ -45,6 +48,8 @@ class _MedicineCardState extends State<MedicineCard> {
     _adviceController = TextEditingController(text: widget.medicine.advice);
     _routeController = TextEditingController(text: widget.medicine.route);
     _specialInstructionsController = TextEditingController(text: widget.medicine.specialInstructions);
+    _quantityController = TextEditingController(text: widget.medicine.quantity);
+    _frequencyController = TextEditingController(text: widget.medicine.frequency);
     _currentType = widget.medicine.type;
     
     // Parse duration into number and unit
@@ -84,6 +89,8 @@ class _MedicineCardState extends State<MedicineCard> {
     _adviceController.dispose();
     _routeController.dispose();
     _specialInstructionsController.dispose();
+    _quantityController.dispose();
+    _frequencyController.dispose();
     super.dispose();
   }
 
@@ -104,6 +111,8 @@ class _MedicineCardState extends State<MedicineCard> {
         advice: _adviceController.text,
         route: _routeController.text,
         specialInstructions: _specialInstructionsController.text,
+        quantity: _quantityController.text,
+        frequency: _frequencyController.text,
       );
       widget.onUpdate!(widget.medicine.id, updatedMedicine);
     }
@@ -144,6 +153,49 @@ class _MedicineCardState extends State<MedicineCard> {
   bool _isInjectionOrSpray() {
     return _currentType.toLowerCase().contains('inj') || 
            _currentType.toLowerCase().contains('spray');
+  }
+
+  void _showDosageDrawer() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black45,
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (BuildContext buildContext, Animation animation, Animation secondaryAnimation) {
+        return Align(
+          alignment: Alignment.centerRight,
+          child: DosageDrawer(
+            medicineType: _currentType,
+            currentQuantity: _quantityController.text,
+            currentFrequency: _frequencyController.text,
+            currentRoute: _routeController.text,
+            currentDuration: widget.medicine.duration,
+            onSave: (quantity, frequency, route, duration) {
+              setState(() {
+                _quantityController.text = quantity;
+                _frequencyController.text = frequency;
+                _routeController.text = route;
+                // Parse duration back to number and unit
+                final parts = _parseDuration(duration);
+                _durationNumberController.text = parts['number'] ?? '';
+                _durationUnit = parts['unit'] ?? 'Days';
+              });
+              _updateMedicine();
+            },
+          ),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        );
+      },
+    );
   }
 
   String _formatDosage(String input) {
@@ -408,57 +460,45 @@ class _MedicineCardState extends State<MedicineCard> {
                         ),
                 ),
                 const SizedBox(width: 12),
-                // Duration - Split into number and unit
+                // Duration/Dosage Details Button
                 Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: TextField(
-                          controller: _durationNumberController,
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          decoration: InputDecoration(
-                            labelText: 'DURATION',
-                            hintText: '5',
-                            labelStyle: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
-                            hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                          ),
-                          style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans'),
-                          onChanged: (value) => _updateMedicine(),
-                        ),
+                  child: InkWell(
+                    onTap: _showDosageDrawer,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        flex: 3,
-                        child: DropdownButtonFormField<String>(
-                          value: _durationUnit,
-                          isDense: true,
-                          decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'DURATION',
+                            style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
                           ),
-                          style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans', color: Color(0xFF1E293B)),
-                          items: ['Hours', 'Days', 'Weeks', 'Months', 'Years'].map((unit) {
-                            return DropdownMenuItem(value: unit, child: Text(unit));
-                          }).toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() {
-                                _durationUnit = value;
-                              });
-                              _updateMedicine();
-                            }
-                          },
-                        ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _durationNumberController.text.isEmpty
+                                      ? 'Click to set'
+                                      : '${_durationNumberController.text} $_durationUnit',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontFamily: 'ProductSans',
+                                    color: Color(0xFF1E293B),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const Icon(Icons.edit, size: 16, color: Color(0xFF64748B)),
+                            ],
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
