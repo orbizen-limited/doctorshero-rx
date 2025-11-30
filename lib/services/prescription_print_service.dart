@@ -103,7 +103,7 @@ class PrescriptionPrintService {
                       pw.SizedBox(height: 5),
                       ...chiefComplaints.map((complaint) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: pw.Text('• $complaint', style: const pw.TextStyle(fontSize: 9)),
+                        child: pw.Text('- $complaint', style: const pw.TextStyle(fontSize: 9)),
                       )),
                       pw.SizedBox(height: 12),
                     ],
@@ -114,7 +114,7 @@ class PrescriptionPrintService {
                       pw.SizedBox(height: 5),
                       ...examination.entries.map((entry) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: pw.Text('• ${entry.key}: ${entry.value}', style: const pw.TextStyle(fontSize: 9)),
+                        child: pw.Text('- ${entry.key}: ${entry.value}', style: const pw.TextStyle(fontSize: 9)),
                       )),
                       pw.SizedBox(height: 12),
                     ],
@@ -125,7 +125,7 @@ class PrescriptionPrintService {
                       pw.SizedBox(height: 5),
                       ...diagnosis.map((item) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: pw.Text('• $item', style: const pw.TextStyle(fontSize: 9)),
+                        child: pw.Text('- $item', style: const pw.TextStyle(fontSize: 9)),
                       )),
                       pw.SizedBox(height: 12),
                     ],
@@ -136,7 +136,7 @@ class PrescriptionPrintService {
                       pw.SizedBox(height: 5),
                       ...investigation.map((item) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: pw.Text('• $item', style: const pw.TextStyle(fontSize: 9)),
+                        child: pw.Text('- $item', style: const pw.TextStyle(fontSize: 9)),
                       )),
                     ],
                   ],
@@ -341,7 +341,7 @@ class PrescriptionPrintService {
                       pw.SizedBox(height: 5),
                       ...chiefComplaints.map((complaint) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: pw.Text('• $complaint', style: const pw.TextStyle(fontSize: 9)),
+                        child: pw.Text('- $complaint', style: const pw.TextStyle(fontSize: 9)),
                       )),
                       pw.SizedBox(height: 12),
                     ],
@@ -352,7 +352,7 @@ class PrescriptionPrintService {
                       pw.SizedBox(height: 5),
                       ...examination.entries.map((entry) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: pw.Text('• ${entry.key}: ${entry.value}', style: const pw.TextStyle(fontSize: 9)),
+                        child: pw.Text('- ${entry.key}: ${entry.value}', style: const pw.TextStyle(fontSize: 9)),
                       )),
                       pw.SizedBox(height: 12),
                     ],
@@ -363,7 +363,7 @@ class PrescriptionPrintService {
                       pw.SizedBox(height: 5),
                       ...diagnosis.map((item) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: pw.Text('• $item', style: const pw.TextStyle(fontSize: 9)),
+                        child: pw.Text('- $item', style: const pw.TextStyle(fontSize: 9)),
                       )),
                       pw.SizedBox(height: 12),
                     ],
@@ -374,7 +374,7 @@ class PrescriptionPrintService {
                       pw.SizedBox(height: 5),
                       ...investigation.map((item) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: pw.Text('• $item', style: const pw.TextStyle(fontSize: 9)),
+                        child: pw.Text('- $item', style: const pw.TextStyle(fontSize: 9)),
                       )),
                     ],
                   ],
