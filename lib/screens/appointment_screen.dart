@@ -4,11 +4,12 @@ import '../models/appointment_model.dart';
 import '../services/appointment_service.dart';
 
 class AppointmentScreen extends StatefulWidget {
-  final Function({
+  final void Function({
     required String patientId,
     required String patientName,
     required String patientAge,
     required String patientGender,
+    String? patientPhone,
   })? onCreateRx;
 
   const AppointmentScreen({
@@ -794,6 +795,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                         patientName: appointment.patientName,
                         patientAge: appointment.age.toString(),
                         patientGender: appointment.gender,
+                        patientPhone: appointment.phone,
                       );
                     }
                   },

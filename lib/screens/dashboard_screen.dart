@@ -28,6 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? _patientName;
   String? _patientAge;
   String? _patientGender;
+  String? _patientPhone;
   
   // Saved prescription data
   SavedPrescription? _savedPrescription;
@@ -37,12 +38,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String patientName,
     required String patientAge,
     required String patientGender,
+    String? patientPhone,
   }) {
     setState(() {
       _patientId = patientId;
       _patientName = patientName;
       _patientAge = patientAge;
       _patientGender = patientGender;
+      _patientPhone = patientPhone;
       _savedPrescription = null; // Clear saved prescription
       _selectedMenu = 'Create New RX';
       _prescriptionExpanded = true;
@@ -414,6 +417,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           patientName: _patientName,
           patientAge: _patientAge,
           patientGender: _patientGender,
+          patientPhone: _patientPhone,
           savedPrescription: _savedPrescription,
         );
       case 'Configuration':
@@ -574,6 +578,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         _patientName = null;
                         _patientAge = null;
                         _patientGender = null;
+                        _patientPhone = null;
                       }
                     });
                   },
