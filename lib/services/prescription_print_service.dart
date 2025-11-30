@@ -71,21 +71,9 @@ class PrescriptionPrintService {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    // Patient Info
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text('Name: $patientName', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                        pw.Text('Age: $age', style: const pw.TextStyle(fontSize: 10)),
-                      ],
-                    ),
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text('Date: $date', style: const pw.TextStyle(fontSize: 10)),
-                        pw.Text('ID: $patientId', style: const pw.TextStyle(fontSize: 10)),
-                      ],
-                    ),
+                    // Patient Info - Simple single line
+                    pw.Text('Name: $patientName    Age: $age    Date: $date    ID: $patientId', 
+                      style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
                     pw.SizedBox(height: 15),
 
                     // Chief Complaint
@@ -282,21 +270,9 @@ class PrescriptionPrintService {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    // Patient Info
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text('Name: $patientName', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                        pw.Text('Age: $age', style: const pw.TextStyle(fontSize: 10)),
-                      ],
-                    ),
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text('Date: $date', style: const pw.TextStyle(fontSize: 10)),
-                        pw.Text('ID: $patientId', style: const pw.TextStyle(fontSize: 10)),
-                      ],
-                    ),
+                    // Patient Info - Simple single line
+                    pw.Text('Name: $patientName    Age: $age    Date: $date    ID: $patientId', 
+                      style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
                     pw.SizedBox(height: 15),
 
                     // Chief Complaint
