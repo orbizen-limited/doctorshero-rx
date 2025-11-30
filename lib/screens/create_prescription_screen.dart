@@ -19,6 +19,7 @@ class CreatePrescriptionScreen extends StatefulWidget {
   final String? patientAge;
   final String? patientGender;
   final String? patientPhone;
+  final SavedPrescription? savedPrescription;
 
   const CreatePrescriptionScreen({
     Key? key,
@@ -27,6 +28,7 @@ class CreatePrescriptionScreen extends StatefulWidget {
     this.patientAge,
     this.patientGender,
     this.patientPhone,
+    this.savedPrescription,
   }) : super(key: key);
 
   @override
@@ -45,18 +47,29 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
   void initState() {
     super.initState();
     
-    // Initialize patient info
-    patientInfo = PrescriptionPatientInfo(
-      name: widget.patientName ?? '',
-      age: widget.patientAge ?? '',
-      gender: widget.patientGender ?? '',
-      date: DateTime.now().toString().split(' ')[0],
-      patientId: widget.patientId ?? '',
-      phone: widget.patientPhone,
-    );
+    // Load from saved prescription if provided
+    if (widget.savedPrescription != null) {
+      final saved = widget.savedPrescription!;
+      patientInfo = saved.toPatientInfo();
+      clinicalData = saved.toClinicalData();
+      medicines = saved.toMedicineList();
+      adviceList = saved.adviceList;
+      followUpDate = saved.followUpDate;
+      referralText = saved.referralText;
+    } else {
+      // Initialize patient info
+      patientInfo = PrescriptionPatientInfo(
+        name: widget.patientName ?? '',
+        age: widget.patientAge ?? '',
+        gender: widget.patientGender ?? '',
+        date: DateTime.now().toString().split(' ')[0],
+        patientId: widget.patientId ?? '',
+        phone: widget.patientPhone,
+      );
 
-    // Initialize clinical data
-    clinicalData = ClinicalData();
+      // Initialize clinical data
+      clinicalData = ClinicalData();
+    }
   }
 
   void _addMedicine(Medicine medicine) {

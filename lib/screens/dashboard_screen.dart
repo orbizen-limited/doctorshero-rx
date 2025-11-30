@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../models/saved_prescription.dart';
 import '../widgets/dashboard_content.dart';
 import 'login_screen.dart';
 import 'appointment_screen.dart';
@@ -28,6 +29,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? _patientAge;
   String? _patientGender;
   
+  // Saved prescription data
+  SavedPrescription? _savedPrescription;
+  
   void _navigateToCreateRx({
     required String patientId,
     required String patientName,
@@ -39,6 +43,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _patientName = patientName;
       _patientAge = patientAge;
       _patientGender = patientGender;
+      _savedPrescription = null; // Clear saved prescription
+      _selectedMenu = 'Create New RX';
+      _prescriptionExpanded = true;
+    });
+  }
+  
+  void _viewSavedPrescription(SavedPrescription prescription) {
+    setState(() {
+      _savedPrescription = prescription;
+      _patientId = prescription.patientId;
+      _patientName = prescription.patientName;
+      _patientAge = prescription.age;
+      _patientGender = prescription.gender;
       _selectedMenu = 'Create New RX';
       _prescriptionExpanded = true;
     });
@@ -397,6 +414,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           patientName: _patientName,
           patientAge: _patientAge,
           patientGender: _patientGender,
+          savedPrescription: _savedPrescription,
         );
       case 'Configuration':
         return const PrintSettingsScreen();
@@ -407,7 +425,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 'Dashboard':
         return const DashboardContent();
       case 'All Prescription':
-        return const SavedPrescriptionsScreen();
+        return SavedPrescriptionsScreen(
+          onViewPrescription: _viewSavedPrescription,
+        );
       case 'Analytics':
       case 'Settings':
       default:

@@ -5,7 +5,12 @@ import '../services/prescription_database_service.dart';
 import 'create_prescription_screen.dart';
 
 class SavedPrescriptionsScreen extends StatefulWidget {
-  const SavedPrescriptionsScreen({Key? key}) : super(key: key);
+  final Function(SavedPrescription)? onViewPrescription;
+  
+  const SavedPrescriptionsScreen({
+    Key? key,
+    this.onViewPrescription,
+  }) : super(key: key);
 
   @override
   State<SavedPrescriptionsScreen> createState() => _SavedPrescriptionsScreenState();
@@ -76,19 +81,24 @@ class _SavedPrescriptionsScreenState extends State<SavedPrescriptionsScreen> {
   }
 
   void _viewPrescription(SavedPrescription prescription) {
-    // Navigate to create prescription screen in view mode
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CreatePrescriptionScreen(
-          patientId: prescription.patientId,
-          patientName: prescription.patientName,
-          patientAge: prescription.age,
-          patientGender: prescription.gender,
-          patientPhone: prescription.phone,
+    if (widget.onViewPrescription != null) {
+      // Use callback to stay within dashboard
+      widget.onViewPrescription!(prescription);
+    } else {
+      // Fallback: Navigate to new screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CreatePrescriptionScreen(
+            patientId: prescription.patientId,
+            patientName: prescription.patientName,
+            patientAge: prescription.age,
+            patientGender: prescription.gender,
+            patientPhone: prescription.phone,
+          ),
         ),
-      ),
-    ).then((_) => _loadPrescriptions());
+      ).then((_) => _loadPrescriptions());
+    }
   }
 
   @override
