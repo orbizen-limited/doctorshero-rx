@@ -185,16 +185,16 @@ class PrescriptionPrintService {
                                     '${medicine.type} ${medicine.name}',
                                     style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
                                   ),
-                                  // Show route for Inj, special instructions for Spray, or dosage for others
-                                  if (isInj && medicine.route.isNotEmpty)
+                                  // Show quantity x frequency (Route) for Inj/Spray, or dosage for others
+                                  if ((isInj || isSpray) && medicine.quantity.isNotEmpty && medicine.frequency.isNotEmpty)
                                     pw.Padding(
                                       padding: const pw.EdgeInsets.only(top: 2),
-                                      child: pw.Text('Route: ${medicine.route}', style: const pw.TextStyle(fontSize: 8)),
-                                    )
-                                  else if (isSpray && medicine.specialInstructions.isNotEmpty)
-                                    pw.Padding(
-                                      padding: const pw.EdgeInsets.only(top: 2),
-                                      child: pw.Text(medicine.specialInstructions, style: const pw.TextStyle(fontSize: 8)),
+                                      child: pw.Text(
+                                        isInj && medicine.route.isNotEmpty
+                                            ? '${medicine.quantity} x ${medicine.frequency} (Route: ${medicine.route})'
+                                            : '${medicine.quantity} x ${medicine.frequency}',
+                                        style: const pw.TextStyle(fontSize: 8),
+                                      ),
                                     )
                                   else if (medicine.dosage.isNotEmpty)
                                     pw.Padding(
@@ -420,16 +420,16 @@ class PrescriptionPrintService {
                                     '${medicine.type} ${medicine.name}',
                                     style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
                                   ),
-                                  // Show route for Inj, special instructions for Spray, or dosage for others
-                                  if (isInj && medicine.route.isNotEmpty)
+                                  // Show quantity x frequency (Route) for Inj/Spray, or dosage for others
+                                  if ((isInj || isSpray) && medicine.quantity.isNotEmpty && medicine.frequency.isNotEmpty)
                                     pw.Padding(
                                       padding: const pw.EdgeInsets.only(top: 2),
-                                      child: pw.Text('Route: ${medicine.route}', style: const pw.TextStyle(fontSize: 8)),
-                                    )
-                                  else if (isSpray && medicine.specialInstructions.isNotEmpty)
-                                    pw.Padding(
-                                      padding: const pw.EdgeInsets.only(top: 2),
-                                      child: pw.Text(medicine.specialInstructions, style: const pw.TextStyle(fontSize: 8)),
+                                      child: pw.Text(
+                                        isInj && medicine.route.isNotEmpty
+                                            ? '${medicine.quantity} x ${medicine.frequency} (Route: ${medicine.route})'
+                                            : '${medicine.quantity} x ${medicine.frequency}',
+                                        style: const pw.TextStyle(fontSize: 8),
+                                      ),
                                     )
                                   else if (medicine.dosage.isNotEmpty)
                                     pw.Padding(
