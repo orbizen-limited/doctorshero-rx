@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/dashboard_content.dart';
 import 'login_screen.dart';
 import 'appointment_screen.dart';
 import 'create_prescription_screen.dart';
@@ -403,6 +404,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 'Profile':
         return const ProfileScreen();
       case 'Dashboard':
+        return const DashboardContent();
       case 'All Prescription':
       case 'Analytics':
       case 'Settings':
