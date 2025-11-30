@@ -9,6 +9,8 @@ class Medicine {
   final String advice;
   final String route; // For Inj: SC, IM, IV, etc.
   final String specialInstructions; // For Spray: "per nostril", "both nostrils", etc.
+  final String quantity; // For Inj/Spray: "1 Capsule", "1 Ampoule", etc.
+  final String frequency; // For Inj/Spray: "1 Time", "2 Times", etc.
 
   Medicine({
     required this.id,
@@ -21,6 +23,8 @@ class Medicine {
     required this.advice,
     this.route = '',
     this.specialInstructions = '',
+    this.quantity = '',
+    this.frequency = '',
   });
 
   String get fullName => '$type $name';
@@ -36,6 +40,8 @@ class Medicine {
     String? advice,
     String? route,
     String? specialInstructions,
+    String? quantity,
+    String? frequency,
   }) {
     return Medicine(
       id: id ?? this.id,
@@ -48,6 +54,8 @@ class Medicine {
       advice: advice ?? this.advice,
       route: route ?? this.route,
       specialInstructions: specialInstructions ?? this.specialInstructions,
+      quantity: quantity ?? this.quantity,
+      frequency: frequency ?? this.frequency,
     );
   }
 
@@ -63,6 +71,8 @@ class Medicine {
       'advice': advice,
       'route': route,
       'special_instructions': specialInstructions,
+      'quantity': quantity,
+      'frequency': frequency,
     };
   }
 
@@ -78,6 +88,8 @@ class Medicine {
       advice: json['advice'] ?? '',
       route: json['route'] ?? '',
       specialInstructions: json['special_instructions'] ?? '',
+      quantity: json['quantity'] ?? '',
+      frequency: json['frequency'] ?? '',
     );
   }
 }
