@@ -136,6 +136,7 @@ class PrescriptionPrintService {
               // Vertical Divider
               pw.Container(
                 width: 1,
+                height: double.infinity,
                 margin: const pw.EdgeInsets.symmetric(horizontal: 15),
                 color: PdfColors.grey400,
               ),
@@ -347,6 +348,7 @@ class PrescriptionPrintService {
               // Vertical Divider
               pw.Container(
                 width: 1,
+                height: double.infinity,
                 margin: const pw.EdgeInsets.symmetric(horizontal: 15),
                 color: PdfColors.grey400,
               ),
