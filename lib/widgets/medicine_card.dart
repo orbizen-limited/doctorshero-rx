@@ -227,22 +227,64 @@ class _MedicineCardState extends State<MedicineCard> {
     return '${digitsOnly[0]}+${digitsOnly[1]}+${digitsOnly[2]}';
   }
 
+  void _showCustomAdviceDialog() {
+    final customController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('কাস্টম পরামর্শ (Custom Advice)'),
+        content: TextField(
+          controller: customController,
+          decoration: const InputDecoration(
+            labelText: 'পরামর্শ লিখুন (Enter advice)',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 3,
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('বাতিল (Cancel)'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (customController.text.isNotEmpty) {
+                setState(() {
+                  _adviceController.text = customController.text;
+                });
+                _updateMedicine();
+              }
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFE3001),
+            ),
+            child: const Text('সংরক্ষণ (Save)'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showAdviceDrawer() {
     final adviceOptions = [
-      'After food',
-      'Before food',
-      'With food',
-      'Empty stomach',
-      'After meal',
-      'Before meal',
-      'At bedtime',
-      'In the morning',
-      'No alcohol',
-      'Drink plenty of water',
-      'Avoid direct sunlight',
-      'Take with milk',
-      'Do not crush or chew',
-      'Dissolve in water',
+      'খাবারের পরে (After food)',
+      'খাবারের আগে (Before food)',
+      'খাবারের সাথে (With food)',
+      'খালি পেটে (Empty stomach)',
+      'খাওয়ার পরে (After meal)',
+      'খাওয়ার আগে (Before meal)',
+      'ঘুমানোর আগে (At bedtime)',
+      'সকালে (In the morning)',
+      'মদ্যপান নিষেধ (No alcohol)',
+      'প্রচুর পানি পান করুন (Drink plenty of water)',
+      'সরাসরি সূর্যালোক এড়িয়ে চলুন (Avoid direct sunlight)',
+      'দুধের সাথে নিন (Take with milk)',
+      'চূর্ণ বা চিবানো যাবে না (Do not crush or chew)',
+      'পানিতে গুলে নিন (Dissolve in water)',
+      'কাস্টম (Custom)',
     ];
 
     showModalBottomSheet(
@@ -260,7 +302,7 @@ class _MedicineCardState extends State<MedicineCard> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Select Advice',
+                  'পরামর্শ নির্বাচন করুন (Select Advice)',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -290,11 +332,15 @@ class _MedicineCardState extends State<MedicineCard> {
                       ),
                     ),
                     onTap: () {
-                      setState(() {
-                        _adviceController.text = advice;
-                      });
-                      _updateMedicine();
                       Navigator.pop(context);
+                      if (advice == 'কাস্টম (Custom)') {
+                        _showCustomAdviceDialog();
+                      } else {
+                        setState(() {
+                          _adviceController.text = advice;
+                        });
+                        _updateMedicine();
+                      }
                     },
                   );
                 },
