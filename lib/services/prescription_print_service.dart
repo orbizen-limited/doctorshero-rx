@@ -213,7 +213,7 @@ class PrescriptionPrintService {
                               pw.Padding(
                                 padding: const pw.EdgeInsets.only(left: 10),
                                 child: pw.Text(
-                                  '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "Continues" ? " - Continues" : medicine.tillNumber.isNotEmpty ? " till ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
+                                  '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " till ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
                                   style: const pw.TextStyle(fontSize: 8),
                                 ),
                               ),
@@ -454,7 +454,7 @@ class PrescriptionPrintService {
                               pw.Padding(
                                 padding: const pw.EdgeInsets.only(left: 10),
                                 child: pw.Text(
-                                  '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "Continues" ? " - Continues" : medicine.tillNumber.isNotEmpty ? " till ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
+                                  '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " till ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
                                   style: const pw.TextStyle(fontSize: 8),
                                 ),
                               ),

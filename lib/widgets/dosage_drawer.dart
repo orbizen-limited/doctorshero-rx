@@ -60,6 +60,11 @@ class _DosageDrawerState extends State<DosageDrawer> {
     }
   }
 
+  // Convert Continues to Bangla
+  String _convertContinuesToBangla(String value) {
+    return value == 'Continues' ? 'চলবে' : value;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -72,7 +77,7 @@ class _DosageDrawerState extends State<DosageDrawer> {
     _tillNumberController = TextEditingController(text: widget.currentTillNumber);
     _durationUnit = widget.currentDurationUnit.isEmpty ? 'দিন' : _convertToBangla(widget.currentDurationUnit);
     _tillUnit = widget.currentTillUnit.isEmpty ? 'দিন' : _convertToBangla(widget.currentTillUnit);
-    _isContinues = widget.currentTillNumber == 'Continues';
+    _isContinues = widget.currentTillNumber == 'Continues' || widget.currentTillNumber == 'চলবে';
   }
 
   @override
@@ -386,7 +391,7 @@ class _DosageDrawerState extends State<DosageDrawer> {
                         });
                       },
                       title: const Text(
-                        'Continues (No end date)',
+                        'চলবে (No end date)',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -488,7 +493,7 @@ class _DosageDrawerState extends State<DosageDrawer> {
                       _durationNumberController.text,
                       _durationUnit,
                       _intervalController.text,
-                      _isContinues ? 'Continues' : _tillNumberController.text,
+                      _isContinues ? 'চলবে' : _tillNumberController.text,
                       _tillUnit,
                     );
                     Navigator.pop(context);
