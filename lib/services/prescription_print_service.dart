@@ -23,7 +23,7 @@ class PrescriptionPrintService {
     await prefs.setDouble('print_margin_bottom', bottom);
   }
 
-  static Future<void> printPrescription({
+  static Future<String> printPrescription({
     required String patientName,
     required String age,
     required String date,
