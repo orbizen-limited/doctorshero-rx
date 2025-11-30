@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 import '../models/medicine_model.dart';
 import '../models/prescription_model.dart';
+import '../models/saved_prescription.dart';
 import '../widgets/patient_info_card.dart';
 import '../widgets/clinical_sections.dart';
 import '../widgets/medicine_list.dart';
 import '../widgets/prescription_footer.dart';
 import '../services/prescription_print_service.dart';
+import '../services/prescription_database_service.dart';
 import '../providers/auth_provider.dart';
 
 class CreatePrescriptionScreen extends StatefulWidget {
@@ -128,6 +131,21 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
   }
 
   Future<void> _savePrescription() async {
+    // Validate
+    if (patientInfo.name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter patient name')),
+      );
+      return;
+    }
+
+    if (medicines.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add at least one medicine')),
+      );
+      return;
+    }
+
     // Show loading indicator
     if (!mounted) return;
     
@@ -140,56 +158,39 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
     );
 
     try {
-      // Parse clinical data
-      final chiefComplaints = clinicalData.chiefComplaint
-          .split('\n')
-          .where((s) => s.trim().isNotEmpty)
-          .map((s) => s.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), ''))
-          .toList();
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
       
-      final diagnosisList = clinicalData.diagnosis
-          .split('\n')
-          .where((s) => s.trim().isNotEmpty)
-          .map((s) => s.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), ''))
-          .toList();
-      
-      final investigationList = clinicalData.investigation
-          .split('\n')
-          .where((s) => s.trim().isNotEmpty)
-          .map((s) => s.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), ''))
-          .toList();
-
-      final examinationMap = <String, dynamic>{};
-      clinicalData.examination.split('\n').where((s) => s.trim().isNotEmpty).forEach((line) {
-        final parts = line.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), '').split(':');
-        if (parts.length >= 2) {
-          examinationMap[parts[0].trim()] = parts.sublist(1).join(':').trim();
-        }
-      });
-
-      final filePath = await PrescriptionPrintService.savePrescription(
-        patientName: patientInfo.name.isEmpty ? 'Patient Name' : patientInfo.name,
-        age: patientInfo.age.isEmpty ? 'N/A' : patientInfo.age,
-        date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
-        patientId: patientInfo.patientId.isEmpty ? 'N/A' : patientInfo.patientId,
-        chiefComplaints: chiefComplaints,
-        examination: examinationMap,
-        diagnosis: diagnosisList,
-        investigation: investigationList,
+      // Create saved prescription
+      final uuid = const Uuid();
+      final savedPrescription = SavedPrescription.create(
+        id: uuid.v4(),
+        patientInfo: patientInfo,
+        clinicalData: clinicalData,
         medicines: medicines,
-        advice: adviceList,
-        followUpDate: followUpDate != null ? DateFormat('dd/MM/yyyy').format(followUpDate!) : null,
-        referral: referralText,
+        adviceList: adviceList,
+        followUpDate: followUpDate,
+        referralText: referralText,
+        doctorName: user?.name,
+        doctorRegistration: user?.registrationNumber,
+        doctorSpecialization: user?.specialization,
+        doctorQualification: user?.qualification,
       );
+
+      // Save to database
+      final dbService = PrescriptionDatabaseService();
+      await dbService.savePrescription(savedPrescription);
 
       // Close loading dialog
       if (mounted) {
         Navigator.of(context).pop();
+        
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Prescription saved to:\n$filePath'),
-            backgroundColor: const Color(0xFF10B981),
-            duration: const Duration(seconds: 4),
+          const SnackBar(
+            content: Text('✓ Prescription saved successfully!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
           ),
         );
       }
@@ -199,7 +200,7 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving: $e'),
+            content: Text('Error saving prescription: $e'),
             backgroundColor: const Color(0xFFEF4444),
           ),
         );
