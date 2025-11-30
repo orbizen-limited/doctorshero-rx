@@ -99,9 +99,9 @@ workflows:
         script: |
           # Update version in installer.iss
           $issFile = "windows\installer.iss"
-          $content = Get-Content $issFile
+          $content = Get-Content $issFile -Raw
           $content = $content -replace '#define MyAppVersion ".*"', "#define MyAppVersion `"$env:CM_BUILD_VERSION`""
-          Set-Content $issFile $content
+          $content | Set-Content $issFile -NoNewline
           
       - name: Compile Installer
         script: |
