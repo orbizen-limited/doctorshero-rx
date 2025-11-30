@@ -477,10 +477,10 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
                               );
                               break;
                             case 'phone':
-                              // Auto-generate UP ID if phone is entered
+                              // Auto-generate UPID + full phone number
                               String newPatientId = patientInfo.patientId;
-                              if (value.length >= 4 && patientInfo.patientId.isEmpty) {
-                                newPatientId = 'UP${value.substring(value.length - 4)}';
+                              if (value.isNotEmpty && patientInfo.patientId.isEmpty) {
+                                newPatientId = 'UPID$value';
                               }
                               patientInfo = PrescriptionPatientInfo(
                                 name: patientInfo.name,
