@@ -35,6 +35,7 @@ class _MedicineCardState extends State<MedicineCard> {
   late TextEditingController _specialInstructionsController;
   late TextEditingController _quantityController;
   late TextEditingController _frequencyController;
+  late TextEditingController _intervalController;
   late String _currentType;
   String _durationUnit = 'Days';
 
@@ -50,6 +51,7 @@ class _MedicineCardState extends State<MedicineCard> {
     _specialInstructionsController = TextEditingController(text: widget.medicine.specialInstructions);
     _quantityController = TextEditingController(text: widget.medicine.quantity);
     _frequencyController = TextEditingController(text: widget.medicine.frequency);
+    _intervalController = TextEditingController(text: widget.medicine.interval);
     _currentType = widget.medicine.type;
     
     // Parse duration into number and unit
@@ -91,6 +93,7 @@ class _MedicineCardState extends State<MedicineCard> {
     _specialInstructionsController.dispose();
     _quantityController.dispose();
     _frequencyController.dispose();
+    _intervalController.dispose();
     super.dispose();
   }
 
@@ -113,6 +116,7 @@ class _MedicineCardState extends State<MedicineCard> {
         specialInstructions: _specialInstructionsController.text,
         quantity: _quantityController.text,
         frequency: _frequencyController.text,
+        interval: _intervalController.text,
       );
       widget.onUpdate!(widget.medicine.id, updatedMedicine);
     }
@@ -167,19 +171,22 @@ class _MedicineCardState extends State<MedicineCard> {
           alignment: Alignment.centerRight,
           child: DosageDrawer(
             medicineType: _currentType,
+            currentDosage: _dosageController.text,
             currentQuantity: _quantityController.text,
             currentFrequency: _frequencyController.text,
             currentRoute: _routeController.text,
-            currentDuration: widget.medicine.duration,
-            onSave: (quantity, frequency, route, duration) {
+            currentDurationNumber: _durationNumberController.text,
+            currentDurationUnit: _durationUnit,
+            currentInterval: _intervalController.text,
+            onSave: (dosage, quantity, frequency, route, durationNumber, durationUnit, interval) {
               setState(() {
+                _dosageController.text = dosage;
                 _quantityController.text = quantity;
                 _frequencyController.text = frequency;
                 _routeController.text = route;
-                // Parse duration back to number and unit
-                final parts = _parseDuration(duration);
-                _durationNumberController.text = parts['number'] ?? '';
-                _durationUnit = parts['unit'] ?? 'Days';
+                _durationNumberController.text = durationNumber;
+                _durationUnit = durationUnit;
+                _intervalController.text = interval;
               });
               _updateMedicine();
             },

@@ -2,19 +2,25 @@ import 'package:flutter/material.dart';
 
 class DosageDrawer extends StatefulWidget {
   final String medicineType;
+  final String currentDosage;
   final String currentQuantity;
   final String currentFrequency;
   final String currentRoute;
-  final String currentDuration;
-  final Function(String quantity, String frequency, String route, String duration) onSave;
+  final String currentDurationNumber;
+  final String currentDurationUnit;
+  final String currentInterval;
+  final Function(String dosage, String quantity, String frequency, String route, String durationNumber, String durationUnit, String interval) onSave;
 
   const DosageDrawer({
     Key? key,
     required this.medicineType,
+    required this.currentDosage,
     required this.currentQuantity,
     required this.currentFrequency,
     required this.currentRoute,
-    required this.currentDuration,
+    required this.currentDurationNumber,
+    required this.currentDurationUnit,
+    required this.currentInterval,
     required this.onSave,
   }) : super(key: key);
 
@@ -23,26 +29,34 @@ class DosageDrawer extends StatefulWidget {
 }
 
 class _DosageDrawerState extends State<DosageDrawer> {
+  late TextEditingController _dosageController;
   late TextEditingController _quantityController;
   late TextEditingController _frequencyController;
   late TextEditingController _routeController;
-  late TextEditingController _durationController;
+  late TextEditingController _durationNumberController;
+  late TextEditingController _intervalController;
+  String _durationUnit = 'Days';
 
   @override
   void initState() {
     super.initState();
+    _dosageController = TextEditingController(text: widget.currentDosage);
     _quantityController = TextEditingController(text: widget.currentQuantity);
     _frequencyController = TextEditingController(text: widget.currentFrequency);
     _routeController = TextEditingController(text: widget.currentRoute);
-    _durationController = TextEditingController(text: widget.currentDuration);
+    _durationNumberController = TextEditingController(text: widget.currentDurationNumber);
+    _intervalController = TextEditingController(text: widget.currentInterval);
+    _durationUnit = widget.currentDurationUnit.isEmpty ? 'Days' : widget.currentDurationUnit;
   }
 
   @override
   void dispose() {
+    _dosageController.dispose();
     _quantityController.dispose();
     _frequencyController.dispose();
     _routeController.dispose();
-    _durationController.dispose();
+    _durationNumberController.dispose();
+    _intervalController.dispose();
     super.dispose();
   }
 
@@ -67,250 +81,306 @@ class _DosageDrawerState extends State<DosageDrawer> {
           ],
         ),
         child: Column(
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              color: Color(0xFFFE3001),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(16),
-                bottomRight: Radius.circular(16),
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: Color(0xFFFE3001),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
+                ),
               ),
-            ),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Dosage Details',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontFamily: 'ProductSans',
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Content
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  if (_isInjectionOrSpray()) ...[
-                    // Quantity Field
-                    const Text(
-                      'Quantity (পরিমাণ)',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1E293B),
-                        fontFamily: 'ProductSans',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _quantityController,
-                      decoration: InputDecoration(
-                        hintText: 'e.g., 1 Capsule, 1 Ampoule',
-                        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFFE3001), width: 2),
-                        ),
-                        contentPadding: const EdgeInsets.all(16),
-                      ),
-                      style: const TextStyle(fontSize: 16, fontFamily: 'ProductSans'),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Frequency Field
-                    const Text(
-                      'Frequency (কতবার)',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1E293B),
-                        fontFamily: 'ProductSans',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _frequencyController,
-                      decoration: InputDecoration(
-                        hintText: 'e.g., 1 Time, 2 Times',
-                        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFFE3001), width: 2),
-                        ),
-                        contentPadding: const EdgeInsets.all(16),
-                      ),
-                      style: const TextStyle(fontSize: 16, fontFamily: 'ProductSans'),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Route Field (only for injections)
-                    if (widget.medicineType.toLowerCase().contains('inj')) ...[
-                      const Text(
-                        'Route (পথ)',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1E293B),
-                          fontFamily: 'ProductSans',
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _routeController,
-                        decoration: InputDecoration(
-                          hintText: 'e.g., SC, IM, IV',
-                          hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Color(0xFFFE3001), width: 2),
-                          ),
-                          contentPadding: const EdgeInsets.all(16),
-                        ),
-                        style: const TextStyle(fontSize: 16, fontFamily: 'ProductSans'),
-                      ),
-
-                      const SizedBox(height: 24),
-                    ],
-                  ],
-
-                  // Duration Field (in Bangla)
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(width: 12),
                   const Text(
-                    'Duration (সময়কাল)',
+                    'Dosage Details',
                     style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1E293B),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                       fontFamily: 'ProductSans',
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _durationController,
-                    decoration: InputDecoration(
-                      hintText: 'e.g., 7 Din Por Por, 1 Bosor Por Por',
-                      hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFFFE3001), width: 2),
-                      ),
-                      contentPadding: const EdgeInsets.all(16),
-                    ),
-                    style: const TextStyle(fontSize: 16, fontFamily: 'ProductSans'),
-                    maxLines: 2,
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Common Bangla Duration Options
-                  const Text(
-                    'Common Durations (সাধারণ সময়কাল)',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1E293B),
-                      fontFamily: 'ProductSans',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _buildDurationChip('7 Din Por Por'),
-                      _buildDurationChip('14 Din Por Por'),
-                      _buildDurationChip('1 Mas Por Por'),
-                      _buildDurationChip('3 Mas Por Por'),
-                      _buildDurationChip('6 Mas Por Por'),
-                      _buildDurationChip('1 Bosor Por Por'),
-                    ],
                   ),
                 ],
               ),
             ),
-          ),
 
-          // Save Button
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
-            ),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  widget.onSave(
-                    _quantityController.text,
-                    _frequencyController.text,
-                    _routeController.text,
-                    _durationController.text,
-                  );
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFE3001),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+            // Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // DOSAGE SECTION
+                    const Text(
+                      'Dosage (ডোজ)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                        fontFamily: 'ProductSans',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    if (_isInjectionOrSpray()) ...[
+                      // For Injections/Sprays: Quantity x Frequency
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Quantity',
+                                  style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                ),
+                                const SizedBox(height: 4),
+                                TextField(
+                                  controller: _quantityController,
+                                  decoration: InputDecoration(
+                                    hintText: '1 Injection',
+                                    hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                    contentPadding: const EdgeInsets.all(12),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Frequency',
+                                  style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                ),
+                                const SizedBox(height: 4),
+                                TextField(
+                                  controller: _frequencyController,
+                                  decoration: InputDecoration(
+                                    hintText: '1 time',
+                                    hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                    contentPadding: const EdgeInsets.all(12),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      if (widget.medicineType.toLowerCase().contains('inj')) ...[
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Route',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                        ),
+                        const SizedBox(height: 4),
+                        TextField(
+                          controller: _routeController,
+                          decoration: InputDecoration(
+                            hintText: 'SC, IM, IV',
+                            hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            contentPadding: const EdgeInsets.all(12),
+                          ),
+                        ),
+                      ],
+                    ] else ...[
+                      // For regular medicines: 1+0+1 format
+                      TextField(
+                        controller: _dosageController,
+                        decoration: InputDecoration(
+                          hintText: 'e.g., 1+0+1',
+                          hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          contentPadding: const EdgeInsets.all(12),
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 32),
+
+                    // DURATION SECTION
+                    const Text(
+                      'Duration (সময়কাল)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                        fontFamily: 'ProductSans',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Number',
+                                style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                              ),
+                              const SizedBox(height: 4),
+                              TextField(
+                                controller: _durationNumberController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  hintText: '7',
+                                  hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                  contentPadding: const EdgeInsets.all(12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Unit',
+                                style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                              ),
+                              const SizedBox(height: 4),
+                              DropdownButtonFormField<String>(
+                                value: _durationUnit,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                ),
+                                items: ['Days', 'Weeks', 'Months', 'Years'].map((unit) {
+                                  return DropdownMenuItem(value: unit, child: Text(unit));
+                                }).toList(),
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    setState(() {
+                                      _durationUnit = value;
+                                    });
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // INTERVAL SECTION (Optional)
+                    const Text(
+                      'Interval (Optional)',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF64748B),
+                        fontFamily: 'ProductSans',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _intervalController,
+                      decoration: InputDecoration(
+                        hintText: 'e.g., Por Por (interval), Daily',
+                        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        contentPadding: const EdgeInsets.all(12),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Quick Interval Chips
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildIntervalChip('Por Por'),
+                        _buildIntervalChip('Daily'),
+                        _buildIntervalChip('Weekly'),
+                        _buildIntervalChip('Monthly'),
+                      ],
+                    ),
+                  ],
                 ),
-                child: const Text(
-                  'Save',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    fontFamily: 'ProductSans',
+              ),
+            ),
+
+            // Save Button
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    widget.onSave(
+                      _dosageController.text,
+                      _quantityController.text,
+                      _frequencyController.text,
+                      _routeController.text,
+                      _durationNumberController.text,
+                      _durationUnit,
+                      _intervalController.text,
+                    );
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFE3001),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Save',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      fontFamily: 'ProductSans',
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildDurationChip(String duration) {
+  Widget _buildIntervalChip(String interval) {
     return InkWell(
       onTap: () {
         setState(() {
-          _durationController.text = duration;
+          _intervalController.text = interval;
         });
       },
       child: Chip(
         label: Text(
-          duration,
+          interval,
           style: const TextStyle(
             fontSize: 13,
             fontFamily: 'ProductSans',

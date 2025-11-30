@@ -11,6 +11,7 @@ class Medicine {
   final String specialInstructions; // For Spray: "per nostril", "both nostrils", etc.
   final String quantity; // For Inj/Spray: "1 Capsule", "1 Ampoule", etc.
   final String frequency; // For Inj/Spray: "1 Time", "2 Times", etc.
+  final String interval; // Optional: "Por Por", "Daily", etc.
 
   Medicine({
     required this.id,
@@ -25,6 +26,7 @@ class Medicine {
     this.specialInstructions = '',
     this.quantity = '',
     this.frequency = '',
+    this.interval = '',
   });
 
   String get fullName => '$type $name';
@@ -42,6 +44,7 @@ class Medicine {
     String? specialInstructions,
     String? quantity,
     String? frequency,
+    String? interval,
   }) {
     return Medicine(
       id: id ?? this.id,
@@ -56,6 +59,7 @@ class Medicine {
       specialInstructions: specialInstructions ?? this.specialInstructions,
       quantity: quantity ?? this.quantity,
       frequency: frequency ?? this.frequency,
+      interval: interval ?? this.interval,
     );
   }
 
@@ -73,6 +77,7 @@ class Medicine {
       'special_instructions': specialInstructions,
       'quantity': quantity,
       'frequency': frequency,
+      'interval': interval,
     };
   }
 
@@ -90,6 +95,7 @@ class Medicine {
       specialInstructions: json['special_instructions'] ?? '',
       quantity: json['quantity'] ?? '',
       frequency: json['frequency'] ?? '',
+      interval: json['interval'] ?? '',
     );
   }
 }
