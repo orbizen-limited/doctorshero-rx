@@ -1,3 +1,10 @@
+# ========================================
+# DoctorsHero Core - CodeMagic CI/CD
+# Last Updated: 2025-11-30 22:39 UTC+6
+# Build Version: v1.0.0-bangla-offline
+# Features: Bangla localization, Offline appointments, PDF Bangla font
+# ========================================
+
 workflows:
   windows-release:
     name: DoctorsHero Core - Windows Release
@@ -10,6 +17,7 @@ workflows:
       vars:
         APP_NAME: "DoctorsHero Core"
         PACKAGE_NAME: "com.doctorshero.core"
+        BUILD_IDENTIFIER: "v1.0.0-bangla-offline-20251130"
         
     triggering:
       events:
@@ -23,6 +31,14 @@ workflows:
           include: true
           
     scripts:
+      - name: Show Build Info
+        script: |
+          echo "========================================="
+          echo "BUILD IDENTIFIER: v1.0.0-bangla-offline-20251130"
+          echo "FEATURES: Bangla localization, Offline appointments, PDF Bangla font"
+          echo "LAST UPDATED: 2025-11-30 22:39 UTC+6"
+          echo "========================================="
+          
       - name: Get Flutter packages
         script: |
           flutter pub get
