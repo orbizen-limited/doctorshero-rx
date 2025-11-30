@@ -30,6 +30,8 @@ class _MedicineCardState extends State<MedicineCard> {
   late TextEditingController _dosageController;
   late TextEditingController _durationNumberController;
   late TextEditingController _adviceController;
+  late TextEditingController _routeController;
+  late TextEditingController _specialInstructionsController;
   late String _currentType;
   String _durationUnit = 'Days';
 
@@ -41,6 +43,8 @@ class _MedicineCardState extends State<MedicineCard> {
     _compositionController = TextEditingController(text: widget.medicine.composition);
     _dosageController = TextEditingController(text: widget.medicine.dosage);
     _adviceController = TextEditingController(text: widget.medicine.advice);
+    _routeController = TextEditingController(text: widget.medicine.route);
+    _specialInstructionsController = TextEditingController(text: widget.medicine.specialInstructions);
     _currentType = widget.medicine.type;
     
     // Parse duration into number and unit
@@ -78,6 +82,8 @@ class _MedicineCardState extends State<MedicineCard> {
     _dosageController.dispose();
     _durationNumberController.dispose();
     _adviceController.dispose();
+    _routeController.dispose();
+    _specialInstructionsController.dispose();
     super.dispose();
   }
 
@@ -96,6 +102,8 @@ class _MedicineCardState extends State<MedicineCard> {
         dosage: _dosageController.text,
         duration: duration,
         advice: _adviceController.text,
+        route: _routeController.text,
+        specialInstructions: _specialInstructionsController.text,
       );
       widget.onUpdate!(widget.medicine.id, updatedMedicine);
     }
@@ -133,20 +141,21 @@ class _MedicineCardState extends State<MedicineCard> {
     );
   }
 
+  bool _isInjectionOrSpray() {
+    return _currentType.toLowerCase().contains('inj') || 
+           _currentType.toLowerCase().contains('spray');
+  }
+
   String _formatDosage(String input) {
     // Remove all non-digit characters
     String digitsOnly = input.replaceAll(RegExp(r'[^0-9]'), '');
     
-    // Limit to 5 digits
-    if (digitsOnly.length > 5) {
-      digitsOnly = digitsOnly.substring(0, 5);
-    }
-    
-    // Add + between each digit
     if (digitsOnly.isEmpty) return '';
+    if (digitsOnly.length == 1) return digitsOnly;
+    if (digitsOnly.length == 2) return '${digitsOnly[0]}+${digitsOnly[1]}';
     
-    List<String> chars = digitsOnly.split('');
-    return chars.join('+');
+    // For 3 or more digits, format as X+Y+Z
+    return '${digitsOnly[0]}+${digitsOnly[1]}+${digitsOnly[2]}';
   }
 
   void _showAdviceDrawer() {
@@ -327,38 +336,76 @@ class _MedicineCardState extends State<MedicineCard> {
             ),
           ),
           const SizedBox(width: 24),
-          // Right: Dosage, Duration, Advice
+          // Right: Dosage/Route/Special Instructions, Duration, Advice
           Expanded(
             flex: 3,
             child: Row(
               children: [
+                // Conditional field based on medicine type
                 Expanded(
-                  child: TextField(
-                    controller: _dosageController,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    decoration: InputDecoration(
-                      labelText: 'DOSAGE',
-                      hintText: '1+0+1',
-                      labelStyle: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
-                      hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                    style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans'),
-                    onChanged: (value) {
-                      String formatted = _formatDosage(value);
-                      if (formatted != value) {
-                        _dosageController.value = TextEditingValue(
-                          text: formatted,
-                          selection: TextSelection.collapsed(offset: formatted.length),
-                        );
-                      }
-                      _updateMedicine();
-                    },
-                  ),
+                  child: _isInjectionOrSpray()
+                      ? (_currentType.toLowerCase().contains('inj')
+                          // Route field for Injections
+                          ? TextField(
+                              controller: _routeController,
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                labelText: 'ROUTE',
+                                hintText: 'SC/IM/IV',
+                                labelStyle: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                                hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                              ),
+                              style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans'),
+                              onChanged: (value) => _updateMedicine(),
+                            )
+                          // Special Instructions for Spray
+                          : TextField(
+                              controller: _specialInstructionsController,
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                labelText: 'INSTRUCTIONS',
+                                hintText: 'Per nostril',
+                                labelStyle: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                                hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                              ),
+                              style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans'),
+                              onChanged: (value) => _updateMedicine(),
+                            ))
+                      // Regular dosage field for Tab, Cap, Syp, etc.
+                      : TextField(
+                          controller: _dosageController,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          decoration: InputDecoration(
+                            labelText: 'DOSAGE',
+                            hintText: '1+0+1',
+                            labelStyle: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                            hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                          style: const TextStyle(fontSize: 13, fontFamily: 'ProductSans'),
+                          onChanged: (value) {
+                            String formatted = _formatDosage(value);
+                            if (formatted != value) {
+                              _dosageController.value = TextEditingValue(
+                                text: formatted,
+                                selection: TextSelection.collapsed(offset: formatted.length),
+                              );
+                            }
+                            _updateMedicine();
+                          },
+                        ),
                 ),
                 const SizedBox(width: 12),
                 // Duration - Split into number and unit

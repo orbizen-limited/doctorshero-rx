@@ -1,12 +1,14 @@
 class Medicine {
   final String id;
-  final String type; // Tab., Cap., Syp., Inj., Susp., Drops
+  final String type; // Tab., Cap., Syp., Inj., Susp., Drops, Spray
   final String name;
   final String genericName;
   final String composition;
   final String dosage;
   final String duration;
   final String advice;
+  final String route; // For Inj: SC, IM, IV, etc.
+  final String specialInstructions; // For Spray: "per nostril", "both nostrils", etc.
 
   Medicine({
     required this.id,
@@ -17,6 +19,8 @@ class Medicine {
     required this.dosage,
     required this.duration,
     required this.advice,
+    this.route = '',
+    this.specialInstructions = '',
   });
 
   String get fullName => '$type $name';
@@ -30,6 +34,8 @@ class Medicine {
     String? dosage,
     String? duration,
     String? advice,
+    String? route,
+    String? specialInstructions,
   }) {
     return Medicine(
       id: id ?? this.id,
@@ -40,6 +46,8 @@ class Medicine {
       dosage: dosage ?? this.dosage,
       duration: duration ?? this.duration,
       advice: advice ?? this.advice,
+      route: route ?? this.route,
+      specialInstructions: specialInstructions ?? this.specialInstructions,
     );
   }
 
@@ -53,6 +61,8 @@ class Medicine {
       'dosage': dosage,
       'duration': duration,
       'advice': advice,
+      'route': route,
+      'special_instructions': specialInstructions,
     };
   }
 
@@ -66,6 +76,8 @@ class Medicine {
       dosage: json['dosage'] ?? '',
       duration: json['duration'] ?? '',
       advice: json['advice'] ?? '',
+      route: json['route'] ?? '',
+      specialInstructions: json['special_instructions'] ?? '',
     );
   }
 }

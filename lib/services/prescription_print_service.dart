@@ -168,6 +168,9 @@ class PrescriptionPrintService {
                     ...medicines.asMap().entries.map((entry) {
                       final index = entry.key + 1;
                       final medicine = entry.value;
+                      final isInj = medicine.type.toLowerCase().contains('inj');
+                      final isSpray = medicine.type.toLowerCase().contains('spray');
+                      
                       return pw.Padding(
                         padding: const pw.EdgeInsets.only(bottom: 8),
                         child: pw.Row(
@@ -182,7 +185,18 @@ class PrescriptionPrintService {
                                     '${medicine.type} ${medicine.name}',
                                     style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
                                   ),
-                                  if (medicine.dosage.isNotEmpty)
+                                  // Show route for Inj, special instructions for Spray, or dosage for others
+                                  if (isInj && medicine.route.isNotEmpty)
+                                    pw.Padding(
+                                      padding: const pw.EdgeInsets.only(top: 2),
+                                      child: pw.Text('Route: ${medicine.route}', style: const pw.TextStyle(fontSize: 8)),
+                                    )
+                                  else if (isSpray && medicine.specialInstructions.isNotEmpty)
+                                    pw.Padding(
+                                      padding: const pw.EdgeInsets.only(top: 2),
+                                      child: pw.Text(medicine.specialInstructions, style: const pw.TextStyle(fontSize: 8)),
+                                    )
+                                  else if (medicine.dosage.isNotEmpty)
                                     pw.Padding(
                                       padding: const pw.EdgeInsets.only(top: 2),
                                       child: pw.Text(medicine.dosage, style: const pw.TextStyle(fontSize: 8)),
@@ -389,6 +403,9 @@ class PrescriptionPrintService {
                     ...medicines.asMap().entries.map((entry) {
                       final index = entry.key + 1;
                       final medicine = entry.value;
+                      final isInj = medicine.type.toLowerCase().contains('inj');
+                      final isSpray = medicine.type.toLowerCase().contains('spray');
+                      
                       return pw.Padding(
                         padding: const pw.EdgeInsets.only(bottom: 8),
                         child: pw.Row(
@@ -403,7 +420,18 @@ class PrescriptionPrintService {
                                     '${medicine.type} ${medicine.name}',
                                     style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
                                   ),
-                                  if (medicine.dosage.isNotEmpty)
+                                  // Show route for Inj, special instructions for Spray, or dosage for others
+                                  if (isInj && medicine.route.isNotEmpty)
+                                    pw.Padding(
+                                      padding: const pw.EdgeInsets.only(top: 2),
+                                      child: pw.Text('Route: ${medicine.route}', style: const pw.TextStyle(fontSize: 8)),
+                                    )
+                                  else if (isSpray && medicine.specialInstructions.isNotEmpty)
+                                    pw.Padding(
+                                      padding: const pw.EdgeInsets.only(top: 2),
+                                      child: pw.Text(medicine.specialInstructions, style: const pw.TextStyle(fontSize: 8)),
+                                    )
+                                  else if (medicine.dosage.isNotEmpty)
                                     pw.Padding(
                                       padding: const pw.EdgeInsets.only(top: 2),
                                       child: pw.Text(medicine.dosage, style: const pw.TextStyle(fontSize: 8)),
