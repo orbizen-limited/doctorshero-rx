@@ -4,9 +4,11 @@ import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/appointment_model.dart';
+import 'appointment_database_service.dart';
 
 class AppointmentService {
   static const String baseUrl = 'https://demo.doctorshero.com/api/v1';
+  final AppointmentDatabaseService _dbService = AppointmentDatabaseService();
   
   // Create HTTP client with SSL bypass
   static http.Client _createHttpClient() {
@@ -54,7 +56,6 @@ class AppointmentService {
       print('Fetching appointments from: $uri');
       final response = await _client.get(uri, headers: headers);
       print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -68,17 +69,20 @@ class AppointmentService {
                   return Appointment.fromJson(json);
                 } catch (e) {
                   print('Error parsing appointment: $e');
-                  print('Problematic JSON: $json');
                   rethrow;
                 }
               })
               .toList();
+          
+          // Cache appointments for offline use
+          await _dbService.saveAppointments(appointments);
           
           return {
             'appointments': appointments,
             'total': data['total'] ?? 0,
             'current_page': data['current_page'] ?? 1,
             'last_page': data['last_page'] ?? 1,
+            'fromCache': false,
           };
         } else {
           throw Exception(data['message'] ?? 'API returned success: false');
@@ -88,6 +92,19 @@ class AppointmentService {
       }
     } catch (e) {
       print('Exception in getAppointments: $e');
+      // Return cached data if available
+      final cachedAppointments = _dbService.getAllAppointments();
+      if (cachedAppointments.isNotEmpty) {
+        print('Returning ${cachedAppointments.length} cached appointments');
+        return {
+          'appointments': cachedAppointments,
+          'total': cachedAppointments.length,
+          'current_page': 1,
+          'last_page': 1,
+          'fromCache': true,
+          'cacheAge': _dbService.getCacheAgeMinutes(),
+        };
+      }
       throw Exception('Error: $e');
     }
   }
@@ -110,7 +127,10 @@ class AppointmentService {
         final data = json.decode(response.body);
         print('Stats response: $data');
         if (data['success'] == true) {
-          return AppointmentStats.fromJson(data['data']);
+          final stats = AppointmentStats.fromJson(data['data']);
+          // Cache stats for offline use
+          await _dbService.saveStats(stats);
+          return stats;
         } else {
           throw Exception(data['message'] ?? 'API returned success: false');
         }
@@ -119,6 +139,12 @@ class AppointmentService {
       }
     } catch (e) {
       print('Exception in getAppointmentStats: $e');
+      // Return cached stats if available
+      final cachedStats = _dbService.getStats();
+      if (cachedStats != null) {
+        print('Returning cached stats');
+        return cachedStats;
+      }
       throw Exception('Error: $e');
     }
   }

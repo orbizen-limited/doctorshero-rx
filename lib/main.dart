@@ -6,6 +6,7 @@ import 'providers/auth_provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/medicine_database_service.dart';
 import 'services/prescription_database_service.dart';
+import 'services/appointment_database_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,6 +14,7 @@ void main() async {
   // Initialize Hive
   await Hive.initFlutter();
   await PrescriptionDatabaseService.init();
+  await AppointmentDatabaseService.init();
   
   // Load medicine database
   await MedicineDatabaseService.loadDatabase();
