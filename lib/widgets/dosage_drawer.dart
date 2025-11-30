@@ -44,6 +44,22 @@ class _DosageDrawerState extends State<DosageDrawer> {
   String _tillUnit = 'দিন';
   bool _isContinues = false;
 
+  // Convert English units to Bangla for backward compatibility
+  String _convertToBangla(String unit) {
+    switch (unit) {
+      case 'Days':
+        return 'দিন';
+      case 'Weeks':
+        return 'সপ্তাহ';
+      case 'Months':
+        return 'মাস';
+      case 'Years':
+        return 'বছর';
+      default:
+        return unit; // Already in Bangla or empty
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -54,8 +70,8 @@ class _DosageDrawerState extends State<DosageDrawer> {
     _durationNumberController = TextEditingController(text: widget.currentDurationNumber);
     _intervalController = TextEditingController(text: widget.currentInterval);
     _tillNumberController = TextEditingController(text: widget.currentTillNumber);
-    _durationUnit = widget.currentDurationUnit.isEmpty ? 'দিন' : widget.currentDurationUnit;
-    _tillUnit = widget.currentTillUnit.isEmpty ? 'দিন' : widget.currentTillUnit;
+    _durationUnit = widget.currentDurationUnit.isEmpty ? 'দিন' : _convertToBangla(widget.currentDurationUnit);
+    _tillUnit = widget.currentTillUnit.isEmpty ? 'দিন' : _convertToBangla(widget.currentTillUnit);
     _isContinues = widget.currentTillNumber == 'Continues';
   }
 
