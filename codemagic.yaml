@@ -39,15 +39,15 @@ workflows:
           
       - name: Create Version Info
         script: |
-          cat > version.json << EOF
-          {
-            "version": "${CM_BUILD_VERSION}",
-            "build_number": ${CM_BUILD_NUMBER},
-            "download_url": "https://github.com/orbizen-limited/doctorshero-rx/releases/download/v${CM_BUILD_VERSION}/DoctorsHero_Core_v${CM_BUILD_VERSION}_build${CM_BUILD_NUMBER}.zip",
-            "release_date": "$(date -u +%Y-%m-%d)",
-            "release_notes": "Build ${CM_BUILD_NUMBER} - ${CM_COMMIT_MESSAGE}"
-          }
-          EOF
+          $versionJson = @{
+            version = $env:CM_BUILD_VERSION
+            build_number = [int]$env:CM_BUILD_NUMBER
+            download_url = "https://github.com/orbizen-limited/doctorshero-rx/releases/download/v$env:CM_BUILD_VERSION/DoctorsHero_Core_v$($env:CM_BUILD_VERSION)_build$($env:CM_BUILD_NUMBER).zip"
+            release_date = (Get-Date -Format "yyyy-MM-dd")
+            release_notes = "Build $env:CM_BUILD_NUMBER"
+          } | ConvertTo-Json
+          
+          Set-Content -Path "version.json" -Value $versionJson
           
     artifacts:
       - build/windows/x64/runner/Release/**/*
