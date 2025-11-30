@@ -40,8 +40,8 @@ class _DosageDrawerState extends State<DosageDrawer> {
   late TextEditingController _durationNumberController;
   late TextEditingController _intervalController;
   late TextEditingController _tillNumberController;
-  String _durationUnit = 'Days';
-  String _tillUnit = 'Days';
+  String _durationUnit = 'দিন';
+  String _tillUnit = 'দিন';
   bool _isContinues = false;
 
   @override
@@ -54,8 +54,8 @@ class _DosageDrawerState extends State<DosageDrawer> {
     _durationNumberController = TextEditingController(text: widget.currentDurationNumber);
     _intervalController = TextEditingController(text: widget.currentInterval);
     _tillNumberController = TextEditingController(text: widget.currentTillNumber);
-    _durationUnit = widget.currentDurationUnit.isEmpty ? 'Days' : widget.currentDurationUnit;
-    _tillUnit = widget.currentTillUnit.isEmpty ? 'Days' : widget.currentTillUnit;
+    _durationUnit = widget.currentDurationUnit.isEmpty ? 'দিন' : widget.currentDurationUnit;
+    _tillUnit = widget.currentTillUnit.isEmpty ? 'দিন' : widget.currentTillUnit;
     _isContinues = widget.currentTillNumber == 'Continues';
   }
 
@@ -278,7 +278,7 @@ class _DosageDrawerState extends State<DosageDrawer> {
                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                 ),
-                                items: ['Days', 'Weeks', 'Months', 'Years'].map((unit) {
+                                items: ['দিন', 'সপ্তাহ', 'মাস', 'বছর'].map((unit) {
                                   return DropdownMenuItem(value: unit, child: Text(unit));
                                 }).toList(),
                                 onChanged: (value) {
@@ -432,7 +432,7 @@ class _DosageDrawerState extends State<DosageDrawer> {
                                   filled: _isContinues,
                                   fillColor: _isContinues ? const Color(0xFFF1F5F9) : null,
                                 ),
-                                items: ['Days', 'Weeks', 'Months', 'Years'].map((unit) {
+                                items: ['দিন', 'সপ্তাহ', 'মাস', 'বছর'].map((unit) {
                                   return DropdownMenuItem(value: unit, child: Text(unit));
                                 }).toList(),
                                 onChanged: _isContinues ? null : (value) {
