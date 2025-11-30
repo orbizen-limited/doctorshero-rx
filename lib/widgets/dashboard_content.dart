@@ -655,7 +655,7 @@ class DashboardContent extends StatelessWidget {
     );
   }
 
-  Widget _buildPieChart(String title, List<PieChartData> data) {
+  Widget _buildPieChart(String title, List<ChartDataItem> data) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -740,30 +740,30 @@ class DashboardContent extends StatelessWidget {
     );
   }
 
-  List<PieChartData> _getGenderData() {
+  List<ChartDataItem> _getGenderData() {
     return [
-      PieChartData(label: 'Male', value: 54, percentage: 54, color: const Color(0xFF10B981)),
-      PieChartData(label: 'Female', value: 30, percentage: 30, color: const Color(0xFFEC4899)),
-      PieChartData(label: 'Baby', value: 16, percentage: 16, color: const Color(0xFF3B82F6)),
+      ChartDataItem(label: 'Male', value: 54, percentage: 54, color: const Color(0xFF10B981)),
+      ChartDataItem(label: 'Female', value: 30, percentage: 30, color: const Color(0xFFEC4899)),
+      ChartDataItem(label: 'Baby', value: 16, percentage: 16, color: const Color(0xFF3B82F6)),
     ];
   }
 
-  List<PieChartData> _getPatientTypeData() {
+  List<ChartDataItem> _getPatientTypeData() {
     return [
-      PieChartData(label: 'New', value: 60, percentage: 60, color: const Color(0xFF10B981)),
-      PieChartData(label: 'Old', value: 28, percentage: 28, color: const Color(0xFF6366F1)),
-      PieChartData(label: 'Baby', value: 12, percentage: 12, color: const Color(0xFF3B82F6)),
+      ChartDataItem(label: 'New', value: 60, percentage: 60, color: const Color(0xFF10B981)),
+      ChartDataItem(label: 'Old', value: 28, percentage: 28, color: const Color(0xFF6366F1)),
+      ChartDataItem(label: 'Baby', value: 12, percentage: 12, color: const Color(0xFF3B82F6)),
     ];
   }
 }
 
-class PieChartData {
+class ChartDataItem {
   final String label;
   final double value;
   final int percentage;
   final Color color;
 
-  PieChartData({
+  ChartDataItem({
     required this.label,
     required this.value,
     required this.percentage,
