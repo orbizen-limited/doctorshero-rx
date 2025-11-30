@@ -529,7 +529,7 @@ class _MedicineCardState extends State<MedicineCard> {
                                     Text(
                                       _durationNumberController.text.isEmpty
                                           ? 'Click to set'
-                                          : '${_durationNumberController.text} $_durationUnit${_intervalController.text.isNotEmpty ? " (${_intervalController.text})" : ""}${_tillNumber.isNotEmpty ? " till $_tillNumber $_tillUnit" : ""}',
+                                          : '${_durationNumberController.text} $_durationUnit${_intervalController.text.isNotEmpty ? " (${_intervalController.text})" : ""}${_tillNumber == "Continues" ? " - Continues" : _tillNumber.isNotEmpty ? " till $_tillNumber $_tillUnit" : ""}',
                                       style: const TextStyle(
                                         fontSize: 12,
                                         fontFamily: 'ProductSans',

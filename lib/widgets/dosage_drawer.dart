@@ -42,6 +42,7 @@ class _DosageDrawerState extends State<DosageDrawer> {
   late TextEditingController _tillNumberController;
   String _durationUnit = 'Days';
   String _tillUnit = 'Days';
+  bool _isContinues = false;
 
   @override
   void initState() {
@@ -55,6 +56,7 @@ class _DosageDrawerState extends State<DosageDrawer> {
     _tillNumberController = TextEditingController(text: widget.currentTillNumber);
     _durationUnit = widget.currentDurationUnit.isEmpty ? 'Days' : widget.currentDurationUnit;
     _tillUnit = widget.currentTillUnit.isEmpty ? 'Days' : widget.currentTillUnit;
+    _isContinues = widget.currentTillNumber == 'Continues';
   }
 
   @override
@@ -350,6 +352,33 @@ class _DosageDrawerState extends State<DosageDrawer> {
                         color: Color(0xFF64748B),
                       ),
                     ),
+                    const SizedBox(height: 12),
+
+                    // Continues Checkbox
+                    CheckboxListTile(
+                      value: _isContinues,
+                      onChanged: (value) {
+                        setState(() {
+                          _isContinues = value ?? false;
+                          if (_isContinues) {
+                            _tillNumberController.clear();
+                          }
+                        });
+                      },
+                      title: const Text(
+                        'Continues (No end date)',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E293B),
+                          fontFamily: 'ProductSans',
+                        ),
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                    ),
+
                     const SizedBox(height: 16),
 
                     Row(
@@ -367,11 +396,14 @@ class _DosageDrawerState extends State<DosageDrawer> {
                               TextField(
                                 controller: _tillNumberController,
                                 keyboardType: TextInputType.number,
+                                enabled: !_isContinues,
                                 decoration: InputDecoration(
                                   hintText: '7',
                                   hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                                   contentPadding: const EdgeInsets.all(12),
+                                  filled: _isContinues,
+                                  fillColor: _isContinues ? const Color(0xFFF1F5F9) : null,
                                 ),
                               ),
                             ],
@@ -393,11 +425,13 @@ class _DosageDrawerState extends State<DosageDrawer> {
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  filled: _isContinues,
+                                  fillColor: _isContinues ? const Color(0xFFF1F5F9) : null,
                                 ),
                                 items: ['Days', 'Weeks', 'Months', 'Years'].map((unit) {
                                   return DropdownMenuItem(value: unit, child: Text(unit));
                                 }).toList(),
-                                onChanged: (value) {
+                                onChanged: _isContinues ? null : (value) {
                                   if (value != null) {
                                     setState(() {
                                       _tillUnit = value;
@@ -433,7 +467,7 @@ class _DosageDrawerState extends State<DosageDrawer> {
                       _durationNumberController.text,
                       _durationUnit,
                       _intervalController.text,
-                      _tillNumberController.text,
+                      _isContinues ? 'Continues' : _tillNumberController.text,
                       _tillUnit,
                     );
                     Navigator.pop(context);
