@@ -105,14 +105,84 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
     });
   }
 
-  void _savePrescription() {
-    // TODO: Implement save to API
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Prescription saved successfully!'),
-        backgroundColor: Color(0xFF10B981),
+  Future<void> _savePrescription() async {
+    // Show loading indicator
+    if (!mounted) return;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: Color(0xFFFE3001)),
       ),
     );
+
+    try {
+      // Parse clinical data
+      final chiefComplaints = clinicalData.chiefComplaint
+          .split('\n')
+          .where((s) => s.trim().isNotEmpty)
+          .map((s) => s.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), ''))
+          .toList();
+      
+      final diagnosisList = clinicalData.diagnosis
+          .split('\n')
+          .where((s) => s.trim().isNotEmpty)
+          .map((s) => s.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), ''))
+          .toList();
+      
+      final investigationList = clinicalData.investigation
+          .split('\n')
+          .where((s) => s.trim().isNotEmpty)
+          .map((s) => s.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), ''))
+          .toList();
+
+      final examinationMap = <String, dynamic>{};
+      clinicalData.examination.split('\n').where((s) => s.trim().isNotEmpty).forEach((line) {
+        final parts = line.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), '').split(':');
+        if (parts.length >= 2) {
+          examinationMap[parts[0].trim()] = parts.sublist(1).join(':').trim();
+        }
+      });
+
+      final filePath = await PrescriptionPrintService.savePrescription(
+        patientName: patientInfo.name.isEmpty ? 'Patient Name' : patientInfo.name,
+        age: patientInfo.age.isEmpty ? 'N/A' : patientInfo.age,
+        date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
+        patientId: patientInfo.patientId.isEmpty ? 'N/A' : patientInfo.patientId,
+        chiefComplaints: chiefComplaints,
+        examination: examinationMap,
+        diagnosis: diagnosisList,
+        investigation: investigationList,
+        medicines: medicines,
+        advice: [], // TODO: Get from medicine list widget
+        followUpDate: null, // TODO: Get from medicine list widget
+        referral: null, // TODO: Get from medicine list widget
+      );
+
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Prescription saved to:\n$filePath'),
+            backgroundColor: const Color(0xFF10B981),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _printPrescription() async {
