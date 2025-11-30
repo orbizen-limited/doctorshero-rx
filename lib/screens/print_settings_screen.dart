@@ -41,7 +41,6 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
           backgroundColor: Color(0xFFFE3001),
         ),
       );
-      Navigator.pop(context);
     }
   }
 
@@ -54,17 +53,11 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Print Settings'),
-        backgroundColor: const Color(0xFFFE3001),
-        foregroundColor: Colors.white,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
+    return _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header
@@ -286,7 +279,6 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
                   ),
                 ],
               ),
-            ),
-    );
+            );
   }
 }

@@ -7,7 +7,6 @@ import '../widgets/clinical_sections.dart';
 import '../widgets/medicine_list.dart';
 import '../widgets/prescription_footer.dart';
 import '../services/prescription_print_service.dart';
-import 'print_settings_screen.dart';
 
 class CreatePrescriptionScreen extends StatefulWidget {
   final String? patientId;
@@ -263,24 +262,6 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const PrintSettingsScreen(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.settings, color: Color(0xFF64748B)),
-            tooltip: 'Print Settings',
-          ),
-        ],
-      ),
       body: SingleChildScrollView(
         child: LayoutBuilder(
           builder: (context, constraints) {
