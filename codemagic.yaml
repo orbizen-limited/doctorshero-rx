@@ -1,0 +1,215 @@
+workflows:
+  windows-release:
+    name: DoctorsHero Core - Windows Release
+    instance_type: windows_x2
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      groups:
+        - app_credentials # Add your signing certificates here if needed
+      vars:
+        APP_NAME: "DoctorsHero Core"
+        PACKAGE_NAME: "com.doctorshero.core"
+        
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+          source: true
+      tag_patterns:
+        - pattern: 'v*.*.*'
+          include: true
+          
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+          
+      - name: Build Windows Release
+        script: |
+          flutter config --enable-windows-desktop
+          flutter build windows --release --build-name=$CM_BUILD_VERSION --build-number=$CM_BUILD_NUMBER
+          
+      - name: Package Application
+        script: |
+          cd build/windows/x64/runner/Release
+          7z a -tzip ../../../../../DoctorsHero_Core_v${CM_BUILD_VERSION}_build${CM_BUILD_NUMBER}.zip *
+          
+      - name: Create Version Info
+        script: |
+          cat > version.json << EOF
+          {
+            "version": "${CM_BUILD_VERSION}",
+            "build_number": ${CM_BUILD_NUMBER},
+            "download_url": "https://github.com/orbizen-limited/doctorshero-rx/releases/download/v${CM_BUILD_VERSION}/DoctorsHero_Core_v${CM_BUILD_VERSION}_build${CM_BUILD_NUMBER}.zip",
+            "release_date": "$(date -u +%Y-%m-%d)",
+            "release_notes": "Build ${CM_BUILD_NUMBER} - ${CM_COMMIT_MESSAGE}"
+          }
+          EOF
+          
+    artifacts:
+      - build/windows/x64/runner/Release/**/*
+      - DoctorsHero_Core_*.zip
+      - version.json
+      
+    publishing:
+      email:
+        recipients:
+          - your-email@doctorshero.com
+        notify:
+          success: true
+          failure: true
+          
+      github_releases:
+        prerelease: false
+        artifact_patterns:
+          - DoctorsHero_Core_*.zip
+          - version.json
+        commit_message: |
+          DoctorsHero Core v${CM_BUILD_VERSION}
+          
+          Build: ${CM_BUILD_NUMBER}
+          Commit: ${CM_COMMIT}
+          
+          Download and extract the ZIP file to install.
+
+  windows-installer:
+    name: DoctorsHero Core - Windows Installer
+    instance_type: windows_x2
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      groups:
+        - app_credentials
+      vars:
+        APP_NAME: "DoctorsHero Core"
+        INNO_SETUP_VERSION: "6.2.2"
+        
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'v*.*.*'
+          include: true
+          
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+          
+      - name: Build Windows Release
+        script: |
+          flutter config --enable-windows-desktop
+          flutter build windows --release --build-name=$CM_BUILD_VERSION --build-number=$CM_BUILD_NUMBER
+          
+      - name: Install Inno Setup
+        script: |
+          choco install innosetup -y
+          
+      - name: Update Installer Version
+        script: |
+          # Update version in installer.iss
+          $issFile = "windows\installer.iss"
+          $content = Get-Content $issFile
+          $content = $content -replace '#define MyAppVersion ".*"', "#define MyAppVersion `"$env:CM_BUILD_VERSION`""
+          Set-Content $issFile $content
+          
+      - name: Compile Installer
+        script: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" windows\installer.iss
+          
+      - name: Rename Installer
+        script: |
+          $installerPath = "build\windows\installer\DoctorsHero_Core_Setup_v$env:CM_BUILD_VERSION.exe"
+          if (Test-Path $installerPath) {
+            Move-Item $installerPath "DoctorsHero_Core_Setup_v$env:CM_BUILD_VERSION.exe"
+          }
+          
+      - name: Create Version API Response
+        script: |
+          $versionJson = @{
+            version = $env:CM_BUILD_VERSION
+            build_number = [int]$env:CM_BUILD_NUMBER
+            download_url = "https://github.com/orbizen-limited/doctorshero-rx/releases/download/v$env:CM_BUILD_VERSION/DoctorsHero_Core_Setup_v$env:CM_BUILD_VERSION.exe"
+            release_date = (Get-Date -Format "yyyy-MM-dd")
+            release_notes = "DoctorsHero Core v$env:CM_BUILD_VERSION"
+            features = @(
+              "Professional prescription management",
+              "Medicine database with autocomplete",
+              "Custom dosage drawer for all medicine types",
+              "Interval and duration support",
+              "PDF generation with custom layouts",
+              "Auto-update system"
+            )
+            minimum_version = "1.0.0"
+            force_update = $false
+          } | ConvertTo-Json -Depth 10
+          
+          Set-Content -Path "version.json" -Value $versionJson
+          
+    artifacts:
+      - DoctorsHero_Core_Setup_*.exe
+      - version.json
+      
+    publishing:
+      email:
+        recipients:
+          - your-email@doctorshero.com
+        notify:
+          success: true
+          failure: true
+          
+      github_releases:
+        prerelease: false
+        artifact_patterns:
+          - DoctorsHero_Core_Setup_*.exe
+          - version.json
+        commit_message: |
+          🚀 DoctorsHero Core v${CM_BUILD_VERSION}
+          
+          ## What's New
+          Build ${CM_BUILD_NUMBER}
+          
+          ## Installation
+          1. Download `DoctorsHero_Core_Setup_v${CM_BUILD_VERSION}.exe`
+          2. Run the installer
+          3. Follow the setup wizard
+          
+          ## Auto-Update
+          Existing users will be notified automatically.
+          
+          ## Version API
+          Use `version.json` for your update server endpoint.
+
+  windows-development:
+    name: DoctorsHero Core - Windows Dev Build
+    instance_type: windows_x2
+    max_build_duration: 30
+    environment:
+      flutter: stable
+      
+    triggering:
+      events:
+        - pull_request
+      branch_patterns:
+        - pattern: '*'
+          include: true
+          
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+          
+      - name: Run Tests
+        script: |
+          flutter test
+          
+      - name: Build Windows Debug
+        script: |
+          flutter config --enable-windows-desktop
+          flutter build windows --debug
+          
+    artifacts:
+      - build/windows/x64/runner/Debug/**/*
