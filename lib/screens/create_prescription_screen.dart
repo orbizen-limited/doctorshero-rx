@@ -410,7 +410,93 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    PatientInfoCard(patientInfo: patientInfo),
+                    PatientInfoCard(
+                      patientInfo: patientInfo,
+                      isEditable: widget.savedPrescription == null,
+                      onUpdate: (field, value) {
+                        setState(() {
+                          switch (field) {
+                            case 'name':
+                              patientInfo = PrescriptionPatientInfo(
+                                name: value,
+                                age: patientInfo.age,
+                                gender: patientInfo.gender,
+                                date: patientInfo.date,
+                                patientId: patientInfo.patientId,
+                                phone: patientInfo.phone,
+                                bloodGroup: patientInfo.bloodGroup,
+                                address: patientInfo.address,
+                              );
+                              break;
+                            case 'age':
+                              patientInfo = PrescriptionPatientInfo(
+                                name: patientInfo.name,
+                                age: value,
+                                gender: patientInfo.gender,
+                                date: patientInfo.date,
+                                patientId: patientInfo.patientId,
+                                phone: patientInfo.phone,
+                                bloodGroup: patientInfo.bloodGroup,
+                                address: patientInfo.address,
+                              );
+                              break;
+                            case 'gender':
+                              patientInfo = PrescriptionPatientInfo(
+                                name: patientInfo.name,
+                                age: patientInfo.age,
+                                gender: value,
+                                date: patientInfo.date,
+                                patientId: patientInfo.patientId,
+                                phone: patientInfo.phone,
+                                bloodGroup: patientInfo.bloodGroup,
+                                address: patientInfo.address,
+                              );
+                              break;
+                            case 'date':
+                              patientInfo = PrescriptionPatientInfo(
+                                name: patientInfo.name,
+                                age: patientInfo.age,
+                                gender: patientInfo.gender,
+                                date: value,
+                                patientId: patientInfo.patientId,
+                                phone: patientInfo.phone,
+                                bloodGroup: patientInfo.bloodGroup,
+                                address: patientInfo.address,
+                              );
+                              break;
+                            case 'patientId':
+                              patientInfo = PrescriptionPatientInfo(
+                                name: patientInfo.name,
+                                age: patientInfo.age,
+                                gender: patientInfo.gender,
+                                date: patientInfo.date,
+                                patientId: value,
+                                phone: patientInfo.phone,
+                                bloodGroup: patientInfo.bloodGroup,
+                                address: patientInfo.address,
+                              );
+                              break;
+                            case 'phone':
+                              // Auto-generate UP ID if phone is entered
+                              String newPatientId = patientInfo.patientId;
+                              if (value.length >= 4 && patientInfo.patientId.isEmpty) {
+                                newPatientId = 'UP${value.substring(value.length - 4)}';
+                              }
+                              patientInfo = PrescriptionPatientInfo(
+                                name: patientInfo.name,
+                                age: patientInfo.age,
+                                gender: patientInfo.gender,
+                                date: patientInfo.date,
+                                patientId: newPatientId,
+                                phone: value,
+                                bloodGroup: patientInfo.bloodGroup,
+                                address: patientInfo.address,
+                              );
+                              break;
+                          }
+                        });
+                      },
+                    ),
                     Padding(
                       padding: const EdgeInsets.all(32.0),
                       child: constraints.maxWidth >= 1024
