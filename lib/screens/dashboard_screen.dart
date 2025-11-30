@@ -5,6 +5,7 @@ import 'login_screen.dart';
 import 'appointment_screen.dart';
 import 'create_prescription_screen.dart';
 import 'print_settings_screen.dart';
+import 'drug_database_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -396,10 +397,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
       case 'Configuration':
         return const PrintSettingsScreen();
+      case 'Drug Database':
+        return const DrugDatabaseScreen();
       case 'Dashboard':
       case 'All Prescription':
       case 'Analytics':
-      case 'Drug Database':
       case 'Settings':
       default:
         return Padding(
