@@ -11,6 +11,7 @@ import '../widgets/medicine_list.dart';
 import '../widgets/prescription_footer.dart';
 import '../services/prescription_print_service.dart';
 import '../services/prescription_database_service.dart';
+import '../services/api_service.dart';
 import '../providers/auth_provider.dart';
 
 class CreatePrescriptionScreen extends StatefulWidget {
@@ -116,6 +117,92 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
     );
 
     return result ?? false;
+  }
+
+  Future<void> _lookupPatient(String patientId) async {
+    if (patientId.isEmpty) return;
+
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: Color(0xFFFE3001)),
+      ),
+    );
+
+    try {
+      final apiService = ApiService();
+      final patientData = await apiService.getPatientByPatientId(patientId);
+
+      // Close loading
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      if (patientData != null) {
+        // Patient found - auto-fill details
+        setState(() {
+          patientInfo = PrescriptionPatientInfo(
+            name: patientData['name'] ?? '',
+            age: patientData['age']?.toString() ?? '',
+            gender: patientData['gender'] ?? '',
+            date: DateTime.now().toString().split(' ')[0],
+            patientId: patientId,
+            phone: patientData['phone'] ?? patientData['mobile'],
+            bloodGroup: patientData['blood_group'],
+            address: patientData['address'],
+          );
+        });
+
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✓ Patient found: ${patientData['name']}'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        // Patient not found - keep the ID but don't auto-fill
+        setState(() {
+          patientInfo = PrescriptionPatientInfo(
+            name: patientInfo.name,
+            age: patientInfo.age,
+            gender: patientInfo.gender,
+            date: patientInfo.date,
+            patientId: patientId,
+            phone: patientInfo.phone,
+            bloodGroup: patientInfo.bloodGroup,
+            address: patientInfo.address,
+          );
+        });
+
+        // Show info message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Patient ID not found in database. Using as unknown patient.'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Close loading
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error looking up patient: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _addMedicine(Medicine medicine) {
@@ -465,16 +552,8 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
                               );
                               break;
                             case 'patientId':
-                              patientInfo = PrescriptionPatientInfo(
-                                name: patientInfo.name,
-                                age: patientInfo.age,
-                                gender: patientInfo.gender,
-                                date: patientInfo.date,
-                                patientId: value,
-                                phone: patientInfo.phone,
-                                bloodGroup: patientInfo.bloodGroup,
-                                address: patientInfo.address,
-                              );
+                              // Try to fetch patient details from API
+                              _lookupPatient(value);
                               break;
                             case 'phone':
                               // Auto-generate UPID + full phone number

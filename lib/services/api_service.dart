@@ -145,4 +145,31 @@ class ApiService {
       return false;
     }
   }
+
+  // Get patient details by patient ID
+  Future<Map<String, dynamic>?> getPatientByPatientId(String patientId) async {
+    try {
+      final token = await getToken();
+      if (token == null) return null;
+
+      final response = await _client.get(
+        Uri.parse('$baseUrl/api/v1/patients/search?patient_id=$patientId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return data['data'];
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching patient: $e');
+      return null;
+    }
+  }
 }
