@@ -59,108 +59,23 @@ class PrescriptionHtmlService {
       margins: margins,
     );
 
+    // Save HTML and open it in browser
+    // The HTML has proper @page CSS rules for printing
+    // User can print to PDF from browser (Cmd+P) with perfect Bangla
     final directory = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final htmlPath = '${directory.path}/prescription_$timestamp.html';
-    final pdfPath = '${directory.path}/prescription_$timestamp.pdf';
-    
-    // Save HTML file first
     final htmlFile = File(htmlPath);
     await htmlFile.writeAsString(html);
     
-    // Try multiple Chrome paths
-    final chromePaths = [
-      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-      '/Applications/Chromium.app/Contents/MacOS/Chromium',
-      '/usr/bin/google-chrome',
-      '/usr/bin/chromium',
-    ];
+    print('✅ HTML prescription generated');
+    print('📄 Path: $htmlPath');
+    print('🖨️  To print: Open in browser and press Cmd+P');
     
-    String? workingChromePath;
-    for (final path in chromePaths) {
-      if (await File(path).exists()) {
-        workingChromePath = path;
-        print('Found Chrome at: $path');
-        break;
-      }
-    }
+    // Open HTML in browser
+    await OpenFile.open(htmlPath);
     
-    if (workingChromePath != null) {
-      try {
-        print('Converting HTML to PDF with Chrome headless...');
-        final chromeResult = await Process.run(
-          workingChromePath,
-          [
-            '--headless',
-            '--disable-gpu',
-            '--print-to-pdf=$pdfPath',
-            '--print-to-pdf-no-header',
-            '--no-margins',
-            'file://$htmlPath',
-          ],
-        );
-        
-        print('Chrome exit code: ${chromeResult.exitCode}');
-        print('Chrome stdout: ${chromeResult.stdout}');
-        print('Chrome stderr: ${chromeResult.stderr}');
-        
-        if (chromeResult.exitCode == 0 && await File(pdfPath).exists()) {
-          print('✅ PDF generated successfully with Chrome');
-          // Delete temp HTML
-          try {
-            await htmlFile.delete();
-          } catch (e) {
-            print('Could not delete temp HTML: $e');
-          }
-          
-          // Open the PDF
-          await OpenFile.open(pdfPath);
-          return pdfPath;
-        } else {
-          print('❌ Chrome conversion failed');
-          throw Exception('Chrome conversion failed');
-        }
-      } catch (e) {
-        print('Chrome headless error: $e');
-      }
-    }
-    
-    // Fallback: Try Printing.convertHtml
-    print('Trying Printing.convertHtml as fallback...');
-    try {
-      final pdfBytes = await Printing.convertHtml(
-        format: PdfPageFormat(
-          margins['pageWidth']! * PdfPageFormat.cm,
-          margins['pageHeight']! * PdfPageFormat.cm,
-          marginLeft: margins['left']! * PdfPageFormat.cm,
-          marginTop: margins['top']! * PdfPageFormat.cm,
-          marginRight: margins['right']! * PdfPageFormat.cm,
-          marginBottom: margins['bottom']! * PdfPageFormat.cm,
-        ),
-        html: html,
-      );
-      
-      final pdfFile = File(pdfPath);
-      await pdfFile.writeAsBytes(pdfBytes);
-      
-      print('✅ PDF generated with Printing.convertHtml');
-      
-      // Delete temp HTML
-      try {
-        await htmlFile.delete();
-      } catch (e) {
-        print('Could not delete temp HTML: $e');
-      }
-      
-      await OpenFile.open(pdfPath);
-      return pdfPath;
-    } catch (e2) {
-      print('❌ Printing.convertHtml also failed: $e2');
-      // Final fallback: open HTML
-      print('Opening HTML as final fallback');
-      await OpenFile.open(htmlPath);
-      return htmlPath;
-    }
+    return htmlPath;
   }
 
   static String _generateHtmlContent({
@@ -242,17 +157,38 @@ class PrescriptionHtmlService {
             font-size: 11pt;
             line-height: 1.4;
             color: #000;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .page-container {
+            width: ${margins['pageWidth']}cm;
+            min-height: ${margins['pageHeight']}cm;
+            background: white;
+            margin: 0 auto;
             padding: ${margins['top']}cm ${margins['right']}cm ${margins['bottom']}cm ${margins['left']}cm;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         
         @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .page-container {
+                width: 100%;
+                min-height: auto;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+            }
+            
             @page {
                 size: ${margins['pageWidth']}cm ${margins['pageHeight']}cm;
                 margin: ${margins['top']}cm ${margins['right']}cm ${margins['bottom']}cm ${margins['left']}cm;
             }
-            body {
-                padding: 0;
-            }
+            
             .no-print {
                 display: none;
             }
@@ -377,6 +313,7 @@ class PrescriptionHtmlService {
 <body>
     <button class="print-button no-print" onclick="window.print()">🖨️ Print</button>
     
+    <div class="page-container">
     <div class="header">
         <div class="header-item"><strong>Name:</strong> $patientName</div>
         <div class="header-item"><strong>Age:</strong> $age</div>
@@ -445,6 +382,7 @@ class PrescriptionHtmlService {
             </div>
             ''' : ''}
         </div>
+    </div>
     </div>
 </body>
 </html>
