@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 
 class PrescriptionFooter extends StatelessWidget {
   final String doctorName;
-  final String regNo;
+  final String bio;
   final VoidCallback? onSave;
   final VoidCallback? onPrint;
 
   const PrescriptionFooter({
     Key? key,
     this.doctorName = 'Dr. John Doe',
-    this.regNo = '23948-BMC',
+    this.bio = 'MBBS, FCPS',
     this.onSave,
     this.onPrint,
   }) : super(key: key);
@@ -83,7 +83,7 @@ class PrescriptionFooter extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Reg No: $regNo',
+                bio,
                 style: const TextStyle(
                   fontSize: 13,
                   color: Color(0xFF64748B),
