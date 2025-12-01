@@ -76,38 +76,48 @@ class PrescriptionPrintService {
     required String? followUpDate,
     required String? referral,
   }) async {
-    // Use the printing package to open system print dialog
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async {
-        // Call the existing printPrescription to generate PDF
-        final tempPath = await printPrescription(
-          patientName: patientName,
-          age: age,
-          date: date,
-          patientId: patientId,
-          phone: phone,
-          doctorName: doctorName,
-          registrationNumber: registrationNumber,
-          chiefComplaints: chiefComplaints,
-          examination: examination,
-          diagnosis: diagnosis,
-          investigation: investigation,
-          medicines: medicines,
-          advice: advice,
-          followUpDate: followUpDate,
-          referral: referral,
-        );
-        
-        // Read the generated PDF file
-        final file = File(tempPath);
-        final bytes = await file.readAsBytes();
-        
-        // Delete temp file
-        await file.delete();
-        
-        return bytes;
-      },
-    );
+    try {
+      // Use the printing package to open system print dialog
+      await Printing.layoutPdf(
+        name: 'Prescription_${patientName.replaceAll(' ', '_')}_$date',
+        onLayout: (PdfPageFormat format) async {
+          // Call the existing printPrescription to generate PDF
+          final tempPath = await printPrescription(
+            patientName: patientName,
+            age: age,
+            date: date,
+            patientId: patientId,
+            phone: phone,
+            doctorName: doctorName,
+            registrationNumber: registrationNumber,
+            chiefComplaints: chiefComplaints,
+            examination: examination,
+            diagnosis: diagnosis,
+            investigation: investigation,
+            medicines: medicines,
+            advice: advice,
+            followUpDate: followUpDate,
+            referral: referral,
+          );
+          
+          // Read the generated PDF file
+          final file = File(tempPath);
+          final bytes = await file.readAsBytes();
+          
+          // Delete temp file
+          try {
+            await file.delete();
+          } catch (e) {
+            print('Could not delete temp file: $e');
+          }
+          
+          return bytes;
+        },
+      );
+    } catch (e) {
+      print('Direct print error: $e');
+      rethrow;
+    }
   }
 
   static Future<String> printPrescription({

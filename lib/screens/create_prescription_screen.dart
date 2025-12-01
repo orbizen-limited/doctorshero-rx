@@ -401,21 +401,36 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
         }
       });
 
-      await PrescriptionPrintService.directPrint(
-        patientName: patientInfo.name.isEmpty ? 'Patient Name' : patientInfo.name,
-        age: patientInfo.age.isEmpty ? 'N/A' : patientInfo.age,
-        date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
-        patientId: patientInfo.patientId.isEmpty ? 'N/A' : patientInfo.patientId,
-        phone: patientInfo.phone,
-        chiefComplaints: chiefComplaints,
-        examination: examinationMap,
-        diagnosis: diagnosisList,
-        investigation: investigationList,
-        medicines: medicines,
-        advice: adviceList,
-        followUpDate: followUpDate != null ? DateFormat('dd/MM/yyyy').format(followUpDate!) : null,
-        referral: referralText,
-      );
+      try {
+        await PrescriptionPrintService.directPrint(
+          patientName: patientInfo.name.isEmpty ? 'Patient Name' : patientInfo.name,
+          age: patientInfo.age.isEmpty ? 'N/A' : patientInfo.age,
+          date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
+          patientId: patientInfo.patientId.isEmpty ? 'N/A' : patientInfo.patientId,
+          phone: patientInfo.phone,
+          chiefComplaints: chiefComplaints,
+          examination: examinationMap,
+          diagnosis: diagnosisList,
+          investigation: investigationList,
+          medicines: medicines,
+          advice: adviceList,
+          followUpDate: followUpDate != null ? DateFormat('dd/MM/yyyy').format(followUpDate!) : null,
+          referral: referralText,
+        );
+      } catch (printError) {
+        print('Direct print error: $printError');
+        // Close loading dialog
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+        // Show error
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Print error: $printError')),
+          );
+        }
+        return;
+      }
 
       // Close loading dialog
       if (mounted) {
