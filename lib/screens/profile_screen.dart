@@ -196,13 +196,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 const SizedBox(height: 20),
                               
                               _buildInfoItem(
-                                icon: Icons.badge_outlined,
-                                label: 'User ID',
-                                value: '#${user.id}',
-                              ),
-                              const SizedBox(height: 20),
-                              
-                              _buildInfoItem(
                                 icon: Icons.calendar_today_outlined,
                                 label: 'Member Since',
                                 value: _formatDate(user.createdAt),
