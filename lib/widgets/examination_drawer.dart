@@ -42,6 +42,9 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
   String _bpPosition = 'Sitting';
   String _bpArm = 'Right';
   final TextEditingController _oxygenSaturationController = TextEditingController();
+  final TextEditingController _heightController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
+  String _bmi = '';
 
   final List<String> _consciousnessOptions = [
     'Alert', 'Drowsy', 'Confused', 'Unresponsive', 'Oriented x3'
@@ -79,6 +82,8 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
     _bpSystolicController.dispose();
     _bpDiastolicController.dispose();
     _oxygenSaturationController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
     super.dispose();
   }
 
@@ -207,6 +212,39 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
         ),
       ],
     );
+  }
+
+  void _calculateBMI() {
+    final height = double.tryParse(_heightController.text);
+    final weight = double.tryParse(_weightController.text);
+    
+    if (height != null && weight != null && height > 0) {
+      final heightInMeters = height / 100;
+      final bmiValue = weight / (heightInMeters * heightInMeters);
+      setState(() {
+        _bmi = bmiValue.toStringAsFixed(1);
+      });
+    } else {
+      setState(() {
+        _bmi = '';
+      });
+    }
+  }
+
+  Color _getBMIColor() {
+    if (_bmi.isEmpty) return const Color(0xFF64748B);
+    final bmiValue = double.tryParse(_bmi);
+    if (bmiValue == null) return const Color(0xFF64748B);
+    
+    if (bmiValue < 18.5) {
+      return const Color(0xFF3B82F6); // Blue - Underweight
+    } else if (bmiValue < 25) {
+      return const Color(0xFF10B981); // Green - Normal
+    } else if (bmiValue < 30) {
+      return const Color(0xFFF59E0B); // Orange - Overweight
+    } else {
+      return const Color(0xFFEF4444); // Red - Obese
+    }
   }
 
   Widget _buildGeneralExaminationTab() {
@@ -518,6 +556,92 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
               const Expanded(flex: 2, child: SizedBox()),
             ],
           ),
+          
+          const SizedBox(height: 16),
+          
+          // Height, Weight, BMI
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Height (cm)',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _heightController,
+                      decoration: InputDecoration(
+                        hintText: '170',
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (_) => _calculateBMI(),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Weight (kg)',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _weightController,
+                      decoration: InputDecoration(
+                        hintText: '70',
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (_) => _calculateBMI(),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'BMI',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        _bmi.isEmpty ? '-' : _bmi,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _getBMIColor(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -570,6 +694,15 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
     }
     if (_oxygenSaturationController.text.isNotEmpty) {
       preview.add('SpO₂: ${_oxygenSaturationController.text}%');
+    }
+    if (_heightController.text.isNotEmpty) {
+      preview.add('Height: ${_heightController.text} cm');
+    }
+    if (_weightController.text.isNotEmpty) {
+      preview.add('Weight: ${_weightController.text} kg');
+    }
+    if (_bmi.isNotEmpty) {
+      preview.add('BMI: $_bmi');
     }
     
     return preview.join('\n• ');
@@ -636,6 +769,9 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
                           'bpPosition': _bpPosition,
                           'bpArm': _bpArm,
                           'oxygenSaturation': _oxygenSaturationController.text,
+                          'height': _heightController.text,
+                          'weight': _weightController.text,
+                          'bmi': _bmi,
                         },
                       });
                       widget.onClose();
