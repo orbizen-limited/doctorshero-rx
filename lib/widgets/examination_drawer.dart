@@ -704,7 +704,18 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
             ),
-            items: ['Normal', 'Cyanosis', 'Pallor', 'Edema', 'Venous distension'].map((item) {
+            items: [
+              'Normal',
+              'Central cyanosis',
+              'Peripheral cyanosis',
+              'Pallor',
+              'Pedal edema',
+              'Generalized edema',
+              'Jugular venous distension',
+              'Chest wall deformity',
+              'Visible pulsations',
+              'Scars (sternotomy/thoracotomy)',
+            ].map((item) {
               return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 13)));
             }).toList(),
             onChanged: (value) => setState(() => _cvInspection = value ?? ''),
@@ -776,7 +787,15 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
             ),
-            items: ['Normal', 'Heave', 'Lift', 'Displaced PMI'].map((item) {
+            items: [
+              'Normal apex beat',
+              'Displaced apex beat (lateral)',
+              'Heaving apex beat',
+              'Tapping apex beat',
+              'Parasternal heave (RV)',
+              'Left parasternal lift',
+              'Impalpable apex',
+            ].map((item) {
               return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 13)));
             }).toList(),
             onChanged: (value) => setState(() => _precordialPalpation = value ?? ''),
@@ -785,25 +804,37 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
           const SizedBox(height: 16),
           
           // Thrills
+          const Text(
+            'Thrills',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
-              const Text(
-                'Thrills',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    if (!_thrills.contains('Present')) {
-                      _thrills.add('Present');
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: null,
+                  decoration: InputDecoration(
+                    hintText: 'Select thrill location...',
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                  ),
+                  items: [
+                    'Absent',
+                    'Systolic thrill at apex',
+                    'Systolic thrill at base',
+                    'Diastolic thrill at apex',
+                    'Parasternal thrill',
+                    'Suprasternal thrill',
+                  ].map((item) {
+                    return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 13)));
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null && !_thrills.contains(value)) {
+                      setState(() => _thrills.add(value));
                     }
-                  });
-                },
-                icon: const Icon(Icons.add_circle, color: Color(0xFF10B981)),
-                iconSize: 20,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+                  },
+                ),
               ),
             ],
           ),
@@ -811,11 +842,13 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: _thrills.map((thrill) {
                 return Chip(
-                  label: Text(thrill),
+                  label: Text(thrill, style: const TextStyle(fontSize: 12)),
                   onDeleted: () => setState(() => _thrills.remove(thrill)),
                   deleteIconColor: const Color(0xFFEF4444),
+                  backgroundColor: const Color(0xFFF1F5F9),
                 );
               }).toList(),
             ),
@@ -836,7 +869,23 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
             ),
-            items: ['S1 S2 Normal', 'S3 Present', 'S4 Present', 'Split S2', 'Muffled'].map((item) {
+            items: [
+              'S1 S2 Normal',
+              'S1 Loud',
+              'S1 Soft',
+              'S2 Loud (P2 accentuated)',
+              'S2 Soft',
+              'S2 Split (physiological)',
+              'S2 Fixed split',
+              'S2 Paradoxical split',
+              'S3 Gallop present',
+              'S4 Gallop present',
+              'Summation gallop',
+              'Muffled heart sounds',
+              'Distant heart sounds',
+              'Metallic click',
+              'Opening snap',
+            ].map((item) {
               return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 13)));
             }).toList(),
             onChanged: (value) => setState(() => _heartSounds = value ?? ''),
