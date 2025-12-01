@@ -68,72 +68,98 @@ class PrescriptionHtmlService {
     final htmlFile = File(htmlPath);
     await htmlFile.writeAsString(html);
     
-    try {
-      // Try to use Chrome headless to convert HTML to PDF
-      // This gives PERFECT Bangla rendering using system fonts
-      final chromeResult = await Process.run(
-        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-        [
-          '--headless',
-          '--disable-gpu',
-          '--print-to-pdf=$pdfPath',
-          '--print-to-pdf-no-header',
-          '--no-margins',
-          htmlPath,
-        ],
-      );
-      
-      if (chromeResult.exitCode == 0 && await File(pdfPath).exists()) {
-        print('PDF generated successfully with Chrome');
-        // Delete temp HTML
-        try {
-          await htmlFile.delete();
-        } catch (e) {
-          print('Could not delete temp HTML: $e');
-        }
-        
-        // Open the PDF
-        await OpenFile.open(pdfPath);
-        return pdfPath;
-      } else {
-        print('Chrome conversion failed: ${chromeResult.stderr}');
-        throw Exception('Chrome conversion failed');
+    // Try multiple Chrome paths
+    final chromePaths = [
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      '/Applications/Chromium.app/Contents/MacOS/Chromium',
+      '/usr/bin/google-chrome',
+      '/usr/bin/chromium',
+    ];
+    
+    String? workingChromePath;
+    for (final path in chromePaths) {
+      if (await File(path).exists()) {
+        workingChromePath = path;
+        print('Found Chrome at: $path');
+        break;
       }
-    } catch (e) {
-      print('Chrome headless error: $e');
-      
-      // Fallback: Try Printing.convertHtml
+    }
+    
+    if (workingChromePath != null) {
       try {
-        final pdfBytes = await Printing.convertHtml(
-          format: PdfPageFormat(
-            margins['pageWidth']! * PdfPageFormat.cm,
-            margins['pageHeight']! * PdfPageFormat.cm,
-            marginLeft: margins['left']! * PdfPageFormat.cm,
-            marginTop: margins['top']! * PdfPageFormat.cm,
-            marginRight: margins['right']! * PdfPageFormat.cm,
-            marginBottom: margins['bottom']! * PdfPageFormat.cm,
-          ),
-          html: html,
+        print('Converting HTML to PDF with Chrome headless...');
+        final chromeResult = await Process.run(
+          workingChromePath,
+          [
+            '--headless',
+            '--disable-gpu',
+            '--print-to-pdf=$pdfPath',
+            '--print-to-pdf-no-header',
+            '--no-margins',
+            'file://$htmlPath',
+          ],
         );
         
-        final pdfFile = File(pdfPath);
-        await pdfFile.writeAsBytes(pdfBytes);
+        print('Chrome exit code: ${chromeResult.exitCode}');
+        print('Chrome stdout: ${chromeResult.stdout}');
+        print('Chrome stderr: ${chromeResult.stderr}');
         
-        // Delete temp HTML
-        try {
-          await htmlFile.delete();
-        } catch (e) {
-          print('Could not delete temp HTML: $e');
+        if (chromeResult.exitCode == 0 && await File(pdfPath).exists()) {
+          print('✅ PDF generated successfully with Chrome');
+          // Delete temp HTML
+          try {
+            await htmlFile.delete();
+          } catch (e) {
+            print('Could not delete temp HTML: $e');
+          }
+          
+          // Open the PDF
+          await OpenFile.open(pdfPath);
+          return pdfPath;
+        } else {
+          print('❌ Chrome conversion failed');
+          throw Exception('Chrome conversion failed');
         }
-        
-        await OpenFile.open(pdfPath);
-        return pdfPath;
-      } catch (e2) {
-        print('Printing.convertHtml also failed: $e2');
-        // Final fallback: open HTML
-        await OpenFile.open(htmlPath);
-        return htmlPath;
+      } catch (e) {
+        print('Chrome headless error: $e');
       }
+    }
+    
+    // Fallback: Try Printing.convertHtml
+    print('Trying Printing.convertHtml as fallback...');
+    try {
+      final pdfBytes = await Printing.convertHtml(
+        format: PdfPageFormat(
+          margins['pageWidth']! * PdfPageFormat.cm,
+          margins['pageHeight']! * PdfPageFormat.cm,
+          marginLeft: margins['left']! * PdfPageFormat.cm,
+          marginTop: margins['top']! * PdfPageFormat.cm,
+          marginRight: margins['right']! * PdfPageFormat.cm,
+          marginBottom: margins['bottom']! * PdfPageFormat.cm,
+        ),
+        html: html,
+      );
+      
+      final pdfFile = File(pdfPath);
+      await pdfFile.writeAsBytes(pdfBytes);
+      
+      print('✅ PDF generated with Printing.convertHtml');
+      
+      // Delete temp HTML
+      try {
+        await htmlFile.delete();
+      } catch (e) {
+        print('Could not delete temp HTML: $e');
+      }
+      
+      await OpenFile.open(pdfPath);
+      return pdfPath;
+    } catch (e2) {
+      print('❌ Printing.convertHtml also failed: $e2');
+      // Final fallback: open HTML
+      print('Opening HTML as final fallback');
+      await OpenFile.open(htmlPath);
+      return htmlPath;
     }
   }
 
