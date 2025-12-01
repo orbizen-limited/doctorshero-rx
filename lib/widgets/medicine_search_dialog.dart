@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import '../services/medicine_database_service.dart';
 
 class MedicineSearchDialog extends StatefulWidget {
-  final String searchType; // 'name' or 'generic'
   final Function(MedicineData) onMedicineSelected;
 
   const MedicineSearchDialog({
     Key? key,
-    required this.searchType,
     required this.onMedicineSelected,
   }) : super(key: key);
 
@@ -31,11 +29,7 @@ class _MedicineSearchDialogState extends State<MedicineSearchDialog> {
 
     setState(() {
       _isSearching = true;
-      if (widget.searchType == 'name') {
-        _searchResults = MedicineDatabaseService.searchByMedicineName(query);
-      } else {
-        _searchResults = MedicineDatabaseService.searchByGenericName(query);
-      }
+      _searchResults = MedicineDatabaseService.searchUnified(query);
     });
   }
 
@@ -54,9 +48,9 @@ class _MedicineSearchDialogState extends State<MedicineSearchDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  widget.searchType == 'name' ? 'Search Medicine by Name' : 'Search Medicine by Generic',
-                  style: const TextStyle(
+                const Text(
+                  'Search Medicine',
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF1E293B),
@@ -77,9 +71,7 @@ class _MedicineSearchDialogState extends State<MedicineSearchDialog> {
               controller: _searchController,
               autofocus: true,
               decoration: InputDecoration(
-                hintText: widget.searchType == 'name' 
-                    ? 'Type medicine name (e.g., Napa, Ace)...' 
-                    : 'Type generic name (e.g., Paracetamol)...',
+                hintText: 'Type medicine or generic name (e.g., Napa, Paracetamol)...',
                 hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
                 prefixIcon: const Icon(Icons.search, color: Color(0xFFFE3001)),
                 border: OutlineInputBorder(
@@ -164,13 +156,41 @@ class _MedicineSearchDialogState extends State<MedicineSearchDialog> {
                                       ],
                                       if (medicine.company.isNotEmpty) ...[
                                         const SizedBox(height: 2),
-                                        Text(
-                                          medicine.company,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Color(0xFF94A3B8),
-                                            fontFamily: 'ProductSans',
-                                          ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              medicine.company,
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Color(0xFF94A3B8),
+                                                fontFamily: 'ProductSans',
+                                              ),
+                                            ),
+                                            if (medicine.company.toLowerCase().contains('renata')) ...[
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFFE3001).withOpacity(0.1),
+                                                  borderRadius: BorderRadius.circular(4),
+                                                  border: Border.all(
+                                                    color: const Color(0xFFFE3001),
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                                child: const Text(
+                                                  'SPONSORED',
+                                                  style: TextStyle(
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Color(0xFFFE3001),
+                                                    fontFamily: 'ProductSans',
+                                                    letterSpacing: 0.5,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ],
                                         ),
                                       ],
                                     ],

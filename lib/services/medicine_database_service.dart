@@ -117,4 +117,40 @@ class MedicineDatabaseService {
     
     return matches.take(10).toList(); // Limit to 10 results
   }
+  
+  static List<MedicineData> searchUnified(String query) {
+    if (_medicines == null || query.isEmpty) return [];
+    
+    final lowerQuery = query.toLowerCase();
+    
+    // Get all matching medicines (both medicine name and generic name)
+    final matches = _medicines!.where((medicine) {
+      final medicineName = medicine.medicineName.toLowerCase();
+      final genericName = medicine.genericName.toLowerCase();
+      
+      // Match if either medicine name or generic name starts with query
+      return medicineName.startsWith(lowerQuery) || genericName.startsWith(lowerQuery);
+    }).toList();
+    
+    // Sort: Renata PLC first, then others
+    matches.sort((a, b) {
+      final aIsRenata = a.company.toLowerCase().contains('renata');
+      final bIsRenata = b.company.toLowerCase().contains('renata');
+      
+      if (aIsRenata && !bIsRenata) return -1; // a comes first
+      if (!aIsRenata && bIsRenata) return 1;  // b comes first
+      
+      // If both are Renata or both are not, sort by relevance
+      // Prefer exact medicine name match over generic name match
+      final aMatchesMedicine = a.medicineName.toLowerCase().startsWith(lowerQuery);
+      final bMatchesMedicine = b.medicineName.toLowerCase().startsWith(lowerQuery);
+      
+      if (aMatchesMedicine && !bMatchesMedicine) return -1;
+      if (!aMatchesMedicine && bMatchesMedicine) return 1;
+      
+      return 0; // keep original order
+    });
+    
+    return matches.take(20).toList(); // Limit to 20 results for unified search
+  }
 }

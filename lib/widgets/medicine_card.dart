@@ -150,11 +150,10 @@ class _MedicineCardState extends State<MedicineCard> {
     _updateMedicine();
   }
 
-  void _showMedicineSearchDialog(String searchType) {
+  void _showMedicineSearchDialog() {
     showDialog(
       context: context,
       builder: (context) => MedicineSearchDialog(
-        searchType: searchType,
         onMedicineSelected: _autoFillFromMedicine,
       ),
     );
@@ -400,7 +399,7 @@ class _MedicineCardState extends State<MedicineCard> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: InkWell(
-                        onTap: () => _showMedicineSearchDialog('name'),
+                        onTap: _showMedicineSearchDialog,
                         child: Text(
                           _nameController.text.isEmpty 
                               ? 'napa' 
@@ -421,7 +420,7 @@ class _MedicineCardState extends State<MedicineCard> {
                 const SizedBox(height: 4),
                 // Generic Name
                 InkWell(
-                  onTap: () => _showMedicineSearchDialog('generic'),
+                  onTap: _showMedicineSearchDialog,
                   child: Text(
                     _genericController.text.isEmpty 
                         ? 'Generic Name (e.g., Paracetamol)' 
