@@ -10,6 +10,7 @@ import '../widgets/clinical_sections.dart';
 import '../widgets/medicine_list.dart';
 import '../widgets/prescription_footer.dart';
 import '../services/prescription_print_service.dart';
+import '../services/prescription_html_service.dart';
 import '../services/prescription_database_service.dart';
 import '../services/api_service.dart';
 import '../providers/auth_provider.dart';
@@ -402,7 +403,8 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
       });
 
       try {
-        await PrescriptionPrintService.directPrint(
+        // Use HTML printing for perfect Bangla rendering
+        await PrescriptionHtmlService.generateAndOpenHtml(
           patientName: patientInfo.name.isEmpty ? 'Patient Name' : patientInfo.name,
           age: patientInfo.age.isEmpty ? 'N/A' : patientInfo.age,
           date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
@@ -418,7 +420,7 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
           referral: referralText,
         );
       } catch (printError) {
-        print('Direct print error: $printError');
+        print('HTML print error: $printError');
         // Close loading dialog
         if (mounted) {
           Navigator.of(context).pop();
