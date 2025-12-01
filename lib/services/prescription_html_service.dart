@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:open_file/open_file.dart';
-import 'package:flutter_html_to_pdf/flutter_html_to_pdf.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/widgets.dart' as pw;
 import '../models/medicine_model.dart';
 
 class PrescriptionHtmlService {
@@ -56,45 +58,18 @@ class PrescriptionHtmlService {
       margins: margins,
     );
 
-    // Save HTML to temp file
+    // Save HTML to temp file and open it
+    // The browser will render with perfect Bangla, then user can print to PDF from browser
     final directory = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final htmlPath = '${directory.path}/prescription_$timestamp.html';
     final htmlFile = File(htmlPath);
     await htmlFile.writeAsString(html);
 
-    // Convert HTML to PDF
-    final pdfPath = '${directory.path}/prescription_$timestamp.pdf';
+    // Open HTML in browser - user can print to PDF from there with perfect Bangla
+    await OpenFile.open(htmlPath);
     
-    try {
-      final generatedPdfFile = await FlutterHtmlToPdf.convertFromHtmlContent(
-        html,
-        pdfPath,
-        printPdfConfiguration: PrintPdfConfiguration(
-          targetDirectory: directory.path,
-          targetName: 'prescription_$timestamp',
-          printSize: PrintSize.A4,
-          printOrientation: PrintOrientation.Portrait,
-        ),
-      );
-      
-      // Delete temp HTML file
-      try {
-        await htmlFile.delete();
-      } catch (e) {
-        print('Could not delete temp HTML: $e');
-      }
-      
-      // Open the PDF
-      await OpenFile.open(generatedPdfFile.path);
-      
-      return generatedPdfFile.path;
-    } catch (e) {
-      print('HTML to PDF conversion error: $e');
-      // Fallback: open HTML if PDF conversion fails
-      await OpenFile.open(htmlPath);
-      return htmlPath;
-    }
+    return htmlPath;
   }
 
   static String _generateHtmlContent({
