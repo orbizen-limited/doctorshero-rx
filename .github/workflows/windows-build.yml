@@ -1,39 +1,39 @@
-name: Build Windows Release
+# name: Build Windows Release
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
+#   workflow_dispatch:
 
-jobs:
-  build:
-    runs-on: windows-latest
+# jobs:
+#   build:
+#     runs-on: windows-latest
     
-    steps:
-    - uses: actions/checkout@v3
+#     steps:
+#     - uses: actions/checkout@v3
     
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.24.0'
-        channel: 'stable'
+#     - name: Setup Flutter
+#       uses: subosito/flutter-action@v2
+#       with:
+#         flutter-version: '3.24.0'
+#         channel: 'stable'
     
-    - name: Install dependencies
-      run: flutter pub get
+#     - name: Install dependencies
+#       run: flutter pub get
     
-    - name: Build Windows Release
-      run: flutter build windows --release
+#     - name: Build Windows Release
+#       run: flutter build windows --release
     
-    - name: Create Release Archive
-      run: |
-        cd build/windows/x64/runner/Release
-        Compress-Archive -Path * -DestinationPath ../../../../../doctorshero-rx-windows.zip
+#     - name: Create Release Archive
+#       run: |
+#         cd build/windows/x64/runner/Release
+#         Compress-Archive -Path * -DestinationPath ../../../../../doctorshero-rx-windows.zip
     
-    - name: Upload Windows Build
-      uses: actions/upload-artifact@v3
-      with:
-        name: doctorshero-rx-windows
-        path: doctorshero-rx-windows.zip
-        retention-days: 30
+#     - name: Upload Windows Build
+#       uses: actions/upload-artifact@v3
+#       with:
+#         name: doctorshero-rx-windows
+#         path: doctorshero-rx-windows.zip
+#         retention-days: 30
