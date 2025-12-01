@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:open_file/open_file.dart';
+import 'package:flutter_html_to_pdf/flutter_html_to_pdf.dart';
 import '../models/medicine_model.dart';
 
 class PrescriptionHtmlService {
@@ -55,17 +56,45 @@ class PrescriptionHtmlService {
       margins: margins,
     );
 
-    // Save to temp file
+    // Save HTML to temp file
     final directory = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final filePath = '${directory.path}/prescription_$timestamp.html';
-    final file = File(filePath);
-    await file.writeAsString(html);
+    final htmlPath = '${directory.path}/prescription_$timestamp.html';
+    final htmlFile = File(htmlPath);
+    await htmlFile.writeAsString(html);
 
-    // Open in browser for printing
-    await OpenFile.open(filePath);
-
-    return filePath;
+    // Convert HTML to PDF
+    final pdfPath = '${directory.path}/prescription_$timestamp.pdf';
+    
+    try {
+      final generatedPdfFile = await FlutterHtmlToPdf.convertFromHtmlContent(
+        html,
+        pdfPath,
+        printPdfConfiguration: PrintPdfConfiguration(
+          targetDirectory: directory.path,
+          targetName: 'prescription_$timestamp',
+          printSize: PrintSize.A4,
+          printOrientation: PrintOrientation.Portrait,
+        ),
+      );
+      
+      // Delete temp HTML file
+      try {
+        await htmlFile.delete();
+      } catch (e) {
+        print('Could not delete temp HTML: $e');
+      }
+      
+      // Open the PDF
+      await OpenFile.open(generatedPdfFile.path);
+      
+      return generatedPdfFile.path;
+    } catch (e) {
+      print('HTML to PDF conversion error: $e');
+      // Fallback: open HTML if PDF conversion fails
+      await OpenFile.open(htmlPath);
+      return htmlPath;
+    }
   }
 
   static String _generateHtmlContent({
