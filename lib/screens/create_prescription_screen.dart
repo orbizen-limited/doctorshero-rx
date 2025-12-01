@@ -649,18 +649,24 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
                     Consumer<AuthProvider>(
                       builder: (context, authProvider, child) {
                         final user = authProvider.user;
-                        // Build bio from qualification and specialization
+                        // Use bio from API if available, otherwise build from qualification and specialization
                         String bio = 'MBBS, FCPS';
                         if (user != null) {
-                          final parts = <String>[];
-                          if (user.qualification != null && user.qualification!.isNotEmpty) {
-                            parts.add(user.qualification!);
-                          }
-                          if (user.specialization != null && user.specialization!.isNotEmpty) {
-                            parts.add(user.specialization!);
-                          }
-                          if (parts.isNotEmpty) {
-                            bio = parts.join(', ');
+                          if (user.bio != null && user.bio!.isNotEmpty) {
+                            // Use bio from API
+                            bio = user.bio!;
+                          } else {
+                            // Build bio from qualification and specialization
+                            final parts = <String>[];
+                            if (user.qualification != null && user.qualification!.isNotEmpty) {
+                              parts.add(user.qualification!);
+                            }
+                            if (user.specialization != null && user.specialization!.isNotEmpty) {
+                              parts.add(user.specialization!);
+                            }
+                            if (parts.isNotEmpty) {
+                              bio = parts.join(', ');
+                            }
                           }
                         }
                         return PrescriptionFooter(

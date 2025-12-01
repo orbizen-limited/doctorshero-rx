@@ -8,6 +8,7 @@ class UserModel {
   final String? registrationNumber;
   final String? specialization;
   final String? qualification;
+  final String? bio;
   final Map<String, dynamic>? notificationPreferences;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -22,6 +23,7 @@ class UserModel {
     this.registrationNumber,
     this.specialization,
     this.qualification,
+    this.bio,
     this.notificationPreferences,
     required this.createdAt,
     required this.updatedAt,
@@ -38,6 +40,7 @@ class UserModel {
       registrationNumber: json['registration_number'],
       specialization: json['specialization'],
       qualification: json['qualification'],
+      bio: json['bio'],
       notificationPreferences: json['notification_preferences'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
@@ -55,6 +58,7 @@ class UserModel {
       'registration_number': registrationNumber,
       'specialization': specialization,
       'qualification': qualification,
+      'bio': bio,
       'notification_preferences': notificationPreferences,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
