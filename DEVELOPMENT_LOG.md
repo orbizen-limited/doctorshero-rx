@@ -1,5 +1,63 @@
 # DoctorsHero RX - Development Log
-**Last Updated:** December 1, 2025, 2:20 PM UTC+6
+**Last Updated:** December 1, 2025, 2:35 PM UTC+6
+
+---
+
+## 🆕 Latest Updates (Dec 1, 2025 - 2:35 PM)
+
+### Duration চলবে Checkbox ✅
+**File:** `lib/widgets/dosage_drawer.dart`
+
+Added ability for doctors to mark duration as ongoing (চলবে) without specifying a number:
+
+```dart
+bool _isDurationContinues = false;
+
+// Checkbox after duration fields
+CheckboxListTile(
+  value: _isDurationContinues,
+  onChanged: (value) {
+    setState(() {
+      _isDurationContinues = value ?? false;
+      if (_isDurationContinues) {
+        _durationNumberController.text = '';
+      }
+    });
+  },
+  title: const Text('চলবে (No specific duration)'),
+)
+
+// Save logic
+_isDurationContinues ? 'চলবে' : _durationNumberController.text
+```
+
+**Use Case:** When doctor doesn't want to specify exact duration, just mark as ongoing.
+
+---
+
+### PDF Font Improvement ✅
+**Problem:** Bangla text was garbled/mixed up in PDF even though it displayed correctly in the app.
+
+**Solution:** Switched to **Hind Siliguri** font - specifically designed for Bengali script.
+
+**File:** `lib/services/prescription_print_service.dart`
+```dart
+// Changed from NotoSansBengali to HindSiliguri
+final fontData = await rootBundle.load('assets/fonts/HindSiliguri-Regular.ttf');
+```
+
+**Why Hind Siliguri:**
+- ✅ Designed specifically for Bengali/Bangla script
+- ✅ Better glyph rendering and character spacing
+- ✅ Clearer text at all sizes
+- ✅ Professional typography
+- ✅ Supports all special characters (%, etc.)
+- ✅ 251KB - optimized size
+
+**Fonts Available:**
+- `HindSiliguri-Regular.ttf` (251KB) - Primary for Bangla
+- `NotoSans-Regular.ttf` (28KB) - Fallback for Latin
+- `NotoSansBengali-Regular.ttf` (164KB) - Backup
 
 ---
 
