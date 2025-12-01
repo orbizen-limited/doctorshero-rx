@@ -60,39 +60,79 @@ class PrescriptionHtmlService {
 
     final directory = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final htmlPath = '${directory.path}/prescription_$timestamp.html';
+    final pdfPath = '${directory.path}/prescription_$timestamp.pdf';
+    
+    // Save HTML file first
+    final htmlFile = File(htmlPath);
+    await htmlFile.writeAsString(html);
     
     try {
-      // Use printing package to convert HTML to PDF
-      // This uses the platform's native PDF renderer which supports Bangla properly
-      final pdfBytes = await Printing.convertHtml(
-        format: PdfPageFormat(
-          margins['pageWidth']! * PdfPageFormat.cm,
-          margins['pageHeight']! * PdfPageFormat.cm,
-          marginLeft: margins['left']! * PdfPageFormat.cm,
-          marginTop: margins['top']! * PdfPageFormat.cm,
-          marginRight: margins['right']! * PdfPageFormat.cm,
-          marginBottom: margins['bottom']! * PdfPageFormat.cm,
-        ),
-        html: html,
+      // Try to use Chrome headless to convert HTML to PDF
+      // This gives PERFECT Bangla rendering using system fonts
+      final chromeResult = await Process.run(
+        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+        [
+          '--headless',
+          '--disable-gpu',
+          '--print-to-pdf=$pdfPath',
+          '--print-to-pdf-no-header',
+          '--no-margins',
+          htmlPath,
+        ],
       );
       
-      // Save PDF to file
-      final pdfPath = '${directory.path}/prescription_$timestamp.pdf';
-      final pdfFile = File(pdfPath);
-      await pdfFile.writeAsBytes(pdfBytes);
-      
-      // Open the PDF
-      await OpenFile.open(pdfPath);
-      
-      return pdfPath;
+      if (chromeResult.exitCode == 0 && await File(pdfPath).exists()) {
+        print('PDF generated successfully with Chrome');
+        // Delete temp HTML
+        try {
+          await htmlFile.delete();
+        } catch (e) {
+          print('Could not delete temp HTML: $e');
+        }
+        
+        // Open the PDF
+        await OpenFile.open(pdfPath);
+        return pdfPath;
+      } else {
+        print('Chrome conversion failed: ${chromeResult.stderr}');
+        throw Exception('Chrome conversion failed');
+      }
     } catch (e) {
-      print('HTML to PDF conversion error: $e');
-      // Fallback: save and open HTML if conversion fails
-      final htmlPath = '${directory.path}/prescription_$timestamp.html';
-      final htmlFile = File(htmlPath);
-      await htmlFile.writeAsString(html);
-      await OpenFile.open(htmlPath);
-      return htmlPath;
+      print('Chrome headless error: $e');
+      
+      // Fallback: Try Printing.convertHtml
+      try {
+        final pdfBytes = await Printing.convertHtml(
+          format: PdfPageFormat(
+            margins['pageWidth']! * PdfPageFormat.cm,
+            margins['pageHeight']! * PdfPageFormat.cm,
+            marginLeft: margins['left']! * PdfPageFormat.cm,
+            marginTop: margins['top']! * PdfPageFormat.cm,
+            marginRight: margins['right']! * PdfPageFormat.cm,
+            marginBottom: margins['bottom']! * PdfPageFormat.cm,
+          ),
+          html: html,
+        );
+        
+        final pdfFile = File(pdfPath);
+        await pdfFile.writeAsBytes(pdfBytes);
+        
+        // Delete temp HTML
+        try {
+          await htmlFile.delete();
+        } catch (e) {
+          print('Could not delete temp HTML: $e');
+        }
+        
+        await OpenFile.open(pdfPath);
+        return pdfPath;
+      } catch (e2) {
+        print('Printing.convertHtml also failed: $e2');
+        // Final fallback: open HTML
+        await OpenFile.open(htmlPath);
+        return htmlPath;
+      }
     }
   }
 
