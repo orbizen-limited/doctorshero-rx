@@ -46,6 +46,30 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
   final TextEditingController _weightController = TextEditingController();
   String _bmi = '';
 
+  // Cardiovascular Examination
+  String _cvInspection = '';
+  final TextEditingController _cvInspectionNotesController = TextEditingController();
+  final Map<String, String> _peripheralPulses = {
+    'carotid_right': '', 'carotid_left': '',
+    'radial_right': '', 'radial_left': '',
+    'brachial_right': '', 'brachial_left': '',
+    'femoral_right': '', 'femoral_left': '',
+    'popliteal_right': '', 'popliteal_left': '',
+    'posterior_tibial_right': '', 'posterior_tibial_left': '',
+    'dorsalis_pedis_right': '', 'dorsalis_pedis_left': '',
+  };
+  String _jvp = '';
+  final TextEditingController _jvpHeightController = TextEditingController();
+  String _precordialPalpation = '';
+  List<String> _thrills = [];
+  String _heartSounds = '';
+  final TextEditingController _heartSoundsNotesController = TextEditingController();
+  String _murmurTiming = 'Systolic ejection';
+  String _murmurGrade = '1/6';
+  String _murmurLocation = 'Aortic';
+  String _murmurRadiation = 'None';
+  String _murmurQuality = 'Harsh';
+
   final List<String> _consciousnessOptions = [
     'Alert', 'Drowsy', 'Confused', 'Unresponsive', 'Oriented x3'
   ];
@@ -84,6 +108,9 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
     _oxygenSaturationController.dispose();
     _heightController.dispose();
     _weightController.dispose();
+    _cvInspectionNotesController.dispose();
+    _jvpHeightController.dispose();
+    _heartSoundsNotesController.dispose();
     super.dispose();
   }
 
@@ -647,6 +674,378 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
     );
   }
 
+  Widget _buildCardiovascularTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // A. Clinical Examination Procedures
+          const Text(
+            'A. Clinical Examination Procedures',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF2563EB),
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Inspection
+          const Text(
+            'Inspection',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _cvInspection.isEmpty ? null : _cvInspection,
+            decoration: InputDecoration(
+              hintText: '-- Select --',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            items: ['Normal', 'Cyanosis', 'Pallor', 'Edema', 'Venous distension'].map((item) {
+              return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 13)));
+            }).toList(),
+            onChanged: (value) => setState(() => _cvInspection = value ?? ''),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _cvInspectionNotesController,
+            decoration: InputDecoration(
+              hintText: 'Describe other findings (e.g., venous distension)...',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            maxLines: 2,
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Peripheral Pulses
+          const Text(
+            'Peripheral Pulses',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          _buildPeripheralPulsesTable(),
+          
+          const SizedBox(height: 16),
+          
+          // JVP
+          const Text(
+            'Jugular Venous Pressure (JVP)',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _jvp.isEmpty ? null : _jvp,
+            decoration: InputDecoration(
+              hintText: '-- Select --',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            items: ['Normal', 'Elevated', 'Not visible'].map((item) {
+              return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 13)));
+            }).toList(),
+            onChanged: (value) => setState(() => _jvp = value ?? ''),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _jvpHeightController,
+            decoration: InputDecoration(
+              hintText: 'Enter measured height in cm H2O...',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            keyboardType: TextInputType.number,
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Precordial Palpation
+          const Text(
+            'Precordial Palpation',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _precordialPalpation.isEmpty ? null : _precordialPalpation,
+            decoration: InputDecoration(
+              hintText: 'Select General Finding...',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            items: ['Normal', 'Heave', 'Lift', 'Displaced PMI'].map((item) {
+              return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 13)));
+            }).toList(),
+            onChanged: (value) => setState(() => _precordialPalpation = value ?? ''),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Thrills
+          Row(
+            children: [
+              const Text(
+                'Thrills',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    if (!_thrills.contains('Present')) {
+                      _thrills.add('Present');
+                    }
+                  });
+                },
+                icon: const Icon(Icons.add_circle, color: Color(0xFF10B981)),
+                iconSize: 20,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+          if (_thrills.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: _thrills.map((thrill) {
+                return Chip(
+                  label: Text(thrill),
+                  onDeleted: () => setState(() => _thrills.remove(thrill)),
+                  deleteIconColor: const Color(0xFFEF4444),
+                );
+              }).toList(),
+            ),
+          ],
+          
+          const SizedBox(height: 16),
+          
+          // Auscultation - Heart Sounds
+          const Text(
+            'Auscultation - Heart Sounds',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _heartSounds.isEmpty ? null : _heartSounds,
+            decoration: InputDecoration(
+              hintText: '-- Select --',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            items: ['S1 S2 Normal', 'S3 Present', 'S4 Present', 'Split S2', 'Muffled'].map((item) {
+              return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 13)));
+            }).toList(),
+            onChanged: (value) => setState(() => _heartSounds = value ?? ''),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _heartSoundsNotesController,
+            decoration: InputDecoration(
+              hintText: 'Note location and timing...',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            maxLines: 2,
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Auscultation - Murmurs
+          const Text(
+            'Auscultation - Murmurs',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Timing', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                    const SizedBox(height: 4),
+                    DropdownButtonFormField<String>(
+                      value: _murmurTiming,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                      ),
+                      items: ['Systolic ejection', 'Pansystolic', 'Diastolic', 'Continuous'].map((item) {
+                        return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 12)));
+                      }).toList(),
+                      onChanged: (value) => setState(() => _murmurTiming = value!),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Grade', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                    const SizedBox(height: 4),
+                    DropdownButtonFormField<String>(
+                      value: _murmurGrade,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                      ),
+                      items: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6'].map((item) {
+                        return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 12)));
+                      }).toList(),
+                      onChanged: (value) => setState(() => _murmurGrade = value!),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Location', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                    const SizedBox(height: 4),
+                    DropdownButtonFormField<String>(
+                      value: _murmurLocation,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                      ),
+                      items: ['Aortic', 'Pulmonic', 'Tricuspid', 'Mitral', 'Erb\'s point'].map((item) {
+                        return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 12)));
+                      }).toList(),
+                      onChanged: (value) => setState(() => _murmurLocation = value!),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Radiation', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                    const SizedBox(height: 4),
+                    DropdownButtonFormField<String>(
+                      value: _murmurRadiation,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                      ),
+                      items: ['None', 'Carotids', 'Axilla', 'Back'].map((item) {
+                        return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 12)));
+                      }).toList(),
+                      onChanged: (value) => setState(() => _murmurRadiation = value!),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Quality', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+              const SizedBox(height: 4),
+              DropdownButtonFormField<String>(
+                value: _murmurQuality,
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                ),
+                items: ['Harsh', 'Blowing', 'Musical', 'Rumbling'].map((item) {
+                  return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 12)));
+                }).toList(),
+                onChanged: (value) => setState(() => _murmurQuality = value!),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPeripheralPulsesTable() {
+    final pulses = [
+      {'name': 'Carotid', 'right': 'carotid_right', 'left': 'carotid_left'},
+      {'name': 'Radial', 'right': 'radial_right', 'left': 'radial_left'},
+      {'name': 'Brachial', 'right': 'brachial_right', 'left': 'brachial_left'},
+      {'name': 'Femoral', 'right': 'femoral_right', 'left': 'femoral_left'},
+      {'name': 'Popliteal', 'right': 'popliteal_right', 'left': 'popliteal_left'},
+      {'name': 'Posterior Tibial', 'right': 'posterior_tibial_right', 'left': 'posterior_tibial_left'},
+      {'name': 'Dorsalis Pedis', 'right': 'dorsalis_pedis_right', 'left': 'dorsalis_pedis_left'},
+    ];
+    
+    return Column(
+      children: [
+        // Header
+        Row(
+          children: [
+            const Expanded(flex: 2, child: Text('Pulse', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+            const Expanded(child: Text('Right', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+            const Expanded(child: Text('Left', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+          ],
+        ),
+        const Divider(),
+        // Rows
+        ...pulses.map((pulse) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Text(pulse['name']!, style: const TextStyle(fontSize: 13)),
+                ),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _peripheralPulses[pulse['right']]!.isEmpty ? null : _peripheralPulses[pulse['right']],
+                    decoration: InputDecoration(
+                      hintText: '--',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                      isDense: true,
+                    ),
+                    items: ['Normal', 'Weak', 'Bounding', 'Absent'].map((item) {
+                      return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 11)));
+                    }).toList(),
+                    onChanged: (value) => setState(() => _peripheralPulses[pulse['right']!] = value ?? ''),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _peripheralPulses[pulse['left']]!.isEmpty ? null : _peripheralPulses[pulse['left']],
+                    decoration: InputDecoration(
+                      hintText: '--',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                      isDense: true,
+                    ),
+                    items: ['Normal', 'Weak', 'Bounding', 'Absent'].map((item) {
+                      return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 11)));
+                    }).toList(),
+                    onChanged: (value) => setState(() => _peripheralPulses[pulse['left']!] = value ?? ''),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
   Widget _buildComingSoonTab(String title) {
     return Center(
       child: Text(
@@ -660,52 +1059,77 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
   }
 
   String _generatePreview() {
-    List<String> preview = [];
+    List<String> sections = [];
     
-    // General Survey
+    // General Examination
+    List<String> generalItems = [];
     if (_consciousnessTags.isNotEmpty) {
-      preview.add('Consciousness: ${_consciousnessTags.join(", ")}');
+      generalItems.add('Consciousness: ${_consciousnessTags.join(", ")}');
     }
     if (_bodyHabitusTags.isNotEmpty) {
-      preview.add('Body Habitus: ${_bodyHabitusTags.join(", ")}');
+      generalItems.add('Body Habitus: ${_bodyHabitusTags.join(", ")}');
     }
     if (_postureTags.isNotEmpty) {
-      preview.add('Posture & Gait: ${_postureTags.join(", ")}');
+      generalItems.add('Posture & Gait: ${_postureTags.join(", ")}');
     }
     if (_distressTags.isNotEmpty) {
-      preview.add('Distress: ${_distressTags.join(", ")}');
+      generalItems.add('Distress: ${_distressTags.join(", ")}');
     }
     if (_hygieneTags.isNotEmpty) {
-      preview.add('Hygiene: ${_hygieneTags.join(", ")}');
+      generalItems.add('Hygiene: ${_hygieneTags.join(", ")}');
     }
-    
-    // Vital Signs
     if (_temperatureController.text.isNotEmpty) {
-      preview.add('Temperature: ${_temperatureController.text}°$_temperatureUnit');
+      generalItems.add('Temperature: ${_temperatureController.text}°$_temperatureUnit');
     }
     if (_pulseController.text.isNotEmpty) {
-      preview.add('Pulse: ${_pulseController.text} bpm');
+      generalItems.add('Pulse: ${_pulseController.text} bpm');
     }
     if (_respiratoryRateController.text.isNotEmpty) {
-      preview.add('Respiratory Rate: ${_respiratoryRateController.text} breaths/min');
+      generalItems.add('Respiratory Rate: ${_respiratoryRateController.text} breaths/min');
     }
     if (_bpSystolicController.text.isNotEmpty && _bpDiastolicController.text.isNotEmpty) {
-      preview.add('BP: ${_bpSystolicController.text}/${_bpDiastolicController.text} mmHg ($_bpPosition, $_bpArm arm)');
+      generalItems.add('BP: ${_bpSystolicController.text}/${_bpDiastolicController.text} mmHg ($_bpPosition, $_bpArm arm)');
     }
     if (_oxygenSaturationController.text.isNotEmpty) {
-      preview.add('SpO₂: ${_oxygenSaturationController.text}%');
+      generalItems.add('SpO₂: ${_oxygenSaturationController.text}%');
     }
     if (_heightController.text.isNotEmpty) {
-      preview.add('Height: ${_heightController.text} cm');
+      generalItems.add('Height: ${_heightController.text} cm');
     }
     if (_weightController.text.isNotEmpty) {
-      preview.add('Weight: ${_weightController.text} kg');
+      generalItems.add('Weight: ${_weightController.text} kg');
     }
     if (_bmi.isNotEmpty) {
-      preview.add('BMI: $_bmi');
+      generalItems.add('BMI: $_bmi');
     }
     
-    return preview.join('\n• ');
+    if (generalItems.isNotEmpty) {
+      sections.add('Examination:\n• ${generalItems.join('\n• ')}');
+    }
+    
+    // Cardiovascular
+    List<String> cvItems = [];
+    if (_cvInspection.isNotEmpty) {
+      cvItems.add('Inspection: $_cvInspection');
+    }
+    if (_jvp.isNotEmpty) {
+      cvItems.add('JVP: $_jvp');
+    }
+    if (_precordialPalpation.isNotEmpty) {
+      cvItems.add('Precordial Palpation: $_precordialPalpation');
+    }
+    if (_heartSounds.isNotEmpty) {
+      cvItems.add('Heart Sounds: $_heartSounds');
+    }
+    if (_murmurTiming.isNotEmpty && _murmurGrade != '1/6') {
+      cvItems.add('Murmur: $_murmurTiming, Grade $_murmurGrade, $_murmurLocation');
+    }
+    
+    if (cvItems.isNotEmpty) {
+      sections.add('Cardiovascular:\n• ${cvItems.join('\n• ')}');
+    }
+    
+    return sections.join('\n\n');
   }
 
   @override
@@ -772,6 +1196,21 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
                           'height': _heightController.text,
                           'weight': _weightController.text,
                           'bmi': _bmi,
+                          // Cardiovascular
+                          'cvInspection': _cvInspection,
+                          'cvInspectionNotes': _cvInspectionNotesController.text,
+                          'peripheralPulses': _peripheralPulses,
+                          'jvp': _jvp,
+                          'jvpHeight': _jvpHeightController.text,
+                          'precordialPalpation': _precordialPalpation,
+                          'thrills': _thrills,
+                          'heartSounds': _heartSounds,
+                          'heartSoundsNotes': _heartSoundsNotesController.text,
+                          'murmurTiming': _murmurTiming,
+                          'murmurGrade': _murmurGrade,
+                          'murmurLocation': _murmurLocation,
+                          'murmurRadiation': _murmurRadiation,
+                          'murmurQuality': _murmurQuality,
                         },
                       });
                       widget.onClose();
@@ -836,7 +1275,7 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
                 children: [
                   _buildGeneralExaminationTab(),
                   _buildComingSoonTab('Integumentary'),
-                  _buildComingSoonTab('Cardiovascular'),
+                  _buildCardiovascularTab(),
                   _buildComingSoonTab('Respiratory'),
                   _buildComingSoonTab('Gastrointestinal'),
                   _buildComingSoonTab('Neurological'),
