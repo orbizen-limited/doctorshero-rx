@@ -17,12 +17,19 @@ class PrescriptionPrintService {
   static Future<pw.Font> _loadBanglaFont() async {
     if (_cachedFont != null) return _cachedFont!;
     
-    // Load Noto Sans Bengali from bundled assets
-    // Sans font matches the UI better than Serif
-    // This is the original Google Noto font with proper Bangla support
-    final fontData = await rootBundle.load('assets/fonts/NotoSansBengali-Regular.ttf');
-    _cachedFont = pw.Font.ttf(fontData);
-    return _cachedFont!;
+    try {
+      // Try to load from bundled assets first
+      final fontData = await rootBundle.load('assets/fonts/NotoSansBengali-Regular.ttf');
+      _cachedFont = pw.Font.ttf(fontData);
+      print('Loaded Noto Sans Bengali font successfully');
+      return _cachedFont!;
+    } catch (e) {
+      print('Error loading font: $e');
+      // Fallback: try to use a basic font
+      final fontData = await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
+      _cachedFont = pw.Font.ttf(fontData);
+      return _cachedFont!;
+    }
   }
   // Get margin settings from SharedPreferences
   static Future<Map<String, double>> getMarginSettings() async {
@@ -58,7 +65,8 @@ class PrescriptionPrintService {
     if (pageHeight != null) await prefs.setDouble('print_page_height', pageHeight);
   }
 
-  // Direct system print - opens native print dialog with system fonts (perfect Bangla support)
+  // Direct print - just calls the regular printPrescription and opens the PDF
+  // The PDF will open in the system PDF viewer where user can print with system fonts
   static Future<void> directPrint({
     required String patientName,
     required String age,
@@ -76,48 +84,24 @@ class PrescriptionPrintService {
     required String? followUpDate,
     required String? referral,
   }) async {
-    try {
-      // Use the printing package to open system print dialog
-      await Printing.layoutPdf(
-        name: 'Prescription_${patientName.replaceAll(' ', '_')}_$date',
-        onLayout: (PdfPageFormat format) async {
-          // Call the existing printPrescription to generate PDF
-          final tempPath = await printPrescription(
-            patientName: patientName,
-            age: age,
-            date: date,
-            patientId: patientId,
-            phone: phone,
-            doctorName: doctorName,
-            registrationNumber: registrationNumber,
-            chiefComplaints: chiefComplaints,
-            examination: examination,
-            diagnosis: diagnosis,
-            investigation: investigation,
-            medicines: medicines,
-            advice: advice,
-            followUpDate: followUpDate,
-            referral: referral,
-          );
-          
-          // Read the generated PDF file
-          final file = File(tempPath);
-          final bytes = await file.readAsBytes();
-          
-          // Delete temp file
-          try {
-            await file.delete();
-          } catch (e) {
-            print('Could not delete temp file: $e');
-          }
-          
-          return bytes;
-        },
-      );
-    } catch (e) {
-      print('Direct print error: $e');
-      rethrow;
-    }
+    // Just call the regular printPrescription which saves and opens the PDF
+    await printPrescription(
+      patientName: patientName,
+      age: age,
+      date: date,
+      patientId: patientId,
+      phone: phone,
+      doctorName: doctorName,
+      registrationNumber: registrationNumber,
+      chiefComplaints: chiefComplaints,
+      examination: examination,
+      diagnosis: diagnosis,
+      investigation: investigation,
+      medicines: medicines,
+      advice: advice,
+      followUpDate: followUpDate,
+      referral: referral,
+    );
   }
 
   static Future<String> printPrescription({
