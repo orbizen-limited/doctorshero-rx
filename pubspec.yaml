@@ -114,6 +114,9 @@ flutter:
 
   # Fonts
   fonts:
+    - family: NotoSerifBengali
+      fonts:
+        - asset: assets/fonts/NotoSerifBengali-Regular.ttf
     - family: HindSiliguri
       fonts:
         - asset: assets/fonts/HindSiliguri-Regular.ttf

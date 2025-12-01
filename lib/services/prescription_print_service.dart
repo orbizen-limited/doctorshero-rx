@@ -15,10 +15,10 @@ class PrescriptionPrintService {
   static Future<pw.Font> _loadBanglaFont() async {
     if (_cachedFont != null) return _cachedFont!;
     
-    // Load Hind Siliguri from bundled assets
-    // This font is specifically designed for Bangla and has excellent rendering
+    // Load Noto Serif Bengali from bundled assets
+    // This font has better PDF rendering compatibility and prevents character breaking
     // Supports Bangla, English, numbers, and all special characters
-    final fontData = await rootBundle.load('assets/fonts/HindSiliguri-Regular.ttf');
+    final fontData = await rootBundle.load('assets/fonts/NotoSerifBengali-Regular.ttf');
     _cachedFont = pw.Font.ttf(fontData);
     return _cachedFont!;
   }
