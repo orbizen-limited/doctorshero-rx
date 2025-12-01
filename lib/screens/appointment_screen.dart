@@ -726,33 +726,36 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             ),
           ),
           // Status
-          InkWell(
-            onTap: () => _showStatusMenu(context, appointment),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: _getStatusColor(appointment.status).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    appointment.status,
-                    style: TextStyle(
-                      fontFamily: 'ProductSans',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
+          Expanded(
+            flex: 2,
+            child: InkWell(
+              onTap: () => _showStatusMenu(context, appointment),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _getStatusColor(appointment.status).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      appointment.status,
+                      style: TextStyle(
+                        fontFamily: 'ProductSans',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: _getStatusColor(appointment.status),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_drop_down,
+                      size: 16,
                       color: _getStatusColor(appointment.status),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.arrow_drop_down,
-                    size: 16,
-                    color: _getStatusColor(appointment.status),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
