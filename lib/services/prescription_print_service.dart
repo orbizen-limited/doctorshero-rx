@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:open_file/open_file.dart';
@@ -54,6 +56,58 @@ class PrescriptionPrintService {
     if (leftColumnWidth != null) await prefs.setDouble('print_left_column_width', leftColumnWidth);
     if (pageWidth != null) await prefs.setDouble('print_page_width', pageWidth);
     if (pageHeight != null) await prefs.setDouble('print_page_height', pageHeight);
+  }
+
+  // Direct system print - opens native print dialog with system fonts (perfect Bangla support)
+  static Future<void> directPrint({
+    required String patientName,
+    required String age,
+    required String date,
+    required String patientId,
+    String? phone,
+    String? doctorName,
+    String? registrationNumber,
+    required List<String> chiefComplaints,
+    required Map<String, dynamic> examination,
+    required List<String> diagnosis,
+    required List<String> investigation,
+    required List<Medicine> medicines,
+    required List<String> advice,
+    required String? followUpDate,
+    required String? referral,
+  }) async {
+    // Use the printing package to open system print dialog
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async {
+        // Call the existing printPrescription to generate PDF
+        final tempPath = await printPrescription(
+          patientName: patientName,
+          age: age,
+          date: date,
+          patientId: patientId,
+          phone: phone,
+          doctorName: doctorName,
+          registrationNumber: registrationNumber,
+          chiefComplaints: chiefComplaints,
+          examination: examination,
+          diagnosis: diagnosis,
+          investigation: investigation,
+          medicines: medicines,
+          advice: advice,
+          followUpDate: followUpDate,
+          referral: referral,
+        );
+        
+        // Read the generated PDF file
+        final file = File(tempPath);
+        final bytes = await file.readAsBytes();
+        
+        // Delete temp file
+        await file.delete();
+        
+        return bytes;
+      },
+    );
   }
 
   static Future<String> printPrescription({

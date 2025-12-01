@@ -53,8 +53,9 @@ dependencies:
   # Window management for desktop
   window_manager: ^0.3.7
   
-  # PDF generation
+  # PDF generation and printing
   pdf: ^3.10.7
+  printing: ^5.12.0
   path_provider: ^2.1.1
   open_file: ^3.3.2
   

@@ -401,7 +401,7 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
         }
       });
 
-      await PrescriptionPrintService.printPrescription(
+      await PrescriptionPrintService.directPrint(
         patientName: patientInfo.name.isEmpty ? 'Patient Name' : patientInfo.name,
         age: patientInfo.age.isEmpty ? 'N/A' : patientInfo.age,
         date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
