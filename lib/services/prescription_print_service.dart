@@ -15,10 +15,10 @@ class PrescriptionPrintService {
   static Future<pw.Font> _loadBanglaFont() async {
     if (_cachedFont != null) return _cachedFont!;
     
-    // Load Noto Serif Bengali from bundled assets
-    // This font has better PDF rendering compatibility and prevents character breaking
-    // Supports Bangla, English, numbers, and all special characters
-    final fontData = await rootBundle.load('assets/fonts/NotoSerifBengali-Regular.ttf');
+    // Load Noto Sans Bengali from bundled assets
+    // Sans font matches the UI better than Serif
+    // This is the original Google Noto font with proper Bangla support
+    final fontData = await rootBundle.load('assets/fonts/NotoSansBengali-Regular.ttf');
     _cachedFont = pw.Font.ttf(fontData);
     return _cachedFont!;
   }
