@@ -726,41 +726,33 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             ),
           ),
           // Status
-          Expanded(
-            flex: 2,
-            child: InkWell(
-              onTap: () => _showStatusMenu(context, appointment),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(appointment.status).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        appointment.status,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: 'ProductSans',
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: _getStatusColor(appointment.status),
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 2),
-                    Icon(
-                      Icons.arrow_drop_down,
-                      size: 14,
+          InkWell(
+            onTap: () => _showStatusMenu(context, appointment),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: _getStatusColor(appointment.status).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    appointment.status,
+                    style: TextStyle(
+                      fontFamily: 'ProductSans',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
                       color: _getStatusColor(appointment.status),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.arrow_drop_down,
+                    size: 16,
+                    color: _getStatusColor(appointment.status),
+                  ),
+                ],
               ),
             ),
           ),
