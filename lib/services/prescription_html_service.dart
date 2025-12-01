@@ -1,9 +1,24 @@
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:open_file/open_file.dart';
 import '../models/medicine_model.dart';
 
 class PrescriptionHtmlService {
+  // Get margin settings from SharedPreferences
+  static Future<Map<String, double>> getMarginSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    return {
+      'top': prefs.getDouble('print_margin_top') ?? 3.0,
+      'bottom': prefs.getDouble('print_margin_bottom') ?? 3.0,
+      'left': prefs.getDouble('print_margin_left') ?? 1.5,
+      'right': prefs.getDouble('print_margin_right') ?? 0.8,
+      'leftColumnWidth': prefs.getDouble('print_left_column_width') ?? 7.0,
+      'pageWidth': prefs.getDouble('print_page_width') ?? 21.0,
+      'pageHeight': prefs.getDouble('print_page_height') ?? 29.7,
+    };
+  }
+
   static Future<String> generateAndOpenHtml({
     required String patientName,
     required String age,
@@ -19,6 +34,9 @@ class PrescriptionHtmlService {
     required String? followUpDate,
     required String? referral,
   }) async {
+    // Get margin settings
+    final margins = await getMarginSettings();
+    
     // Generate HTML content
     final html = _generateHtmlContent(
       patientName: patientName,
@@ -34,6 +52,7 @@ class PrescriptionHtmlService {
       advice: advice,
       followUpDate: followUpDate,
       referral: referral,
+      margins: margins,
     );
 
     // Save to temp file
@@ -63,6 +82,7 @@ class PrescriptionHtmlService {
     required List<String> advice,
     required String? followUpDate,
     required String? referral,
+    required Map<String, double> margins,
   }) {
     // Build medicines HTML
     final medicinesHtml = StringBuffer();
@@ -127,10 +147,14 @@ class PrescriptionHtmlService {
             font-size: 11pt;
             line-height: 1.4;
             color: #000;
-            padding: 1cm;
+            padding: ${margins['top']}cm ${margins['right']}cm ${margins['bottom']}cm ${margins['left']}cm;
         }
         
         @media print {
+            @page {
+                size: ${margins['pageWidth']}cm ${margins['pageHeight']}cm;
+                margin: ${margins['top']}cm ${margins['right']}cm ${margins['bottom']}cm ${margins['left']}cm;
+            }
             body {
                 padding: 0;
             }
@@ -171,7 +195,7 @@ class PrescriptionHtmlService {
         }
         
         .left-column {
-            flex: 0 0 35%;
+            flex: 0 0 ${margins['leftColumnWidth']}cm;
             padding-right: 15px;
             border-right: 1px solid #ddd;
         }
