@@ -646,9 +646,16 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
                               ],
                             ),
                     ),
-                    PrescriptionFooter(
-                      onSave: _savePrescription,
-                      onPrint: _printPrescription,
+                    Consumer<AuthProvider>(
+                      builder: (context, authProvider, child) {
+                        final user = authProvider.user;
+                        return PrescriptionFooter(
+                          doctorName: user?.name ?? 'Dr. John Doe',
+                          regNo: user?.registrationNumber ?? '23948-BMC',
+                          onSave: _savePrescription,
+                          onPrint: _printPrescription,
+                        );
+                      },
                     ),
                   ],
                 ),
