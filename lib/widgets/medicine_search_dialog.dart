@@ -156,41 +156,13 @@ class _MedicineSearchDialogState extends State<MedicineSearchDialog> {
                                       ],
                                       if (medicine.company.isNotEmpty) ...[
                                         const SizedBox(height: 2),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              medicine.company,
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Color(0xFF94A3B8),
-                                                fontFamily: 'ProductSans',
-                                              ),
-                                            ),
-                                            if (medicine.company.toLowerCase().contains('renata')) ...[
-                                              const SizedBox(width: 8),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(0xFFFE3001).withOpacity(0.1),
-                                                  borderRadius: BorderRadius.circular(4),
-                                                  border: Border.all(
-                                                    color: const Color(0xFFFE3001),
-                                                    width: 1,
-                                                  ),
-                                                ),
-                                                child: const Text(
-                                                  'SPONSORED',
-                                                  style: TextStyle(
-                                                    fontSize: 9,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: Color(0xFFFE3001),
-                                                    fontFamily: 'ProductSans',
-                                                    letterSpacing: 0.5,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ],
+                                        Text(
+                                          medicine.company,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF94A3B8),
+                                            fontFamily: 'ProductSans',
+                                          ),
                                         ),
                                       ],
                                     ],
