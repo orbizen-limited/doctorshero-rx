@@ -18,15 +18,15 @@ class PrescriptionPrintService {
     if (_cachedFont != null) return _cachedFont!;
     
     try {
-      // Try to load from bundled assets first
-      final fontData = await rootBundle.load('assets/fonts/NotoSansBengali-Regular.ttf');
+      // Load Open Sans Regular as requested by user
+      final fontData = await rootBundle.load('assets/fonts/OpenSans-Regular.ttf');
       _cachedFont = pw.Font.ttf(fontData);
-      print('Loaded Noto Sans Bengali font successfully');
+      print('Loaded Open Sans Regular font successfully');
       return _cachedFont!;
     } catch (e) {
-      print('Error loading font: $e');
-      // Fallback: try to use a basic font
-      final fontData = await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
+      print('Error loading Open Sans: $e');
+      // Fallback to Noto Sans Bengali
+      final fontData = await rootBundle.load('assets/fonts/NotoSansBengali-Regular.ttf');
       _cachedFont = pw.Font.ttf(fontData);
       return _cachedFont!;
     }

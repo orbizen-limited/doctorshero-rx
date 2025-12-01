@@ -115,6 +115,9 @@ flutter:
 
   # Fonts
   fonts:
+    - family: OpenSans
+      fonts:
+        - asset: assets/fonts/OpenSans-Regular.ttf
     - family: NotoSerifBengali
       fonts:
         - asset: assets/fonts/NotoSerifBengali-Regular.ttf
