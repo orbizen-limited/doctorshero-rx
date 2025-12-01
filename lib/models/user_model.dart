@@ -30,6 +30,17 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    // Handle notification_preferences which might be Map or List from API
+    Map<String, dynamic>? notifPrefs;
+    if (json['notification_preferences'] != null) {
+      if (json['notification_preferences'] is Map) {
+        notifPrefs = json['notification_preferences'] as Map<String, dynamic>;
+      } else if (json['notification_preferences'] is List) {
+        // If it's a list, convert to empty map or handle as needed
+        notifPrefs = {};
+      }
+    }
+    
     return UserModel(
       id: json['id'],
       name: json['name'],
@@ -41,7 +52,7 @@ class UserModel {
       specialization: json['specialization'],
       qualification: json['qualification'],
       bio: json['bio'],
-      notificationPreferences: json['notification_preferences'],
+      notificationPreferences: notifPrefs,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );
