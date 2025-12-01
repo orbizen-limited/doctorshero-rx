@@ -128,25 +128,39 @@ class MedicineDatabaseService {
       final medicineName = medicine.medicineName.toLowerCase();
       final genericName = medicine.genericName.toLowerCase();
       
-      // Match if either medicine name or generic name starts with query
-      return medicineName.startsWith(lowerQuery) || genericName.startsWith(lowerQuery);
+      // Match if either medicine name or generic name contains query
+      return medicineName.contains(lowerQuery) || genericName.contains(lowerQuery);
     }).toList();
     
-    // Sort: Renata PLC first, then others
+    // Sort by relevance and sponsorship
     matches.sort((a, b) {
       final aIsRenata = a.company.toLowerCase().contains('renata');
       final bIsRenata = b.company.toLowerCase().contains('renata');
       
-      if (aIsRenata && !bIsRenata) return -1; // a comes first
-      if (!aIsRenata && bIsRenata) return 1;  // b comes first
+      final aMedicineStarts = a.medicineName.toLowerCase().startsWith(lowerQuery);
+      final bMedicineStarts = b.medicineName.toLowerCase().startsWith(lowerQuery);
+      final aGenericStarts = a.genericName.toLowerCase().startsWith(lowerQuery);
+      final bGenericStarts = b.genericName.toLowerCase().startsWith(lowerQuery);
       
-      // If both are Renata or both are not, sort by relevance
-      // Prefer exact medicine name match over generic name match
-      final aMatchesMedicine = a.medicineName.toLowerCase().startsWith(lowerQuery);
-      final bMatchesMedicine = b.medicineName.toLowerCase().startsWith(lowerQuery);
+      // Priority 1: Medicine name starts with query + Renata
+      if (aMedicineStarts && aIsRenata && !(bMedicineStarts && bIsRenata)) return -1;
+      if (bMedicineStarts && bIsRenata && !(aMedicineStarts && aIsRenata)) return 1;
       
-      if (aMatchesMedicine && !bMatchesMedicine) return -1;
-      if (!aMatchesMedicine && bMatchesMedicine) return 1;
+      // Priority 2: Medicine name starts with query
+      if (aMedicineStarts && !bMedicineStarts) return -1;
+      if (!aMedicineStarts && bMedicineStarts) return 1;
+      
+      // Priority 3: Generic name starts with query + Renata
+      if (aGenericStarts && aIsRenata && !(bGenericStarts && bIsRenata)) return -1;
+      if (bGenericStarts && bIsRenata && !(aGenericStarts && bIsRenata)) return 1;
+      
+      // Priority 4: Generic name starts with query
+      if (aGenericStarts && !bGenericStarts) return -1;
+      if (!aGenericStarts && bGenericStarts) return 1;
+      
+      // Priority 5: Renata medicines (contains match)
+      if (aIsRenata && !bIsRenata) return -1;
+      if (!aIsRenata && bIsRenata) return 1;
       
       return 0; // keep original order
     });
