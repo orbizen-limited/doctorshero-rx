@@ -43,6 +43,7 @@ class _DosageDrawerState extends State<DosageDrawer> {
   String _durationUnit = 'দিন';
   String _tillUnit = 'দিন';
   bool _isContinues = false;
+  bool _isDurationContinues = false;
 
   // Convert English units to Bangla for backward compatibility
   String _convertToBangla(String unit) {
@@ -316,6 +317,32 @@ class _DosageDrawerState extends State<DosageDrawer> {
                       ],
                     ),
 
+                    const SizedBox(height: 12),
+
+                    // চলবে checkbox for Duration
+                    CheckboxListTile(
+                      value: _isDurationContinues,
+                      onChanged: (value) {
+                        setState(() {
+                          _isDurationContinues = value ?? false;
+                          if (_isDurationContinues) {
+                            _durationNumberController.text = '';
+                          }
+                        });
+                      },
+                      title: const Text(
+                        'চলবে (No specific duration)',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF64748B),
+                          fontFamily: 'ProductSans',
+                        ),
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                    ),
+
                     const SizedBox(height: 24),
 
                     // INTERVAL SECTION (Optional)
@@ -490,7 +517,7 @@ class _DosageDrawerState extends State<DosageDrawer> {
                       _quantityController.text,
                       _frequencyController.text,
                       _routeController.text,
-                      _durationNumberController.text,
+                      _isDurationContinues ? 'চলবে' : _durationNumberController.text,
                       _durationUnit,
                       _intervalController.text,
                       _isContinues ? 'চলবে' : _tillNumberController.text,
