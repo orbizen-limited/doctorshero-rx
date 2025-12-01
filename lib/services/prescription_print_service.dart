@@ -229,24 +229,22 @@ class PrescriptionPrintService {
                                       padding: const pw.EdgeInsets.only(top: 2),
                                       child: pw.Text(medicine.dosage, style: const pw.TextStyle(fontSize: 8)),
                                     ),
-                                  // Duration, interval, and till information
-                                  if (medicine.duration.isNotEmpty)
-                                    pw.Padding(
-                                      padding: const pw.EdgeInsets.only(top: 2),
-                                      child: pw.Text(
-                                        '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " `-` ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
-                                        style: const pw.TextStyle(fontSize: 8),
-                                      ),
-                                    ),
-                                  // Advice
-                                  if (medicine.advice.isNotEmpty)
-                                    pw.Padding(
-                                      padding: const pw.EdgeInsets.only(top: 2),
-                                      child: pw.Text(medicine.advice, style: const pw.TextStyle(fontSize: 8)),
-                                    ),
                                 ],
                               ),
                             ),
+                            if (medicine.duration.isNotEmpty)
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.only(left: 10),
+                                child: pw.Text(
+                                  '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " `-` ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
+                                  style: const pw.TextStyle(fontSize: 8),
+                                ),
+                              ),
+                            if (medicine.advice.isNotEmpty)
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.only(left: 10),
+                                child: pw.Text(medicine.advice, style: const pw.TextStyle(fontSize: 8)),
+                              ),
                           ],
                         ),
                       );
@@ -480,24 +478,22 @@ class PrescriptionPrintService {
                                       padding: const pw.EdgeInsets.only(top: 2),
                                       child: pw.Text(medicine.dosage, style: const pw.TextStyle(fontSize: 8)),
                                     ),
-                                  // Duration, interval, and till information
-                                  if (medicine.duration.isNotEmpty)
-                                    pw.Padding(
-                                      padding: const pw.EdgeInsets.only(top: 2),
-                                      child: pw.Text(
-                                        '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " till ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
-                                        style: const pw.TextStyle(fontSize: 8),
-                                      ),
-                                    ),
-                                  // Advice
-                                  if (medicine.advice.isNotEmpty)
-                                    pw.Padding(
-                                      padding: const pw.EdgeInsets.only(top: 2),
-                                      child: pw.Text(medicine.advice, style: const pw.TextStyle(fontSize: 8)),
-                                    ),
                                 ],
                               ),
                             ),
+                            if (medicine.duration.isNotEmpty)
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.only(left: 10),
+                                child: pw.Text(
+                                  '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " till ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
+                                  style: const pw.TextStyle(fontSize: 8),
+                                ),
+                              ),
+                            if (medicine.advice.isNotEmpty)
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.only(left: 10),
+                                child: pw.Text(medicine.advice, style: const pw.TextStyle(fontSize: 8)),
+                              ),
                           ],
                         ),
                       );
