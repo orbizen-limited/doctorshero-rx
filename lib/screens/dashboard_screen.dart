@@ -19,7 +19,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  String _selectedMenu = 'Dashboard';
+  String _selectedMenu = 'Appointment';
   bool _showProfileDropdown = false;
   bool _prescriptionExpanded = false;
   
@@ -65,7 +65,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   final List<Map<String, dynamic>> _menuItems = [
-    {'icon': Icons.dashboard_outlined, 'title': 'Dashboard', 'hasSubmenu': false},
+    // {'icon': Icons.dashboard_outlined, 'title': 'Dashboard', 'hasSubmenu': false}, // Hidden
     {'icon': Icons.calendar_today_outlined, 'title': 'Appointment', 'hasSubmenu': false},
     {
       'icon': Icons.medication_outlined,
@@ -77,7 +77,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'Configuration',
       ]
     },
-    {'icon': Icons.analytics_outlined, 'title': 'Analytics', 'hasSubmenu': false},
+    // {'icon': Icons.analytics_outlined, 'title': 'Analytics', 'hasSubmenu': false}, // Hidden
     {'icon': Icons.local_pharmacy_outlined, 'title': 'Drug Database', 'hasSubmenu': false},
     {'icon': Icons.settings_outlined, 'title': 'Settings', 'hasSubmenu': false},
   ];
