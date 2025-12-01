@@ -58,18 +58,42 @@ class PrescriptionHtmlService {
       margins: margins,
     );
 
-    // Save HTML to temp file and open it
-    // The browser will render with perfect Bangla, then user can print to PDF from browser
     final directory = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final htmlPath = '${directory.path}/prescription_$timestamp.html';
-    final htmlFile = File(htmlPath);
-    await htmlFile.writeAsString(html);
-
-    // Open HTML in browser - user can print to PDF from there with perfect Bangla
-    await OpenFile.open(htmlPath);
     
-    return htmlPath;
+    try {
+      // Use printing package to convert HTML to PDF
+      // This uses the platform's native PDF renderer which supports Bangla properly
+      final pdfBytes = await Printing.convertHtml(
+        format: PdfPageFormat(
+          margins['pageWidth']! * PdfPageFormat.cm,
+          margins['pageHeight']! * PdfPageFormat.cm,
+          marginLeft: margins['left']! * PdfPageFormat.cm,
+          marginTop: margins['top']! * PdfPageFormat.cm,
+          marginRight: margins['right']! * PdfPageFormat.cm,
+          marginBottom: margins['bottom']! * PdfPageFormat.cm,
+        ),
+        html: html,
+      );
+      
+      // Save PDF to file
+      final pdfPath = '${directory.path}/prescription_$timestamp.pdf';
+      final pdfFile = File(pdfPath);
+      await pdfFile.writeAsBytes(pdfBytes);
+      
+      // Open the PDF
+      await OpenFile.open(pdfPath);
+      
+      return pdfPath;
+    } catch (e) {
+      print('HTML to PDF conversion error: $e');
+      // Fallback: save and open HTML if conversion fails
+      final htmlPath = '${directory.path}/prescription_$timestamp.html';
+      final htmlFile = File(htmlPath);
+      await htmlFile.writeAsString(html);
+      await OpenFile.open(htmlPath);
+      return htmlPath;
+    }
   }
 
   static String _generateHtmlContent({
