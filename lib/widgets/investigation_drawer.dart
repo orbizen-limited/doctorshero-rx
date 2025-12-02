@@ -368,8 +368,7 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
         _selectedInvestigations.add({
           'name': name,
           'value': '',
-          'instructions': '',
-          'comment': '',
+          'note': '',
         });
       });
     }
@@ -427,22 +426,9 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
               ),
               SizedBox(width: 12),
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: Text(
-                  'Instructions',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF64748B),
-                    fontFamily: 'ProductSans',
-                  ),
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  'Comment',
+                  'Note',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -461,6 +447,15 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
           final localIndex = entry.key;
           final globalIndex = startIndex + localIndex;
           final investigation = entry.value;
+          
+          // Handle migration from old format (instructions + comment) to new format (note)
+          String noteValue = investigation['note'] ?? '';
+          if (noteValue.isEmpty) {
+            final instructions = investigation['instructions'] ?? '';
+            final comment = investigation['comment'] ?? '';
+            noteValue = [instructions, comment].where((s) => s.isNotEmpty).join(' ');
+          }
+          
           return Container(
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
@@ -473,13 +468,27 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
               children: [
                 Expanded(
                   flex: 3,
-                  child: Text(
-                    investigation['name']!,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF1E293B),
-                      fontFamily: 'ProductSans',
+                  child: TextField(
+                    key: ValueKey('name_${investigation['name']}_$globalIndex'),
+                    controller: TextEditingController(text: investigation['name'] ?? ''),
+                    decoration: InputDecoration(
+                      hintText: 'Name',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                      ),
                     ),
+                    style: const TextStyle(fontSize: 13),
+                    onChanged: (value) => _updateInvestigationField(globalIndex, 'name', value),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -510,12 +519,12 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  flex: 2,
+                  flex: 3,
                   child: TextField(
-                    key: ValueKey('instructions_${investigation['name']}_$globalIndex'),
-                    controller: TextEditingController(text: investigation['instructions'] ?? ''),
+                    key: ValueKey('note_${investigation['name']}_$globalIndex'),
+                    controller: TextEditingController(text: noteValue),
                     decoration: InputDecoration(
-                      hintText: 'Instructions (e.g., with attention to..., centering at...)',
+                      hintText: 'Note',
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6),
@@ -531,33 +540,7 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
                       ),
                     ),
                     style: const TextStyle(fontSize: 13),
-                    onChanged: (value) => _updateInvestigationField(globalIndex, 'instructions', value),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: TextField(
-                    key: ValueKey('comment_${investigation['name']}_$globalIndex'),
-                    controller: TextEditingController(text: investigation['comment'] ?? ''),
-                    decoration: InputDecoration(
-                      hintText: 'Comment',
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                      ),
-                    ),
-                    style: const TextStyle(fontSize: 13),
-                    onChanged: (value) => _updateInvestigationField(globalIndex, 'comment', value),
+                    onChanged: (value) => _updateInvestigationField(globalIndex, 'note', value),
                   ),
                 ),
                 const SizedBox(width: 12),
