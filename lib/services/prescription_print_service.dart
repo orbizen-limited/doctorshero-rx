@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:open_file/open_file.dart';
@@ -64,7 +65,7 @@ class PrescriptionPrintService {
     if (pageHeight != null) await prefs.setDouble('print_page_height', pageHeight);
   }
 
-  // Direct print - Opens native Windows print dialog via system PDF viewer
+  // Direct print - Opens native system print dialog immediately
   static Future<void> directPrint({
     required String patientName,
     required String age,
@@ -83,9 +84,9 @@ class PrescriptionPrintService {
     required String? referral,
   }) async {
     try {
-      print('🖨️ Generating PDF for direct print...');
+      print('🖨️ Opening native print dialog...');
       
-      // Generate PDF using existing logic
+      // Generate PDF first using existing method
       final pdfPath = await printPrescription(
         patientName: patientName,
         age: age,
@@ -104,19 +105,19 @@ class PrescriptionPrintService {
         referral: referral,
       );
       
-      // Open PDF in system default viewer (Adobe, Edge, Chrome PDF viewer, etc.)
-      // User can then use Ctrl+P or File > Print for native Windows print dialog
-      final result = await OpenFile.open(pdfPath);
+      // Read PDF bytes
+      final file = File(pdfPath);
+      final pdfBytes = await file.readAsBytes();
       
-      if (result.type == ResultType.done) {
-        print('✅ PDF opened in system viewer');
-        print('💡 User can now press Ctrl+P to access native Windows print dialog');
-      } else {
-        print('⚠️ Could not open PDF: ${result.message}');
-        throw Exception('Failed to open PDF: ${result.message}');
-      }
+      // Open native print dialog directly (Windows/Mac/Linux)
+      await Printing.layoutPdf(
+        name: 'Prescription_${patientName.replaceAll(' ', '_')}_$date.pdf',
+        onLayout: (PdfPageFormat format) async => pdfBytes,
+      );
+      
+      print('✅ Native print dialog opened successfully');
     } catch (e) {
-      print('❌ Error in direct print: $e');
+      print('❌ Error opening print dialog: $e');
       print('Stack trace: ${StackTrace.current}');
       rethrow;
     }
