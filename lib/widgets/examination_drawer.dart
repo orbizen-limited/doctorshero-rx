@@ -64,11 +64,11 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
   List<String> _thrills = [];
   String _heartSounds = '';
   final TextEditingController _heartSoundsNotesController = TextEditingController();
-  String _murmurTiming = 'Systolic ejection';
-  String _murmurGrade = '1/6';
-  String _murmurLocation = 'Aortic';
-  String _murmurRadiation = 'None';
-  String _murmurQuality = 'Harsh';
+  String _murmurTiming = '';
+  String _murmurGrade = '';
+  String _murmurLocation = '';
+  String _murmurRadiation = '';
+  String _murmurQuality = '';
 
   final List<String> _consciousnessOptions = [
     'Alert', 'Drowsy', 'Confused', 'Unresponsive', 'Oriented x3'
@@ -919,15 +919,16 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
                     const Text('Timing', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                     const SizedBox(height: 4),
                     DropdownButtonFormField<String>(
-                      value: _murmurTiming,
+                      value: _murmurTiming.isEmpty ? null : _murmurTiming,
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                        hintText: '— Select —',
                       ),
                       items: ['Systolic ejection', 'Pansystolic', 'Diastolic', 'Continuous'].map((item) {
                         return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 12)));
                       }).toList(),
-                      onChanged: (value) => setState(() => _murmurTiming = value!),
+                      onChanged: (value) => setState(() => _murmurTiming = value ?? ''),
                     ),
                   ],
                 ),
@@ -940,15 +941,16 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
                     const Text('Grade', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                     const SizedBox(height: 4),
                     DropdownButtonFormField<String>(
-                      value: _murmurGrade,
+                      value: _murmurGrade.isEmpty ? null : _murmurGrade,
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                        hintText: '— Select —',
                       ),
                       items: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6'].map((item) {
                         return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 12)));
                       }).toList(),
-                      onChanged: (value) => setState(() => _murmurGrade = value!),
+                      onChanged: (value) => setState(() => _murmurGrade = value ?? ''),
                     ),
                   ],
                 ),
@@ -965,15 +967,16 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
                     const Text('Location', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                     const SizedBox(height: 4),
                     DropdownButtonFormField<String>(
-                      value: _murmurLocation,
+                      value: _murmurLocation.isEmpty ? null : _murmurLocation,
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                        hintText: '— Select —',
                       ),
                       items: ['Aortic', 'Pulmonic', 'Tricuspid', 'Mitral', 'Erb\'s point'].map((item) {
                         return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 12)));
                       }).toList(),
-                      onChanged: (value) => setState(() => _murmurLocation = value!),
+                      onChanged: (value) => setState(() => _murmurLocation = value ?? ''),
                     ),
                   ],
                 ),
@@ -986,15 +989,16 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
                     const Text('Radiation', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                     const SizedBox(height: 4),
                     DropdownButtonFormField<String>(
-                      value: _murmurRadiation,
+                      value: _murmurRadiation.isEmpty ? null : _murmurRadiation,
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                        hintText: '— Select —',
                       ),
                       items: ['None', 'Carotids', 'Axilla', 'Back'].map((item) {
                         return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 12)));
                       }).toList(),
-                      onChanged: (value) => setState(() => _murmurRadiation = value!),
+                      onChanged: (value) => setState(() => _murmurRadiation = value ?? ''),
                     ),
                   ],
                 ),
@@ -1008,15 +1012,16 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
               const Text('Quality', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
               const SizedBox(height: 4),
               DropdownButtonFormField<String>(
-                value: _murmurQuality,
+                value: _murmurQuality.isEmpty ? null : _murmurQuality,
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                  hintText: '— Select —',
                 ),
                 items: ['Harsh', 'Blowing', 'Musical', 'Rumbling'].map((item) {
                   return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 12)));
                 }).toList(),
-                onChanged: (value) => setState(() => _murmurQuality = value!),
+                onChanged: (value) => setState(() => _murmurQuality = value ?? ''),
               ),
             ],
           ),
@@ -1240,16 +1245,16 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
       }
     }
     
-    // Murmur - show if grade is not 1/6 or if any field is customized
-    if (_murmurGrade != '1/6' || _murmurTiming != 'Systolic ejection' || _murmurLocation != 'Aortic' || _murmurRadiation != 'None' || _murmurQuality != 'Harsh') {
+    // Murmur - only show if grade is actually selected (not empty)
+    if (_murmurGrade.isNotEmpty) {
       List<String> murmurDetails = [];
-      murmurDetails.add(_murmurTiming);
+      if (_murmurTiming.isNotEmpty) murmurDetails.add(_murmurTiming);
       murmurDetails.add('Grade $_murmurGrade');
-      murmurDetails.add(_murmurLocation);
-      if (_murmurRadiation != 'None') {
+      if (_murmurLocation.isNotEmpty) murmurDetails.add(_murmurLocation);
+      if (_murmurRadiation.isNotEmpty && _murmurRadiation != 'None') {
         murmurDetails.add('Radiates to $_murmurRadiation');
       }
-      murmurDetails.add(_murmurQuality);
+      if (_murmurQuality.isNotEmpty) murmurDetails.add(_murmurQuality);
       cvItems.add('Murmur: ${murmurDetails.join(', ')}');
     }
     
