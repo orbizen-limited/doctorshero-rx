@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/appointment_model.dart';
 import '../services/appointment_service.dart';
+import '../services/patient_service.dart';
 
 class AppointmentScreen extends StatefulWidget {
   final void Function({
@@ -23,9 +24,11 @@ class AppointmentScreen extends StatefulWidget {
 
 class _AppointmentScreenState extends State<AppointmentScreen> {
   final AppointmentService _appointmentService = AppointmentService();
+  final PatientService _patientService = PatientService();
   final TextEditingController _searchController = TextEditingController();
   
   List<Appointment> _appointments = [];
+  Map<int, String> _enrichedPids = {}; // appointmentId -> patientPid
   AppointmentStats? _stats;
   bool _isLoading = false;
   String _selectedView = 'Patient'; // Patient or Report
@@ -75,6 +78,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         _totalEntries = result['total'];
         _isLoading = false;
       });
+      
+      // Enrich appointments without PIDs
+      _enrichAppointmentsWithPids();
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -83,6 +89,31 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error loading data: $e')),
         );
+      }
+    }
+  }
+  
+  /// Enrich appointments without PIDs by searching patients by phone
+  Future<void> _enrichAppointmentsWithPids() async {
+    for (final appointment in _appointments) {
+      // Skip if already has PID
+      if (appointment.patientPid != null && appointment.patientPid!.isNotEmpty) {
+        continue;
+      }
+      
+      // Search patient by phone
+      try {
+        final patients = await _patientService.searchByPhone(appointment.phone);
+        if (patients.isNotEmpty) {
+          final patient = patients.first;
+          if (patient['patient_id'] != null) {
+            setState(() {
+              _enrichedPids[appointment.id] = patient['patient_id'];
+            });
+          }
+        }
+      } catch (e) {
+        // Silently fail for individual enrichments
       }
     }
   }
@@ -617,11 +648,11 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           Expanded(
             flex: 2,
             child: Text(
-              appointment.patientPid ?? '-',
+              _enrichedPids[appointment.id] ?? appointment.patientPid ?? '-',
               style: TextStyle(
                 fontFamily: 'ProductSans',
                 fontSize: 13,
-                color: appointment.hasPatientRecord 
+                color: (_enrichedPids[appointment.id] != null || appointment.hasPatientRecord)
                     ? const Color(0xFF2196F3) 
                     : Colors.grey.shade500,
                 fontWeight: FontWeight.w600,
@@ -788,7 +819,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                   onPressed: () {
                     if (widget.onCreateRx != null) {
                       widget.onCreateRx!(
-                        patientId: appointment.patientPid ?? '',
+                        patientId: _enrichedPids[appointment.id] ?? appointment.patientPid ?? '',
                         patientName: appointment.patientName,
                         patientAge: appointment.age.toString(),
                         patientGender: appointment.gender,
