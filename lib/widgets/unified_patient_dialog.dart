@@ -144,6 +144,80 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
     });
   }
 
+  /// Show dialog with similar patients when duplicate is detected
+  Future<bool?> _showDuplicateDialog(List<dynamic> similarPatients) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Similar Patients Found'),
+        content: SizedBox(
+          width: 500,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Patients with this phone number already exist:',
+                style: TextStyle(fontSize: 14, color: Colors.black87),
+              ),
+              const SizedBox(height: 16),
+              ...similarPatients.map((patient) => Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: const Color(0xFF2196F3),
+                    child: Text(
+                      patient['name']?.substring(0, 1).toUpperCase() ?? '?',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  title: Text(
+                    patient['name'] ?? 'Unknown',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    'PID: ${patient['patient_id']} • Age: ${patient['age']} • ${patient['gender']}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  trailing: ElevatedButton(
+                    onPressed: () {
+                      // Use this existing patient
+                      _autoFillFromMatch(patient);
+                      Navigator.pop(context, null); // Don't create new
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4CAF50),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    ),
+                    child: const Text('Use This', style: TextStyle(fontSize: 12)),
+                  ),
+                ),
+              )).toList(),
+              const SizedBox(height: 16),
+              const Text(
+                'Or create a new patient with the same phone number?',
+                style: TextStyle(fontSize: 13, color: Colors.black54),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, null),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFE3001),
+            ),
+            child: const Text('Create New Patient'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleSave() async {
     // Validation: Name and Phone are required
     if (_nameController.text.trim().isEmpty) {
@@ -162,26 +236,55 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
     
     // If no patient ID, create new patient in API
     if (_patientIdController.text.trim().isEmpty) {
-      // Show loading
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Creating new patient...')),
-      );
-      
-      final newPatient = await _patientService.createPatient(
+      final response = await _patientService.createPatient(
         name: _nameController.text.trim(),
         phone: _phoneController.text.trim(),
         age: _ageController.text.trim(),
         gender: _selectedGender,
       );
       
-      if (newPatient != null && newPatient['patient_id'] != null) {
-        _patientIdController.text = newPatient['patient_id'];
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Patient created: ${newPatient['patient_id']}')),
-        );
-      } else {
+      if (response == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to create patient. Please try again.')),
+        );
+        return;
+      }
+      
+      // Check if duplicate found (requires confirmation)
+      if (response['requires_confirmation'] == true) {
+        final similarPatients = response['similar_patients'] as List?;
+        if (similarPatients != null && similarPatients.isNotEmpty) {
+          // Show similar patients and ask user to confirm
+          final shouldForceCreate = await _showDuplicateDialog(similarPatients);
+          if (shouldForceCreate == true) {
+            // User wants to create anyway
+            final forceResponse = await _patientService.createPatient(
+              name: _nameController.text.trim(),
+              phone: _phoneController.text.trim(),
+              age: _ageController.text.trim(),
+              gender: _selectedGender,
+              forceCreate: true,
+            );
+            
+            if (forceResponse != null && forceResponse['success'] == true) {
+              _patientIdController.text = forceResponse['data']['patient_id'];
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Failed to create patient.')),
+              );
+              return;
+            }
+          } else {
+            // User cancelled
+            return;
+          }
+        }
+      } else if (response['success'] == true && response['data'] != null) {
+        // Patient created successfully
+        _patientIdController.text = response['data']['patient_id'];
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to create patient.')),
         );
         return;
       }

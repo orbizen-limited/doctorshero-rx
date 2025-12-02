@@ -9,7 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 class UpdateService {
   // Update this URL to your actual update server
   static const String updateCheckUrl = 'https://api.doctorshero.com/app/version';
-  static const String downloadUrl = 'https://doctorshero.com/downloads/latest';
+  static const String downloadUrl = 'https://demo.doctorshero.com/downloads/latest';
   
   // Create HTTP client with SSL bypass
   static http.Client _createHttpClient() {

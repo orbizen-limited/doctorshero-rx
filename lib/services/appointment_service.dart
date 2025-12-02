@@ -7,7 +7,7 @@ import '../models/appointment_model.dart';
 import 'appointment_database_service.dart';
 
 class AppointmentService {
-  static const String baseUrl = 'https://doctorshero.com/api/v1';
+  static const String baseUrl = 'https://demo.doctorshero.com/api/v1';
   final AppointmentDatabaseService _dbService = AppointmentDatabaseService();
   
   // Create HTTP client with SSL bypass

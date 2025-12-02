@@ -4,7 +4,7 @@ import 'api_service.dart';
 
 class PatientService {
   final ApiService _apiService = ApiService();
-  static const String baseUrl = 'https://doctorshero.com';
+  static const String baseUrl = 'https://demo.doctorshero.com';
 
   /// Search patients by phone number
   /// Returns list of patients matching the phone (partial match)
@@ -146,12 +146,13 @@ class PatientService {
   }
 
   /// Create a new patient
-  /// Returns the created patient with PID
+  /// Returns full response including similar patients if duplicates found
   Future<Map<String, dynamic>?> createPatient({
     required String name,
     required String phone,
     String? age,
     String? gender,
+    bool forceCreate = false,
   }) async {
     try {
       final token = await _apiService.getToken();
@@ -162,6 +163,7 @@ class PatientService {
         'phone': phone,
         if (age != null && age.isNotEmpty) 'age': age,
         if (gender != null && gender.isNotEmpty) 'gender': gender,
+        'force_create': forceCreate,
       };
 
       final response = await http.post(
@@ -176,9 +178,8 @@ class PatientService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        if (data['success'] == true && data['data'] != null) {
-          return data['data'];
-        }
+        // Return full response (includes success, data, requires_confirmation, similar_patients)
+        return data;
       }
       return null;
     } catch (e) {
