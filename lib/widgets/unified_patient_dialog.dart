@@ -43,7 +43,15 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
     super.initState();
     _nameController.text = widget.initialName ?? '';
     _ageController.text = widget.initialAge ?? '';
-    _selectedGender = widget.initialGender ?? 'Male';
+    
+    // Ensure gender is valid (Male, Female, or Other)
+    final validGenders = ['Male', 'Female', 'Other'];
+    if (widget.initialGender != null && validGenders.contains(widget.initialGender)) {
+      _selectedGender = widget.initialGender!;
+    } else {
+      _selectedGender = 'Male'; // Default
+    }
+    
     _phoneController.text = widget.initialPhone ?? '';
     _patientIdController.text = widget.initialPatientId ?? '';
     _dateController.text = widget.initialDate ?? DateFormat('yyyy-MM-dd').format(DateTime.now());
