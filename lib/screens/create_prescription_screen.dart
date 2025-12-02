@@ -10,7 +10,6 @@ import '../widgets/clinical_sections.dart';
 import '../widgets/medicine_list.dart';
 import '../widgets/prescription_footer.dart';
 import '../services/prescription_print_service.dart';
-import '../services/prescription_html_service.dart';
 import '../services/prescription_database_service.dart';
 import '../services/api_service.dart';
 import '../providers/auth_provider.dart';
@@ -412,14 +411,19 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
         }
       });
 
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
+
       try {
-        // Use HTML printing for perfect Bangla rendering
-        await PrescriptionHtmlService.generateAndOpenHtml(
+        // Use PDF printing with native system viewer (Windows/Mac/Linux compatible)
+        await PrescriptionPrintService.directPrint(
           patientName: patientInfo.name.isEmpty ? 'Patient Name' : patientInfo.name,
           age: patientInfo.age.isEmpty ? 'N/A' : patientInfo.age,
           date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
           patientId: patientInfo.patientId.isEmpty ? 'N/A' : patientInfo.patientId,
           phone: patientInfo.phone,
+          doctorName: user?.name,
+          registrationNumber: user?.registrationNumber,
           chiefComplaints: chiefComplaints,
           examination: examinationMap,
           diagnosis: diagnosisList,
@@ -430,7 +434,7 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
           referral: referralText,
         );
       } catch (printError) {
-        print('HTML print error: $printError');
+        print('PDF print error: $printError');
         // Close loading dialog
         if (mounted) {
           Navigator.of(context).pop();
