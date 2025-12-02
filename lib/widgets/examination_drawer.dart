@@ -1168,16 +1168,49 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
       }
     }
     
-    // Peripheral Pulses - only show if any pulse is selected
-    List<String> selectedPulses = [];
+    // Peripheral Pulses - organized by pulse type
+    Map<String, Map<String, String>> pulsesByType = {
+      'Carotid': {},
+      'Radial': {},
+      'Brachial': {},
+      'Femoral': {},
+      'Popliteal': {},
+      'Posterior Tibial': {},
+      'Dorsalis Pedis': {},
+    };
+    
     _peripheralPulses.forEach((key, value) {
       if (value.isNotEmpty && value != '—') {
-        final pulseName = key.replaceAll('_', ' ').replaceAll('right', '(R)').replaceAll('left', '(L)');
-        selectedPulses.add('$pulseName: $value');
+        if (key.startsWith('carotid')) {
+          pulsesByType['Carotid']![key.contains('right') ? 'R' : 'L'] = value;
+        } else if (key.startsWith('radial')) {
+          pulsesByType['Radial']![key.contains('right') ? 'R' : 'L'] = value;
+        } else if (key.startsWith('brachial')) {
+          pulsesByType['Brachial']![key.contains('right') ? 'R' : 'L'] = value;
+        } else if (key.startsWith('femoral')) {
+          pulsesByType['Femoral']![key.contains('right') ? 'R' : 'L'] = value;
+        } else if (key.startsWith('popliteal')) {
+          pulsesByType['Popliteal']![key.contains('right') ? 'R' : 'L'] = value;
+        } else if (key.startsWith('posterior')) {
+          pulsesByType['Posterior Tibial']![key.contains('right') ? 'R' : 'L'] = value;
+        } else if (key.startsWith('dorsalis')) {
+          pulsesByType['Dorsalis Pedis']![key.contains('right') ? 'R' : 'L'] = value;
+        }
       }
     });
-    if (selectedPulses.isNotEmpty) {
-      cvItems.add('Peripheral Pulses: ${selectedPulses.join(', ')}');
+    
+    List<String> pulseLines = [];
+    pulsesByType.forEach((pulseName, sides) {
+      if (sides.isNotEmpty) {
+        List<String> sideValues = [];
+        if (sides.containsKey('R')) sideValues.add('R-${sides['R']}');
+        if (sides.containsKey('L')) sideValues.add('L-${sides['L']}');
+        pulseLines.add('  - $pulseName: ${sideValues.join(', ')}');
+      }
+    });
+    
+    if (pulseLines.isNotEmpty) {
+      cvItems.add('Peripheral Pulses:\n${pulseLines.join('\n')}');
     }
     
     // JVP
