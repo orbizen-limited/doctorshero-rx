@@ -563,6 +563,7 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
                   onPressed: _handleSave,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFE3001),
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -570,7 +571,10 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
                   ),
                   child: const Text(
                     'Save Patient Info',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
