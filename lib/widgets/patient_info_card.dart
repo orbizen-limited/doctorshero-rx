@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/prescription_model.dart';
+import 'unified_patient_dialog.dart';
 
 class PatientInfoCard extends StatelessWidget {
   final PrescriptionPatientInfo patientInfo;
@@ -95,7 +96,7 @@ class PatientInfoCard extends StatelessWidget {
               ),
               if (isEditable && onUpdate != null)
                 InkWell(
-                  onTap: () => _showEditDialog(context, label, value, field),
+                  onTap: () => _showUnifiedPatientDialog(context),
                   child: const Icon(
                     Icons.edit,
                     size: 16,
@@ -140,7 +141,7 @@ class PatientInfoCard extends StatelessWidget {
               ),
               if (isEditable && onUpdate != null)
                 InkWell(
-                  onTap: () => _showGenderPicker(context),
+                  onTap: () => _showUnifiedPatientDialog(context),
                   child: const Icon(
                     Icons.edit,
                     size: 16,
@@ -185,7 +186,7 @@ class PatientInfoCard extends StatelessWidget {
               ),
               if (isEditable && onUpdate != null)
                 InkWell(
-                  onTap: () => _showDatePicker(context),
+                  onTap: () => _showUnifiedPatientDialog(context),
                   child: const Icon(
                     Icons.edit,
                     size: 16,
@@ -199,87 +200,26 @@ class PatientInfoCard extends StatelessWidget {
     );
   }
 
-  void _showEditDialog(BuildContext context, String label, String currentValue, String field) {
-    final controller = TextEditingController(text: currentValue);
-    
+  void _showUnifiedPatientDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Edit $label'),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            border: const OutlineInputBorder(),
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              onUpdate!(field, controller.text);
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFE3001),
-            ),
-            child: const Text('Save'),
-          ),
-        ],
+      builder: (context) => UnifiedPatientDialog(
+        initialName: patientInfo.name,
+        initialAge: patientInfo.age,
+        initialGender: patientInfo.gender,
+        initialPhone: patientInfo.phone,
+        initialPatientId: patientInfo.patientId,
+        initialDate: patientInfo.date,
+        onSave: (data) {
+          // Update all fields at once
+          onUpdate!('name', data['name']!);
+          onUpdate!('age', data['age']!);
+          onUpdate!('gender', data['gender']!);
+          onUpdate!('phone', data['phone']!);
+          onUpdate!('patientId', data['patientId']!);
+          onUpdate!('date', data['date']!);
+        },
       ),
     );
-  }
-
-  void _showGenderPicker(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Gender'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: const Text('Male'),
-              onTap: () {
-                onUpdate!('gender', 'Male');
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('Female'),
-              onTap: () {
-                onUpdate!('gender', 'Female');
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('Other'),
-              onTap: () {
-                onUpdate!('gender', 'Other');
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showDatePicker(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-    );
-    
-    if (picked != null) {
-      final formattedDate = DateFormat('yyyy-MM-dd').format(picked);
-      onUpdate!('date', formattedDate);
-    }
   }
 }
