@@ -37,6 +37,12 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
   bool _isSearching = false;
   List<Map<String, dynamic>> _matchedPatients = [];
   final PatientService _patientService = PatientService();
+  
+  /// Generate a unique patient ID (UPID) format: U + timestamp
+  String _generateUPID() {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    return 'U$timestamp';
+  }
 
   @override
   void initState() {
@@ -219,7 +225,7 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
   }
 
   Future<void> _handleSave() async {
-    // Validation: Name and Phone are required
+    // Validation: Only name is required
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Patient name is required')),
@@ -227,15 +233,28 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
       return;
     }
     
-    if (_phoneController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Phone number is required')),
-      );
-      return;
-    }
-    
-    // If no patient ID, create new patient in API
+    // If no patient ID, create new patient or generate UPID
     if (_patientIdController.text.trim().isEmpty) {
+      // If no phone provided, generate UPID directly
+      if (_phoneController.text.trim().isEmpty) {
+        _patientIdController.text = _generateUPID();
+        print('✅ Generated UPID (no phone): ${_patientIdController.text}');
+        
+        final data = {
+          'patientId': _patientIdController.text,
+          'name': _nameController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'age': _ageController.text.trim(),
+          'gender': _selectedGender,
+          'date': _dateController.text.trim(),
+        };
+        
+        widget.onSave(data);
+        Navigator.pop(context);
+        return;
+      }
+      
+      // If phone provided, try to create patient in API
       final response = await _patientService.createPatient(
         name: _nameController.text.trim(),
         phone: _phoneController.text.trim(),
@@ -344,7 +363,7 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
             TextField(
               controller: _phoneController,
               decoration: InputDecoration(
-                labelText: 'Phone Number *',
+                labelText: 'Phone Number',
                 hintText: 'Enter phone number',
                 prefixIcon: const Icon(Icons.phone, color: Color(0xFF3B82F6)),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -518,7 +537,7 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
                   Expanded(
                     child: Text(
                       _patientIdController.text.isEmpty
-                          ? 'New patient will be created with auto-generated Patient ID'
+                          ? 'Phone optional. UPID will be generated if no phone or no match found.'
                           : 'Existing patient found - ID: ${_patientIdController.text}',
                       style: const TextStyle(
                         fontSize: 11,
