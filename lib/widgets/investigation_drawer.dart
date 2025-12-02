@@ -774,7 +774,7 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
                                 child: Theme(
                                   data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                                   child: ExpansionTile(
-                                    initiallyExpanded: _searchController.text.isNotEmpty || _expandedGroups.contains(groupName),
+                                    key: PageStorageKey<String>('left_$groupName'),
                                     isExpanded: _expandedGroups.contains(groupName) || (_searchController.text.isNotEmpty),
                                     onExpansionChanged: (isExpanded) {
                                       setState(() {
@@ -857,7 +857,7 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
                                 child: Theme(
                                   data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                                   child: ExpansionTile(
-                                    initiallyExpanded: _searchController.text.isNotEmpty || _expandedGroups.contains(groupName),
+                                    key: PageStorageKey<String>('right_$groupName'),
                                     isExpanded: _expandedGroups.contains(groupName) || (_searchController.text.isNotEmpty),
                                     onExpansionChanged: (isExpanded) {
                                       setState(() {
