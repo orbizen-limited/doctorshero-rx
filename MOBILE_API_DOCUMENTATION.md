@@ -609,7 +609,101 @@ GET /api/v1/patients?search=John
 - Multiple parameters work together with AND logic
 - All searches are case-insensitive
 
-### 2. Search Similar Patients
+### 2. Create New Patient
+```http
+POST /api/v1/patients
+```
+
+**Request Body:**
+```json
+{
+    "name": "Shahjalal Ahmed",
+    "phone": "01312399777",
+    "age": 42,
+    "gender": "Male",
+    "address": "Dhaka, Bangladesh",
+    "blood_group": "A+",
+    "medical_notes": "Diabetic patient",
+    "force_create": false
+}
+```
+
+**Required Fields:**
+- `name` (string, max 255)
+- `phone` (string, max 20)
+- `age` (integer, 0-150)
+- `gender` (Male, Female, Other)
+
+**Optional Fields:**
+- `address` (string, max 500)
+- `blood_group` (string, max 10)
+- `medical_notes` (string)
+- `force_create` (boolean) - Set to `true` to bypass duplicate check
+
+**Response (Success - Patient Created):**
+```json
+{
+    "success": true,
+    "message": "Patient created successfully",
+    "data": {
+        "id": 25,
+        "patient_id": "P987654321",
+        "name": "Shahjalal Ahmed",
+        "phone": "01312399777",
+        "age": 42,
+        "gender": "Male",
+        "blood_group": "A+",
+        "address": "Dhaka, Bangladesh",
+        "medical_notes": "Diabetic patient",
+        "last_visit": "2025-12-02",
+        "created_at": "2025-12-02T08:15:30.000000Z"
+    }
+}
+```
+
+**Response (Duplicate Found - Requires Confirmation):**
+```json
+{
+    "success": false,
+    "requires_confirmation": true,
+    "similar_patients": [
+        {
+            "id": 10,
+            "patient_id": "P123456789",
+            "name": "Shahjalal Khan",
+            "phone": "01312399777",
+            "age": 38,
+            "gender": "Male",
+            "blood_group": "B+",
+            "address": "Chittagong",
+            "last_visit": "2025-11-15"
+        }
+    ],
+    "message": "Similar patients found with this phone number. Please confirm if you want to create a new patient or use an existing one.",
+    "hint": "To create anyway, send force_create: true"
+}
+```
+
+**📌 Duplicate Check Logic:**
+- System checks for existing patients with the same phone number
+- If found, returns `requires_confirmation: true` with list of similar patients
+- User can either:
+  - **Use existing patient** (select from `similar_patients` list)
+  - **Create new patient** (resend request with `force_create: true`)
+- This handles cases where family members share the same phone number
+
+**Example - Force Create:**
+```json
+{
+    "name": "Shahjalal Ahmed",
+    "phone": "01312399777",
+    "age": 42,
+    "gender": "Male",
+    "force_create": true
+}
+```
+
+### 3. Search Similar Patients
 ```http
 POST /api/v1/patients/search-similar
 ```
