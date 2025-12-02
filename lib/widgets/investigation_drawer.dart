@@ -744,66 +744,138 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final itemWidth = (constraints.maxWidth - 16) / 2;
                     final entries = filteredInvestigations.entries.toList();
-                    return Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      children: entries.map((entry) {
-                        final groupName = entry.key;
-                        final investigations = entry.value;
-                        
-                        return SizedBox(
-                          width: itemWidth,
-                          child: Theme(
-                            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                            child: ExpansionTile(
-                              initiallyExpanded: _searchController.text.isNotEmpty,
-                              tilePadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
-                              childrenPadding: const EdgeInsets.only(bottom: 12),
-                              title: Text(
-                                groupName,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1E293B),
-                                  fontFamily: 'ProductSans',
-                                ),
-                              ),
-                              children: [
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: investigations.map((investigation) {
-                                    final isSelected = _selectedInvestigations.any((i) => i['name'] == investigation);
-                                    return InkWell(
-                                      onTap: () => _addInvestigation(investigation),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                        decoration: BoxDecoration(
-                                          color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
-                                          border: Border.all(
-                                            color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
+                    final leftColumnEntries = <MapEntry<String, List<String>>>[];
+                    final rightColumnEntries = <MapEntry<String, List<String>>>[];
+                    
+                    // Split entries into two columns
+                    for (int i = 0; i < entries.length; i++) {
+                      if (i % 2 == 0) {
+                        leftColumnEntries.add(entries[i]);
+                      } else {
+                        rightColumnEntries.add(entries[i]);
+                      }
+                    }
+                    
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Left Column
+                        Expanded(
+                          child: Column(
+                            children: leftColumnEntries.map((entry) {
+                              final groupName = entry.key;
+                              final investigations = entry.value;
+                              
+                              return Theme(
+                                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                                child: ExpansionTile(
+                                  initiallyExpanded: _searchController.text.isNotEmpty,
+                                  tilePadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+                                  childrenPadding: const EdgeInsets.only(bottom: 12),
+                                  title: Text(
+                                    groupName,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF1E293B),
+                                      fontFamily: 'ProductSans',
+                                    ),
+                                  ),
+                                  children: [
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: investigations.map((investigation) {
+                                        final isSelected = _selectedInvestigations.any((i) => i['name'] == investigation);
+                                        return InkWell(
+                                          onTap: () => _addInvestigation(investigation),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            decoration: BoxDecoration(
+                                              color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
+                                              border: Border.all(
+                                                color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
+                                              ),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              investigation,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
+                                                fontFamily: 'ProductSans',
+                                              ),
+                                            ),
                                           ),
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Text(
-                                          investigation,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
-                                            fontFamily: 'ProductSans',
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              );
+                            }).toList(),
                           ),
-                        );
-                      }).toList(),
+                        ),
+                        const SizedBox(width: 16),
+                        // Right Column
+                        Expanded(
+                          child: Column(
+                            children: rightColumnEntries.map((entry) {
+                              final groupName = entry.key;
+                              final investigations = entry.value;
+                              
+                              return Theme(
+                                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                                child: ExpansionTile(
+                                  initiallyExpanded: _searchController.text.isNotEmpty,
+                                  tilePadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+                                  childrenPadding: const EdgeInsets.only(bottom: 12),
+                                  title: Text(
+                                    groupName,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF1E293B),
+                                      fontFamily: 'ProductSans',
+                                    ),
+                                  ),
+                                  children: [
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: investigations.map((investigation) {
+                                        final isSelected = _selectedInvestigations.any((i) => i['name'] == investigation);
+                                        return InkWell(
+                                          onTap: () => _addInvestigation(investigation),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            decoration: BoxDecoration(
+                                              color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
+                                              border: Border.all(
+                                                color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
+                                              ),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              investigation,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
+                                                fontFamily: 'ProductSans',
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ],
                     );
                   },
                 ),
