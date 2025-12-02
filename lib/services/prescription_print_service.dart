@@ -86,8 +86,8 @@ class PrescriptionPrintService {
     try {
       print('🖨️ Opening native print dialog...');
       
-      // Generate PDF first using existing method
-      final pdfPath = await printPrescription(
+      // Generate PDF bytes without opening file
+      final pdfBytes = await generatePdfBytes(
         patientName: patientName,
         age: age,
         date: date,
@@ -105,10 +105,6 @@ class PrescriptionPrintService {
         referral: referral,
       );
       
-      // Read PDF bytes
-      final file = File(pdfPath);
-      final pdfBytes = await file.readAsBytes();
-      
       // Open native print dialog directly (Windows/Mac/Linux)
       await Printing.layoutPdf(
         name: 'Prescription_${patientName.replaceAll(' ', '_')}_$date.pdf',
@@ -121,6 +117,222 @@ class PrescriptionPrintService {
       print('Stack trace: ${StackTrace.current}');
       rethrow;
     }
+  }
+
+  // Generate PDF bytes in memory without saving file (for direct printing)
+  static Future<Uint8List> generatePdfBytes({
+    required String patientName,
+    required String age,
+    required String date,
+    required String patientId,
+    String? phone,
+    String? doctorName,
+    String? registrationNumber,
+    required List<String> chiefComplaints,
+    required Map<String, dynamic> examination,
+    required List<String> diagnosis,
+    required List<String> investigation,
+    required List<Medicine> medicines,
+    required List<String> advice,
+    required String? followUpDate,
+    required String? referral,
+  }) async {
+    final banglaFont = await _loadBanglaFont();
+    
+    // Get margin settings
+    final margins = await getMarginSettings();
+    
+    // Create PDF document with Bangla font support
+    final pdf = pw.Document(
+      theme: pw.ThemeData.withFont(
+        base: banglaFont,
+        bold: banglaFont,
+        italic: banglaFont,
+        boldItalic: banglaFont,
+      ),
+    );
+    
+    // Add page - copy exact same layout from printPrescription method below
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat(
+          margins['pageWidth']! * PdfPageFormat.cm,
+          margins['pageHeight']! * PdfPageFormat.cm,
+        ),
+        margin: pw.EdgeInsets.only(
+          top: margins['top']! * PdfPageFormat.cm,
+          bottom: margins['bottom']! * PdfPageFormat.cm,
+          left: margins['left']! * PdfPageFormat.cm,
+          right: margins['right']! * PdfPageFormat.cm,
+        ),
+        build: (context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Patient Info
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Name: $patientName', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('Age: $age', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  if (phone != null && phone.isNotEmpty)
+                    pw.Text('Phone: $phone', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('Date: $date', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('ID: $patientId', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                ],
+              ),
+              pw.SizedBox(height: 15),
+              // Two-column layout
+              pw.Expanded(
+                child: pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    // Left Column
+                    pw.SizedBox(
+                      width: margins['leftColumnWidth']! * PdfPageFormat.cm,
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          if (chiefComplaints.isNotEmpty) ...[
+                            pw.Text('Chief Complaint', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                            pw.SizedBox(height: 5),
+                            ...chiefComplaints.map((complaint) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
+                              child: pw.Text('- $complaint', style: const pw.TextStyle(fontSize: 9)),
+                            )),
+                            pw.SizedBox(height: 12),
+                          ],
+                          if (examination.isNotEmpty) ...[
+                            pw.Text('On Examinations', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                            pw.SizedBox(height: 5),
+                            ...examination.entries.map((entry) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
+                              child: pw.Text('- ${entry.key}: ${entry.value}', style: const pw.TextStyle(fontSize: 9)),
+                            )),
+                            pw.SizedBox(height: 12),
+                          ],
+                          if (diagnosis.isNotEmpty) ...[
+                            pw.Text('Diagnosis', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                            pw.SizedBox(height: 5),
+                            ...diagnosis.map((item) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
+                              child: pw.Text('- $item', style: const pw.TextStyle(fontSize: 9)),
+                            )),
+                            pw.SizedBox(height: 12),
+                          ],
+                          if (investigation.isNotEmpty) ...[
+                            pw.Text('Investigation', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                            pw.SizedBox(height: 5),
+                            ...investigation.map((item) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
+                              child: pw.Text('- $item', style: const pw.TextStyle(fontSize: 9)),
+                            )),
+                          ],
+                        ],
+                      ),
+                    ),
+                    pw.SizedBox(width: 10),
+                    pw.Container(width: 0.5, height: double.infinity, color: PdfColors.grey400),
+                    pw.SizedBox(width: 10),
+                    // Right Column - Medicines
+                    pw.Expanded(
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('Rx,', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                          pw.SizedBox(height: 10),
+                          ...medicines.asMap().entries.map((entry) {
+                            final index = entry.key + 1;
+                            final medicine = entry.value;
+                            final isInj = medicine.type.toLowerCase().contains('inj');
+                            final isSpray = medicine.type.toLowerCase().contains('spray');
+                            return pw.Padding(
+                              padding: const pw.EdgeInsets.only(bottom: 4),
+                              child: pw.Row(
+                                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                children: [
+                                  pw.Text('$index. ', style: const pw.TextStyle(fontSize: 9)),
+                                  pw.Expanded(
+                                    child: pw.Column(
+                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                      children: [
+                                        pw.Text('${medicine.type} ${medicine.name}', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                                        if ((isInj || isSpray) && medicine.quantity.isNotEmpty && medicine.frequency.isNotEmpty)
+                                          pw.Padding(
+                                            padding: const pw.EdgeInsets.only(top: 2),
+                                            child: pw.Text(
+                                              isInj && medicine.route.isNotEmpty ? '${medicine.quantity} x ${medicine.frequency} (Route: ${medicine.route})' : '${medicine.quantity} x ${medicine.frequency}',
+                                              style: const pw.TextStyle(fontSize: 8),
+                                            ),
+                                          )
+                                        else if (medicine.dosage.isNotEmpty)
+                                          pw.Padding(
+                                            padding: const pw.EdgeInsets.only(top: 2),
+                                            child: pw.Text(medicine.dosage, style: const pw.TextStyle(fontSize: 8)),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (medicine.duration.isNotEmpty)
+                                    pw.Container(
+                                      width: 80,
+                                      alignment: pw.Alignment.center,
+                                      padding: const pw.EdgeInsets.only(left: 10),
+                                      child: pw.Text(
+                                        '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " `-` ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
+                                        style: const pw.TextStyle(fontSize: 8),
+                                        textAlign: pw.TextAlign.center,
+                                      ),
+                                    ),
+                                  if (medicine.advice.isNotEmpty)
+                                    pw.Container(
+                                      width: 60,
+                                      padding: const pw.EdgeInsets.only(left: 10),
+                                      child: pw.Text(medicine.advice, style: const pw.TextStyle(fontSize: 8), textAlign: pw.TextAlign.left),
+                                    ),
+                                ],
+                              ),
+                            );
+                          }),
+                          pw.SizedBox(height: 15),
+                          if (advice.isNotEmpty) ...[
+                            pw.Text('Advices', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                            pw.SizedBox(height: 5),
+                            ...advice.asMap().entries.map((entry) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(bottom: 3),
+                              child: pw.Text('${entry.key + 1}. ${entry.value}', style: const pw.TextStyle(fontSize: 8)),
+                            )),
+                            pw.SizedBox(height: 10),
+                          ],
+                          if (followUpDate != null || referral != null) ...[
+                            pw.Row(
+                              children: [
+                                if (followUpDate != null) ...[
+                                  pw.Text('Follow-up: ', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                                  pw.Text(followUpDate, style: const pw.TextStyle(fontSize: 9)),
+                                ],
+                                if (followUpDate != null && referral != null) pw.SizedBox(width: 20),
+                                if (referral != null) ...[
+                                  pw.Text('Referral: ', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                                  pw.Expanded(child: pw.Text(referral, style: const pw.TextStyle(fontSize: 9))),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    
+    // Return PDF bytes (in memory, no file saved)
+    return pdf.save();
   }
 
   static Future<String> printPrescription({
