@@ -1,14 +1,33 @@
-import 'dart:io';
-import 'dart:typed_data';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:open_file/open_file.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../models/medicine_model.dart';
 
 class PrescriptionHtmlService {
+  // Cache for the loaded font
+  static pw.Font? _cachedFont;
+  
+  // Load font that supports Bangla and special characters
+  static Future<pw.Font> _loadBanglaFont() async {
+    if (_cachedFont != null) return _cachedFont!;
+    
+    try {
+      // Load Open Sans Regular as requested by user
+      final fontData = await rootBundle.load('assets/fonts/OpenSans-Regular.ttf');
+      _cachedFont = pw.Font.ttf(fontData);
+      print('Loaded Open Sans Regular font successfully');
+      return _cachedFont!;
+    } catch (e) {
+      print('Error loading Open Sans: $e');
+      // Fallback to Noto Sans Bengali
+      final fontData = await rootBundle.load('assets/fonts/NotoSansBengali-Regular.ttf');
+      _cachedFont = pw.Font.ttf(fontData);
+      return _cachedFont!;
+    }
+  }
+
   // Get margin settings from SharedPreferences
   static Future<Map<String, double>> getMarginSettings() async {
     final prefs = await SharedPreferences.getInstance();
@@ -40,352 +59,245 @@ class PrescriptionHtmlService {
   }) async {
     // Get margin settings
     final margins = await getMarginSettings();
+    final banglaFont = await _loadBanglaFont();
     
-    // Generate HTML content
-    final html = _generateHtmlContent(
-      patientName: patientName,
-      age: age,
-      date: date,
-      patientId: patientId,
-      phone: phone,
-      chiefComplaints: chiefComplaints,
-      examination: examination,
-      diagnosis: diagnosis,
-      investigation: investigation,
-      medicines: medicines,
-      advice: advice,
-      followUpDate: followUpDate,
-      referral: referral,
-      margins: margins,
+    // Generate PDF instead of HTML
+    final pdf = pw.Document(
+      theme: pw.ThemeData.withFont(
+        base: banglaFont,
+        bold: banglaFont,
+        italic: banglaFont,
+        boldItalic: banglaFont,
+      ),
     );
 
-    // Save HTML and open it in browser
-    // The HTML has proper @page CSS rules for printing
-    // User can print to PDF from browser (Cmd+P) with perfect Bangla
-    final directory = await getApplicationDocumentsDirectory();
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final htmlPath = '${directory.path}/prescription_$timestamp.html';
-    final htmlFile = File(htmlPath);
-    await htmlFile.writeAsString(html);
-    
-    print('✅ HTML prescription generated');
-    print('📄 Path: $htmlPath');
-    print('🖨️  To print: Open in browser and press Cmd+P');
-    
-    // Open HTML in browser
-    await OpenFile.open(htmlPath);
-    
-    return htmlPath;
-  }
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat(
+          margins['pageWidth']! * PdfPageFormat.cm,
+          margins['pageHeight']! * PdfPageFormat.cm,
+        ),
+        margin: pw.EdgeInsets.only(
+          top: margins['top']! * PdfPageFormat.cm,
+          bottom: margins['bottom']! * PdfPageFormat.cm,
+          left: margins['left']! * PdfPageFormat.cm,
+          right: margins['right']! * PdfPageFormat.cm,
+        ),
+        build: (context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Patient Info - Full width at top with proper spacing
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Name: $patientName', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('Age: $age', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  if (phone != null && phone.isNotEmpty)
+                    pw.Text('Phone: $phone', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('Date: $date', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('ID: $patientId', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                ],
+              ),
+              pw.SizedBox(height: 15),
 
-  static String _generateHtmlContent({
-    required String patientName,
-    required String age,
-    required String date,
-    required String patientId,
-    String? phone,
-    required List<String> chiefComplaints,
-    required Map<String, dynamic> examination,
-    required List<String> diagnosis,
-    required List<String> investigation,
-    required List<Medicine> medicines,
-    required List<String> advice,
-    required String? followUpDate,
-    required String? referral,
-    required Map<String, double> margins,
-  }) {
-    // Build medicines HTML
-    final medicinesHtml = StringBuffer();
-    for (int i = 0; i < medicines.length; i++) {
-      final medicine = medicines[i];
-      final index = i + 1;
-      
-      medicinesHtml.write('<div class="medicine-item">');
-      medicinesHtml.write('<div class="medicine-left">');
-      medicinesHtml.write('<div class="medicine-name">$index. ${medicine.type} ${medicine.name}</div>');
-      
-      // Dosage
-      if (medicine.dosage.isNotEmpty) {
-        medicinesHtml.write('<div class="medicine-dosage">${medicine.dosage}</div>');
-      }
-      
-      medicinesHtml.write('</div>');
-      
-      // Duration on the right
-      medicinesHtml.write('<div class="medicine-right">');
-      if (medicine.duration.isNotEmpty) {
-        String durationText = medicine.duration;
-        if (medicine.interval.isNotEmpty) {
-          durationText += ' (${medicine.interval})';
-        }
-        if (medicine.tillNumber == 'চলবে' || medicine.tillNumber == 'Continues') {
-          durationText += ' - চলবে';
-        } else if (medicine.tillNumber.isNotEmpty) {
-          durationText += ' - ${medicine.tillNumber} ${medicine.tillUnit}';
-        }
-        medicinesHtml.write('<div class="medicine-duration">$durationText</div>');
-      }
-      medicinesHtml.write('</div>');
-      medicinesHtml.write('</div>');
-    }
+              // Two-column layout below patient info
+              pw.Expanded(
+                child: pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    // Left Column - Chief Complaint, Examination, Diagnosis, Investigation
+                    pw.SizedBox(
+                      width: margins['leftColumnWidth']! * PdfPageFormat.cm,
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          // Chief Complaint
+                          if (chiefComplaints.isNotEmpty) ...[
+                            pw.Text('Chief Complaint', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                            pw.SizedBox(height: 5),
+                            ...chiefComplaints.map((complaint) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
+                              child: pw.Text('- $complaint', style: const pw.TextStyle(fontSize: 9)),
+                            )),
+                            pw.SizedBox(height: 12),
+                          ],
 
-    // Build advice HTML
-    final adviceHtml = StringBuffer();
-    for (int i = 0; i < advice.length; i++) {
-      adviceHtml.write('<div class="advice-item">${i + 1}. ${advice[i]}</div>');
-    }
+                          // On Examinations
+                          if (examination.isNotEmpty) ...[
+                            pw.Text('On Examinations', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                            pw.SizedBox(height: 5),
+                            ...examination.entries.map((entry) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
+                              child: pw.Text('- ${entry.key}: ${entry.value}', style: const pw.TextStyle(fontSize: 9)),
+                            )),
+                            pw.SizedBox(height: 12),
+                          ],
 
-    return '''
-<!DOCTYPE html>
-<html lang="bn">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prescription - $patientName</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Open Sans', 'Noto Sans Bengali', sans-serif;
-            font-size: 11pt;
-            line-height: 1.4;
-            color: #000;
-            background: #f5f5f5;
-            padding: 20px;
-        }
-        
-        .page-container {
-            width: ${margins['pageWidth']}cm;
-            min-height: ${margins['pageHeight']}cm;
-            background: white;
-            margin: 0 auto;
-            padding: ${margins['top']}cm ${margins['right']}cm ${margins['bottom']}cm ${margins['left']}cm;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        
-        @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-            
-            .page-container {
-                width: 100%;
-                min-height: auto;
-                margin: 0;
-                padding: 0;
-                box-shadow: none;
-            }
-            
-            @page {
-                size: ${margins['pageWidth']}cm ${margins['pageHeight']}cm;
-                margin: ${margins['top']}cm ${margins['right']}cm ${margins['bottom']}cm ${margins['left']}cm;
-            }
-            
-            .no-print {
-                display: none;
-            }
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .header-item {
-            font-size: 10pt;
-        }
-        
-        .header-item strong {
-            font-weight: 600;
-        }
-        
-        .section {
-            margin-bottom: 15px;
-        }
-        
-        .section-title {
-            font-weight: 600;
-            font-size: 11pt;
-            margin-bottom: 8px;
-        }
-        
-        .two-column {
-            display: flex;
-            gap: 30px;
-        }
-        
-        .left-column {
-            flex: 0 0 ${margins['leftColumnWidth']}cm;
-            padding-right: 15px;
-            border-right: 1px solid #ddd;
-        }
-        
-        .right-column {
-            flex: 1;
-        }
-        
-        .list-item {
-            margin-bottom: 3px;
-            padding-left: 15px;
-            position: relative;
-        }
-        
-        .list-item:before {
-            content: "•";
-            position: absolute;
-            left: 0;
-        }
-        
-        .medicine-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding: 5px 0;
-        }
-        
-        .medicine-left {
-            flex: 1;
-        }
-        
-        .medicine-right {
-            flex: 0 0 auto;
-            text-align: right;
-            padding-left: 20px;
-        }
-        
-        .medicine-name {
-            font-weight: 500;
-            margin-bottom: 3px;
-        }
-        
-        .medicine-dosage {
-            font-size: 9pt;
-            color: #333;
-            margin-left: 20px;
-        }
-        
-        .medicine-duration {
-            font-size: 9pt;
-            color: #333;
-            white-space: nowrap;
-        }
-        
-        .advice-item {
-            margin-bottom: 5px;
-        }
-        
-        .rx-header {
-            font-size: 14pt;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-        
-        .print-button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 24px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14pt;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        
-        .print-button:hover {
-            background: #45a049;
-        }
-    </style>
-</head>
-<body>
-    <button class="print-button no-print" onclick="window.print()">🖨️ Print</button>
+                          // Diagnosis
+                          if (diagnosis.isNotEmpty) ...[
+                            pw.Text('Diagnosis', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                            pw.SizedBox(height: 5),
+                            ...diagnosis.map((item) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
+                              child: pw.Text('- $item', style: const pw.TextStyle(fontSize: 9)),
+                            )),
+                            pw.SizedBox(height: 12),
+                          ],
+
+                          // Investigation
+                          if (investigation.isNotEmpty) ...[
+                            pw.Text('Investigation', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                            pw.SizedBox(height: 5),
+                            ...investigation.map((item) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
+                              child: pw.Text('- $item', style: const pw.TextStyle(fontSize: 9)),
+                            )),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    // Spacing before separator
+                    pw.SizedBox(width: 10),
+
+                    // Vertical Divider
+                    pw.Container(
+                      width: 0.5,
+                      height: double.infinity,
+                      color: PdfColors.grey400,
+                    ),
+
+                    // Spacing after separator
+                    pw.SizedBox(width: 10),
+
+                    // Right Column - Rx (Medicines)
+                    pw.Expanded(
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('Rx,', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                          pw.SizedBox(height: 10),
+
+                          // Medicines List
+                          ...medicines.asMap().entries.map((entry) {
+                            final index = entry.key + 1;
+                            final medicine = entry.value;
+                            final isInj = medicine.type.toLowerCase().contains('inj');
+                            final isSpray = medicine.type.toLowerCase().contains('spray');
+                            
+                            return pw.Padding(
+                              padding: const pw.EdgeInsets.only(bottom: 4),
+                              child: pw.Row(
+                                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                children: [
+                                  pw.Text('$index. ', style: const pw.TextStyle(fontSize: 9)),
+                                  pw.Expanded(
+                                    child: pw.Column(
+                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                      children: [
+                                        pw.Text(
+                                          '${medicine.type} ${medicine.name}',
+                                          style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+                                        ),
+                                        // Show quantity x frequency (Route) for Inj/Spray, or dosage for others
+                                        if ((isInj || isSpray) && medicine.quantity.isNotEmpty && medicine.frequency.isNotEmpty)
+                                          pw.Padding(
+                                            padding: const pw.EdgeInsets.only(top: 2),
+                                            child: pw.Text(
+                                              isInj && medicine.route.isNotEmpty
+                                                  ? '${medicine.quantity} x ${medicine.frequency} (Route: ${medicine.route})'
+                                                  : '${medicine.quantity} x ${medicine.frequency}',
+                                              style: const pw.TextStyle(fontSize: 8),
+                                            ),
+                                          )
+                                        else if (medicine.dosage.isNotEmpty)
+                                          pw.Padding(
+                                            padding: const pw.EdgeInsets.only(top: 2),
+                                            child: pw.Text(medicine.dosage, style: const pw.TextStyle(fontSize: 8)),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (medicine.duration.isNotEmpty)
+                                    pw.Container(
+                                      width: 80,
+                                      alignment: pw.Alignment.center,
+                                      padding: const pw.EdgeInsets.only(left: 10),
+                                      child: pw.Text(
+                                        '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " - ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
+                                        style: const pw.TextStyle(fontSize: 8),
+                                        textAlign: pw.TextAlign.center,
+                                      ),
+                                    ),
+                                  if (medicine.advice.isNotEmpty)
+                                    pw.Container(
+                                      width: 60,
+                                      padding: const pw.EdgeInsets.only(left: 10),
+                                      child: pw.Text(
+                                        medicine.advice,
+                                        style: const pw.TextStyle(fontSize: 8),
+                                        textAlign: pw.TextAlign.left,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            );
+                          }),
+
+                          pw.SizedBox(height: 15),
+
+                          // Advice
+                          if (advice.isNotEmpty) ...[
+                            pw.Text('Advices', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                            pw.SizedBox(height: 5),
+                            ...advice.asMap().entries.map((entry) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(bottom: 3),
+                              child: pw.Text('${entry.key + 1}. ${entry.value}', style: const pw.TextStyle(fontSize: 8)),
+                            )),
+                            pw.SizedBox(height: 10),
+                          ],
+
+                          // Follow-up and Referral
+                          if (followUpDate != null || referral != null) ...[
+                            pw.Row(
+                              children: [
+                                if (followUpDate != null) ...[
+                                  pw.Text('Follow-up: ', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                                  pw.Text(followUpDate, style: const pw.TextStyle(fontSize: 9)),
+                                ],
+                                if (followUpDate != null && referral != null) pw.SizedBox(width: 20),
+                                if (referral != null) ...[
+                                  pw.Text('Referral: ', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                                  pw.Expanded(child: pw.Text(referral, style: const pw.TextStyle(fontSize: 9))),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    // Generate PDF bytes
+    final pdfBytes = await pdf.save();
     
-    <div class="page-container">
-    <div class="header">
-        <div class="header-item"><strong>Name:</strong> $patientName</div>
-        <div class="header-item"><strong>Age:</strong> $age</div>
-        ${phone != null && phone.isNotEmpty ? '<div class="header-item"><strong>Phone:</strong> $phone</div>' : ''}
-        <div class="header-item"><strong>Date:</strong> $date</div>
-        <div class="header-item"><strong>ID:</strong> $patientId</div>
-    </div>
+    print('✅ PDF prescription generated');
+    print('🖨️ Opening native Windows print dialog...');
     
-    <div class="two-column">
-        <div class="left-column">
-            ${chiefComplaints.isNotEmpty ? '''
-            <div class="section">
-                <div class="section-title">Chief Complaint</div>
-                ${chiefComplaints.map((c) => '<div class="list-item">$c</div>').join('')}
-            </div>
-            ''' : ''}
-            
-            ${examination.isNotEmpty ? '''
-            <div class="section">
-                <div class="section-title">On Examinations</div>
-                ${examination.entries.map((e) => '<div class="list-item">${e.key}: ${e.value}</div>').join('')}
-            </div>
-            ''' : ''}
-            
-            ${diagnosis.isNotEmpty ? '''
-            <div class="section">
-                <div class="section-title">Diagnosis</div>
-                ${diagnosis.map((d) => '<div class="list-item">$d</div>').join('')}
-            </div>
-            ''' : ''}
-            
-            ${investigation.isNotEmpty ? '''
-            <div class="section">
-                <div class="section-title">Investigation</div>
-                ${investigation.map((inv) => '<div class="list-item">$inv</div>').join('')}
-            </div>
-            ''' : ''}
-        </div>
-        
-        <div class="right-column">
-            <div class="rx-header">Rx,</div>
-            
-            ${medicines.isNotEmpty ? '''
-            <div class="section">
-                $medicinesHtml
-            </div>
-            ''' : ''}
-            
-            ${advice.isNotEmpty ? '''
-            <div class="section">
-                <div class="section-title">Advices</div>
-                $adviceHtml
-            </div>
-            ''' : ''}
-            
-            ${followUpDate != null && followUpDate.isNotEmpty ? '''
-            <div class="section">
-                <div class="section-title">Follow-up: $followUpDate</div>
-            </div>
-            ''' : ''}
-            
-            ${referral != null && referral.isNotEmpty ? '''
-            <div class="section">
-                <div class="section-title">Referral</div>
-                <div>$referral</div>
-            </div>
-            ''' : ''}
-        </div>
-    </div>
-    </div>
-</body>
-</html>
-''';
+    // Open native Windows print dialog directly
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdfBytes,
+    );
+    
+    // Return empty string since we're not saving a file
+    return '';
   }
 }
