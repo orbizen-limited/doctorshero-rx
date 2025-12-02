@@ -145,6 +145,47 @@ class PatientService {
     }
   }
 
+  /// Create a new patient
+  /// Returns the created patient with PID
+  Future<Map<String, dynamic>?> createPatient({
+    required String name,
+    required String phone,
+    String? age,
+    String? gender,
+  }) async {
+    try {
+      final token = await _apiService.getToken();
+      if (token == null) return null;
+
+      final body = {
+        'name': name,
+        'phone': phone,
+        if (age != null && age.isNotEmpty) 'age': age,
+        if (gender != null && gender.isNotEmpty) 'gender': gender,
+      };
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/v1/patients'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return data['data'];
+        }
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Flexible search with multiple optional parameters
   Future<List<Map<String, dynamic>>> searchPatients({
     String? patientId,

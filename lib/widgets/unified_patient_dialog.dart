@@ -119,42 +119,13 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
         name: name,
       );
 
-      if (matches.isNotEmpty) {
-        // Auto-fill with the best match
-        final bestMatch = matches.first;
-        setState(() {
-          _nameController.text = bestMatch['name'] ?? '';
-          _ageController.text = (bestMatch['age'] ?? '').toString();
-          
-          // Validate and set gender
-          final gender = bestMatch['gender'];
-          if (gender != null && ['Male', 'Female', 'Other'].contains(gender)) {
-            _selectedGender = gender;
-          }
-          
-          _patientIdController.text = bestMatch['patient_id'] ?? '';
-          _matchedPatients = matches;
-          _isSearching = false;
-        });
-      } else {
-        setState(() {
-          _matchedPatients = [];
-          _isSearching = false;
-        });
-      }
+      setState(() {
+        _matchedPatients = matches;
+        _isSearching = false;
+      });
     } catch (e) {
       setState(() => _isSearching = false);
     }
-  }
-
-  String _generateUPID() {
-    final phone = _phoneController.text.trim();
-    if (phone.isNotEmpty) {
-      // UPID format: UPID-{phone}
-      return 'UPID-$phone';
-    }
-    // Fallback: UPID-{timestamp}
-    return 'UPID-${DateTime.now().millisecondsSinceEpoch}';
   }
 
   void _autoFillFromMatch(Map<String, dynamic> patient) {
@@ -173,7 +144,7 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
     });
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
     // Validation: Name and Phone are required
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -189,9 +160,31 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
       return;
     }
     
-    // If no patient ID, generate UPID
+    // If no patient ID, create new patient in API
     if (_patientIdController.text.trim().isEmpty) {
-      _patientIdController.text = _generateUPID();
+      // Show loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Creating new patient...')),
+      );
+      
+      final newPatient = await _patientService.createPatient(
+        name: _nameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        age: _ageController.text.trim(),
+        gender: _selectedGender,
+      );
+      
+      if (newPatient != null && newPatient['patient_id'] != null) {
+        _patientIdController.text = newPatient['patient_id'];
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Patient created: ${newPatient['patient_id']}')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to create patient. Please try again.')),
+        );
+        return;
+      }
     }
     
     // If age is empty, set default
@@ -421,9 +414,9 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      _patientIdController.text.isEmpty || _patientIdController.text.startsWith('UPID-')
-                          ? 'Patient ID will be auto-generated as UPID (Unknown Patient ID)'
-                          : 'Existing patient found - using registered ID',
+                      _patientIdController.text.isEmpty
+                          ? 'New patient will be created with auto-generated Patient ID'
+                          : 'Existing patient found - ID: ${_patientIdController.text}',
                       style: const TextStyle(
                         fontSize: 11,
                         color: Color(0xFF92400E),
