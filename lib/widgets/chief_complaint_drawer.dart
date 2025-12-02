@@ -109,6 +109,169 @@ class _ChiefComplaintDrawerState extends State<ChiefComplaintDrawer> {
     });
   }
 
+  Widget _buildTable(List<Map<String, String>> complaints, int startIndex) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Table Header
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8F9FA),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: Text(
+                  'Name',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF64748B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  'Value',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF64748B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                flex: 3,
+                child: Text(
+                  'Note',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF64748B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+              ),
+              SizedBox(width: 40),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Table Rows
+        ...complaints.asMap().entries.map((entry) {
+          final localIndex = entry.key;
+          final globalIndex = startIndex + localIndex;
+          final complaint = entry.value;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: TextField(
+                    key: ValueKey('name_${complaint['name']}_$globalIndex'),
+                    controller: TextEditingController(text: complaint['name'] ?? ''),
+                    decoration: InputDecoration(
+                      hintText: 'Name',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                      ),
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                    onChanged: (value) => _updateComplaintField(globalIndex, 'name', value),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    key: ValueKey('value_${complaint['name']}_$globalIndex'),
+                    controller: TextEditingController(text: complaint['value'] ?? ''),
+                    decoration: InputDecoration(
+                      hintText: 'Value',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                      ),
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                    onChanged: (value) => _updateComplaintField(globalIndex, 'value', value),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 3,
+                  child: TextField(
+                    key: ValueKey('note_${complaint['name']}_$globalIndex'),
+                    controller: TextEditingController(text: complaint['note'] ?? ''),
+                    decoration: InputDecoration(
+                      hintText: 'Note',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                      ),
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                    onChanged: (value) => _updateComplaintField(globalIndex, 'note', value),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                IconButton(
+                  onPressed: () => _removeComplaint(globalIndex),
+                  icon: const Icon(Icons.close, color: Color(0xFFEF4444), size: 20),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredComplaints = _getFilteredComplaints();
@@ -178,77 +341,19 @@ class _ChiefComplaintDrawerState extends State<ChiefComplaintDrawer> {
               ),
             ),
             
-            // Search Bar
+            // Search Bar and Custom Input Row
             Padding(
               padding: const EdgeInsets.all(20),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search...',
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                  ),
-                ),
-                onChanged: (value) => setState(() {}),
-              ),
-            ),
-            
-            // Complaint Tags
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: filteredComplaints.map((complaint) {
-                  final isSelected = _selectedComplaints.any((c) => c['name'] == complaint);
-                  return InkWell(
-                    onTap: () => _addComplaint(complaint),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
-                        border: Border.all(
-                          color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
-                        ),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        complaint,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
-                          fontFamily: 'ProductSans',
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Custom Input
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
+                  // Search Field - Half Width
                   Expanded(
+                    flex: 1,
                     child: TextField(
-                      controller: _customController,
+                      controller: _searchController,
                       decoration: InputDecoration(
-                        hintText: 'Type custom item...',
+                        hintText: 'Search...',
+                        prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -263,45 +368,126 @@ class _ChiefComplaintDrawerState extends State<ChiefComplaintDrawer> {
                           borderSide: const BorderSide(color: Color(0xFFFE3001)),
                         ),
                       ),
-                      onSubmitted: (value) {
-                        if (value.isNotEmpty) {
-                          _addComplaint(value);
-                          _customController.clear();
-                        }
-                      },
+                      onChanged: (value) => setState(() {}),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_customController.text.isNotEmpty) {
-                        _addComplaint(_customController.text);
-                        _customController.clear();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFE3001),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Add',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'ProductSans',
-                      ),
+                  // Custom Input with Add Button - Half Width
+                  Expanded(
+                    flex: 1,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _customController,
+                            decoration: InputDecoration(
+                              hintText: 'Type custom item...',
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                              ),
+                            ),
+                            onSubmitted: (value) {
+                              if (value.isNotEmpty) {
+                                _addComplaint(value);
+                                _customController.clear();
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_customController.text.isNotEmpty) {
+                              _addComplaint(_customController.text);
+                              _customController.clear();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFE3001),
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Add',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'ProductSans',
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
             
+            // Complaint Tags
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F9FA),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: filteredComplaints.map((complaint) {
+                      final isSelected = _selectedComplaints.any((c) => c['name'] == complaint);
+                      return InkWell(
+                        onTap: () => _addComplaint(complaint),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
+                            border: Border.all(
+                              color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            complaint,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
+                              fontFamily: 'ProductSans',
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ),
+            
             const SizedBox(height: 24),
             
-            // Selected Complaints Table
+            // Selected Complaints Table (2 tables side by side)
             if (_selectedComplaints.isNotEmpty) ...[
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
@@ -311,158 +497,52 @@ class _ChiefComplaintDrawerState extends State<ChiefComplaintDrawer> {
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Table Header
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8F9FA),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: Text(
-                                'Name',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF64748B),
-                                  fontFamily: 'ProductSans',
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                'Value',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF64748B),
-                                  fontFamily: 'ProductSans',
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Expanded(
-                              flex: 3,
-                              child: Text(
-                                'Note',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF64748B),
-                                  fontFamily: 'ProductSans',
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 40),
-                          ],
+                      // Left Table
+                      Expanded(
+                        child: _buildTable(
+                          _selectedComplaints.take((_selectedComplaints.length / 2).ceil()).toList(),
+                          0,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      // Table Rows
-                      ..._selectedComplaints.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final complaint = entry.value;
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: Text(
-                                  complaint['name']!,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: Color(0xFF1E293B),
-                                    fontFamily: 'ProductSans',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                flex: 2,
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                    hintText: 'Value',
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                                    ),
-                                  ),
-                                  style: const TextStyle(fontSize: 13),
-                                  onChanged: (value) => _updateComplaintField(index, 'value', value),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                flex: 3,
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                    hintText: 'Note',
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                                    ),
-                                  ),
-                                  style: const TextStyle(fontSize: 13),
-                                  onChanged: (value) => _updateComplaintField(index, 'note', value),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              IconButton(
-                                onPressed: () => _removeComplaint(index),
-                                icon: const Icon(Icons.close, color: Color(0xFFEF4444), size: 20),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+                      const SizedBox(width: 16),
+                      // Right Table
+                      Expanded(
+                        child: _buildTable(
+                          _selectedComplaints.skip((_selectedComplaints.length / 2).ceil()).toList(),
+                          (_selectedComplaints.length / 2).ceil(),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
             ] else
-              const Expanded(
+              Expanded(
                 child: Center(
-                  child: Text(
-                    'No complaints selected',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF94A3B8),
-                      fontFamily: 'ProductSans',
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8F9FA),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Text(
+                      'No complaints selected',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF94A3B8),
+                        fontFamily: 'ProductSans',
+                      ),
                     ),
                   ),
                 ),

@@ -98,6 +98,169 @@ class _DiagnosisDrawerState extends State<DiagnosisDrawer> {
     });
   }
 
+  Widget _buildTable(List<Map<String, String>> diagnoses, int startIndex) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Table Header
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8F9FA),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: Text(
+                  'Name',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF64748B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  'Value',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF64748B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                flex: 3,
+                child: Text(
+                  'Note',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF64748B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+              ),
+              SizedBox(width: 40),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Table Rows
+        ...diagnoses.asMap().entries.map((entry) {
+          final localIndex = entry.key;
+          final globalIndex = startIndex + localIndex;
+          final diagnosis = entry.value;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: TextField(
+                    key: ValueKey('name_${diagnosis['name']}_$globalIndex'),
+                    controller: TextEditingController(text: diagnosis['name'] ?? ''),
+                    decoration: InputDecoration(
+                      hintText: 'Name',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                      ),
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                    onChanged: (value) => _updateDiagnosisField(globalIndex, 'name', value),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    key: ValueKey('value_${diagnosis['name']}_$globalIndex'),
+                    controller: TextEditingController(text: diagnosis['value'] ?? ''),
+                    decoration: InputDecoration(
+                      hintText: 'Value',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                      ),
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                    onChanged: (value) => _updateDiagnosisField(globalIndex, 'value', value),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 3,
+                  child: TextField(
+                    key: ValueKey('note_${diagnosis['name']}_$globalIndex'),
+                    controller: TextEditingController(text: diagnosis['note'] ?? ''),
+                    decoration: InputDecoration(
+                      hintText: 'Note',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                      ),
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                    onChanged: (value) => _updateDiagnosisField(globalIndex, 'note', value),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                IconButton(
+                  onPressed: () => _removeDiagnosis(globalIndex),
+                  icon: const Icon(Icons.close, color: Color(0xFFEF4444), size: 20),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredDiagnoses = _getFilteredDiagnoses();
@@ -167,77 +330,19 @@ class _DiagnosisDrawerState extends State<DiagnosisDrawer> {
               ),
             ),
             
-            // Search Bar
+            // Search Bar and Custom Input Row
             Padding(
               padding: const EdgeInsets.all(20),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search...',
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                  ),
-                ),
-                onChanged: (value) => setState(() {}),
-              ),
-            ),
-            
-            // Diagnosis Tags
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: filteredDiagnoses.map((diagnosis) {
-                  final isSelected = _selectedDiagnoses.any((d) => d['name'] == diagnosis);
-                  return InkWell(
-                    onTap: () => _addDiagnosis(diagnosis),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
-                        border: Border.all(
-                          color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
-                        ),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        diagnosis,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
-                          fontFamily: 'ProductSans',
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Custom Input
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
+                  // Search Field - Half Width
                   Expanded(
+                    flex: 1,
                     child: TextField(
-                      controller: _customController,
+                      controller: _searchController,
                       decoration: InputDecoration(
-                        hintText: 'Type custom item...',
+                        hintText: 'Search...',
+                        prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -252,45 +357,126 @@ class _DiagnosisDrawerState extends State<DiagnosisDrawer> {
                           borderSide: const BorderSide(color: Color(0xFFFE3001)),
                         ),
                       ),
-                      onSubmitted: (value) {
-                        if (value.isNotEmpty) {
-                          _addDiagnosis(value);
-                          _customController.clear();
-                        }
-                      },
+                      onChanged: (value) => setState(() {}),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_customController.text.isNotEmpty) {
-                        _addDiagnosis(_customController.text);
-                        _customController.clear();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFE3001),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Add',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'ProductSans',
-                      ),
+                  // Custom Input with Add Button - Half Width
+                  Expanded(
+                    flex: 1,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _customController,
+                            decoration: InputDecoration(
+                              hintText: 'Type custom item...',
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                              ),
+                            ),
+                            onSubmitted: (value) {
+                              if (value.isNotEmpty) {
+                                _addDiagnosis(value);
+                                _customController.clear();
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_customController.text.isNotEmpty) {
+                              _addDiagnosis(_customController.text);
+                              _customController.clear();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFE3001),
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Add',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'ProductSans',
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
             
+            // Diagnosis Tags
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F9FA),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: filteredDiagnoses.map((diagnosis) {
+                      final isSelected = _selectedDiagnoses.any((d) => d['name'] == diagnosis);
+                      return InkWell(
+                        onTap: () => _addDiagnosis(diagnosis),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
+                            border: Border.all(
+                              color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            diagnosis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
+                              fontFamily: 'ProductSans',
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ),
+            
             const SizedBox(height: 24),
             
-            // Selected Diagnoses Table
+            // Selected Diagnoses Table (2 tables side by side)
             if (_selectedDiagnoses.isNotEmpty) ...[
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
@@ -300,158 +486,52 @@ class _DiagnosisDrawerState extends State<DiagnosisDrawer> {
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Table Header
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8F9FA),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: Text(
-                                'Name',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF64748B),
-                                  fontFamily: 'ProductSans',
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                'Value',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF64748B),
-                                  fontFamily: 'ProductSans',
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Expanded(
-                              flex: 3,
-                              child: Text(
-                                'Note',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF64748B),
-                                  fontFamily: 'ProductSans',
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 40),
-                          ],
+                      // Left Table
+                      Expanded(
+                        child: _buildTable(
+                          _selectedDiagnoses.take((_selectedDiagnoses.length / 2).ceil()).toList(),
+                          0,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      // Table Rows
-                      ..._selectedDiagnoses.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final diagnosis = entry.value;
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: Text(
-                                  diagnosis['name']!,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: Color(0xFF1E293B),
-                                    fontFamily: 'ProductSans',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                flex: 2,
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                    hintText: 'Value',
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                                    ),
-                                  ),
-                                  style: const TextStyle(fontSize: 13),
-                                  onChanged: (value) => _updateDiagnosisField(index, 'value', value),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                flex: 3,
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                    hintText: 'Note',
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                                    ),
-                                  ),
-                                  style: const TextStyle(fontSize: 13),
-                                  onChanged: (value) => _updateDiagnosisField(index, 'note', value),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              IconButton(
-                                onPressed: () => _removeDiagnosis(index),
-                                icon: const Icon(Icons.close, color: Color(0xFFEF4444), size: 20),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+                      const SizedBox(width: 16),
+                      // Right Table
+                      Expanded(
+                        child: _buildTable(
+                          _selectedDiagnoses.skip((_selectedDiagnoses.length / 2).ceil()).toList(),
+                          (_selectedDiagnoses.length / 2).ceil(),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
             ] else
-              const Expanded(
+              Expanded(
                 child: Center(
-                  child: Text(
-                    'No diagnosis selected',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF94A3B8),
-                      fontFamily: 'ProductSans',
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8F9FA),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Text(
+                      'No diagnosis selected',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF94A3B8),
+                        fontFamily: 'ProductSans',
+                      ),
                     ),
                   ),
                 ),
