@@ -19,6 +19,7 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
   final TextEditingController _customController = TextEditingController();
   
   List<Map<String, String>> _selectedInvestigations = [];
+  final Set<String> _expandedGroups = <String>{};
   
   final Map<String, List<String>> _investigationGroups = {
     'Blood Tests': [
@@ -773,7 +774,17 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
                                 child: Theme(
                                   data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                                   child: ExpansionTile(
-                                    initiallyExpanded: _searchController.text.isNotEmpty,
+                                    initiallyExpanded: _searchController.text.isNotEmpty || _expandedGroups.contains(groupName),
+                                    isExpanded: _expandedGroups.contains(groupName) || (_searchController.text.isNotEmpty),
+                                    onExpansionChanged: (isExpanded) {
+                                      setState(() {
+                                        if (isExpanded) {
+                                          _expandedGroups.add(groupName);
+                                        } else {
+                                          _expandedGroups.remove(groupName);
+                                        }
+                                      });
+                                    },
                                     tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                     childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                                     title: Text(
@@ -846,7 +857,17 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
                                 child: Theme(
                                   data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                                   child: ExpansionTile(
-                                    initiallyExpanded: _searchController.text.isNotEmpty,
+                                    initiallyExpanded: _searchController.text.isNotEmpty || _expandedGroups.contains(groupName),
+                                    isExpanded: _expandedGroups.contains(groupName) || (_searchController.text.isNotEmpty),
+                                    onExpansionChanged: (isExpanded) {
+                                      setState(() {
+                                        if (isExpanded) {
+                                          _expandedGroups.add(groupName);
+                                        } else {
+                                          _expandedGroups.remove(groupName);
+                                        }
+                                      });
+                                    },
                                     tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                     childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                                     title: Text(
