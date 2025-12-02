@@ -73,15 +73,25 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
 
   void _onPhoneChanged() {
     final phone = _phoneController.text.trim();
+    final name = _nameController.text.trim();
+    
     if (phone.length >= 8) {
-      _searchPatientsByPhone(phone);
+      // If name is also entered, do combined search
+      if (name.length >= 2) {
+        _searchPatientsByPhoneAndName(phone, name);
+      } else {
+        // Just phone search
+        _searchPatientsByPhone(phone);
+      }
     }
   }
 
   void _onNameChanged() {
     final phone = _phoneController.text.trim();
     final name = _nameController.text.trim();
-    if (phone.length >= 8 && name.length >= 3) {
+    
+    // Only search if phone is entered (8+ digits) and name has 2+ chars
+    if (phone.length >= 8 && name.length >= 2) {
       _searchPatientsByPhoneAndName(phone, name);
     }
   }
@@ -90,13 +100,15 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
     setState(() => _isSearching = true);
     
     try {
+      print('🔍 Searching by phone: $phone');
       final matches = await _patientService.searchByPhone(phone);
+      print('✅ Found ${matches.length} matches: $matches');
       setState(() {
         _matchedPatients = matches;
         _isSearching = false;
       });
     } catch (e) {
-      print('Error searching by phone: $e');
+      print('❌ Error searching by phone: $e');
       setState(() => _isSearching = false);
     }
   }
@@ -105,14 +117,17 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
     setState(() => _isSearching = true);
     
     try {
+      print('🔍 Searching by phone: $phone and name: $name');
       final matches = await _patientService.searchByPhoneAndName(
         phone: phone,
         name: name,
       );
+      print('✅ Found ${matches.length} matches: $matches');
 
       if (matches.isNotEmpty) {
         // Auto-fill with the best match
         final bestMatch = matches.first;
+        print('📝 Auto-filling with: ${bestMatch['name']}');
         setState(() {
           _nameController.text = bestMatch['name'] ?? '';
           _ageController.text = (bestMatch['age'] ?? '').toString();
@@ -128,13 +143,14 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
           _isSearching = false;
         });
       } else {
+        print('⚠️ No matches found');
         setState(() {
           _matchedPatients = [];
           _isSearching = false;
         });
       }
     } catch (e) {
-      print('Error searching by phone and name: $e');
+      print('❌ Error searching by phone and name: $e');
       setState(() => _isSearching = false);
     }
   }
@@ -166,9 +182,29 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
   }
 
   void _handleSave() {
+    // Validation: Name and Phone are required
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Patient name is required')),
+      );
+      return;
+    }
+    
+    if (_phoneController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Phone number is required')),
+      );
+      return;
+    }
+    
     // If no patient ID, generate UPID
     if (_patientIdController.text.trim().isEmpty) {
       _patientIdController.text = _generateUPID();
+    }
+    
+    // If age is empty, set default
+    if (_ageController.text.trim().isEmpty) {
+      _ageController.text = '0';
     }
 
     final data = {

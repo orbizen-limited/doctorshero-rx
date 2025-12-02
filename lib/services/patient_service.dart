@@ -4,32 +4,43 @@ import 'api_service.dart';
 
 class PatientService {
   final ApiService _apiService = ApiService();
-  static const String baseUrl = 'https://test.doctorshero.com'; // Update with your actual base URL
+  static const String baseUrl = 'https://demo.doctorshero.com';
 
   /// Search patients by phone number
   /// Returns list of patients matching the phone (partial match)
   Future<List<Map<String, dynamic>>> searchByPhone(String phone) async {
     try {
       final token = await _apiService.getToken();
-      if (token == null) return [];
+      if (token == null) {
+        print('❌ No token available');
+        return [];
+      }
+
+      final url = '$baseUrl/api/v1/patients?phone=$phone';
+      print('🌐 API Call: GET $url');
 
       final response = await http.get(
-        Uri.parse('$baseUrl/api/v1/patients?phone=$phone'),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
       );
 
+      print('📡 Response Status: ${response.statusCode}');
+      print('📦 Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true && data['data'] != null) {
-          return List<Map<String, dynamic>>.from(data['data']);
+          final patients = List<Map<String, dynamic>>.from(data['data']);
+          print('✅ Parsed ${patients.length} patients');
+          return patients;
         }
       }
       return [];
     } catch (e) {
-      print('Error searching by phone: $e');
+      print('❌ Error searching by phone: $e');
       return [];
     }
   }
@@ -70,25 +81,36 @@ class PatientService {
   }) async {
     try {
       final token = await _apiService.getToken();
-      if (token == null) return [];
+      if (token == null) {
+        print('❌ No token available');
+        return [];
+      }
+
+      final url = '$baseUrl/api/v1/patients?phone=$phone&name=$name';
+      print('🌐 API Call: GET $url');
 
       final response = await http.get(
-        Uri.parse('$baseUrl/api/v1/patients?phone=$phone&name=$name'),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
       );
 
+      print('📡 Response Status: ${response.statusCode}');
+      print('📦 Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true && data['data'] != null) {
-          return List<Map<String, dynamic>>.from(data['data']);
+          final patients = List<Map<String, dynamic>>.from(data['data']);
+          print('✅ Parsed ${patients.length} patients');
+          return patients;
         }
       }
       return [];
     } catch (e) {
-      print('Error searching by phone and name: $e');
+      print('❌ Error searching by phone and name: $e');
       return [];
     }
   }
