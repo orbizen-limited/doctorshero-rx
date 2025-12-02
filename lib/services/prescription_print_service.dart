@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:open_file/open_file.dart';
@@ -65,7 +64,7 @@ class PrescriptionPrintService {
     if (pageHeight != null) await prefs.setDouble('print_page_height', pageHeight);
   }
 
-  // Direct print - Opens system print dialog with full configuration support
+  // Direct print - Opens native Windows print dialog via system PDF viewer
   static Future<void> directPrint({
     required String patientName,
     required String age,
@@ -105,17 +104,17 @@ class PrescriptionPrintService {
         referral: referral,
       );
       
-      // Read the PDF file
-      final file = File(pdfPath);
-      final pdfBytes = await file.readAsBytes();
+      // Open PDF in system default viewer (Adobe, Edge, Chrome PDF viewer, etc.)
+      // User can then use Ctrl+P or File > Print for native Windows print dialog
+      final result = await OpenFile.open(pdfPath);
       
-      // Open system print dialog
-      await Printing.layoutPdf(
-        name: 'Prescription_${patientName.replaceAll(' ', '_')}_$date.pdf',
-        onLayout: (PdfPageFormat format) async => pdfBytes,
-      );
-      
-      print('✅ Direct print dialog opened successfully');
+      if (result.type == ResultType.done) {
+        print('✅ PDF opened in system viewer');
+        print('💡 User can now press Ctrl+P to access native Windows print dialog');
+      } else {
+        print('⚠️ Could not open PDF: ${result.message}');
+        throw Exception('Failed to open PDF: ${result.message}');
+      }
     } catch (e) {
       print('❌ Error in direct print: $e');
       print('Stack trace: ${StackTrace.current}');
