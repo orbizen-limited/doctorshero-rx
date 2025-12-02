@@ -387,6 +387,194 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
     });
   }
 
+  Widget _buildTable(List<Map<String, String>> investigations, int startIndex) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Table Header
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8F9FA),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: Text(
+                  'Name',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF64748B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  'Value',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF64748B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  'Instructions',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF64748B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  'Comment',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF64748B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+              ),
+              SizedBox(width: 40),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Table Rows
+        ...investigations.asMap().entries.map((entry) {
+          final localIndex = entry.key;
+          final globalIndex = startIndex + localIndex;
+          final investigation = entry.value;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    investigation['name']!,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF1E293B),
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    key: ValueKey('value_${investigation['name']}_$globalIndex'),
+                    controller: TextEditingController(text: investigation['value'] ?? ''),
+                    decoration: InputDecoration(
+                      hintText: 'Value',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                      ),
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                    onChanged: (value) => _updateInvestigationField(globalIndex, 'value', value),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    key: ValueKey('instructions_${investigation['name']}_$globalIndex'),
+                    controller: TextEditingController(text: investigation['instructions'] ?? ''),
+                    decoration: InputDecoration(
+                      hintText: 'Instructions (e.g., with attention to..., centering at...)',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                      ),
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                    onChanged: (value) => _updateInvestigationField(globalIndex, 'instructions', value),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    key: ValueKey('comment_${investigation['name']}_$globalIndex'),
+                    controller: TextEditingController(text: investigation['comment'] ?? ''),
+                    decoration: InputDecoration(
+                      hintText: 'Comment',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                      ),
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                    onChanged: (value) => _updateInvestigationField(globalIndex, 'comment', value),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                IconButton(
+                  onPressed: () => _removeInvestigation(globalIndex),
+                  icon: const Icon(Icons.close, color: Color(0xFFEF4444), size: 20),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredInvestigations = _getFilteredInvestigations();
@@ -456,105 +644,19 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
               ),
             ),
             
-            // Search Bar
+            // Search Bar and Custom Input Row
             Padding(
               padding: const EdgeInsets.all(20),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search...',
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                  ),
-                ),
-                onChanged: (value) => setState(() {}),
-              ),
-            ),
-            
-            // Investigation Tags - Grouped
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: filteredInvestigations.entries.map((entry) {
-                    final groupName = entry.key;
-                    final investigations = entry.value;
-                    
-                    return Theme(
-                      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                      child: ExpansionTile(
-                        initiallyExpanded: _searchController.text.isNotEmpty,
-                        tilePadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
-                        childrenPadding: const EdgeInsets.only(bottom: 12),
-                        title: Text(
-                          groupName,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1E293B),
-                            fontFamily: 'ProductSans',
-                          ),
-                        ),
-                        children: [
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: investigations.map((investigation) {
-                              final isSelected = _selectedInvestigations.any((i) => i['name'] == investigation);
-                              return InkWell(
-                                onTap: () => _addInvestigation(investigation),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
-                                    border: Border.all(
-                                      color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
-                                    ),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    investigation,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
-                                      fontFamily: 'ProductSans',
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Custom Input
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
+                  // Search Field - Half Width
                   Expanded(
+                    flex: 1,
                     child: TextField(
-                      controller: _customController,
+                      controller: _searchController,
                       decoration: InputDecoration(
-                        hintText: 'Type custom item...',
+                        hintText: 'Search...',
+                        prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -569,45 +671,148 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
                           borderSide: const BorderSide(color: Color(0xFFFE3001)),
                         ),
                       ),
-                      onSubmitted: (value) {
-                        if (value.isNotEmpty) {
-                          _addInvestigation(value);
-                          _customController.clear();
-                        }
-                      },
+                      onChanged: (value) => setState(() {}),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_customController.text.isNotEmpty) {
-                        _addInvestigation(_customController.text);
-                        _customController.clear();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFE3001),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Add',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'ProductSans',
-                      ),
+                  // Custom Input with Add Button - Half Width
+                  Expanded(
+                    flex: 1,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _customController,
+                            decoration: InputDecoration(
+                              hintText: 'Type custom item...',
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                              ),
+                            ),
+                            onSubmitted: (value) {
+                              if (value.isNotEmpty) {
+                                _addInvestigation(value);
+                                _customController.clear();
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_customController.text.isNotEmpty) {
+                              _addInvestigation(_customController.text);
+                              _customController.clear();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFE3001),
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Add',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'ProductSans',
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
             
+            // Investigation Tags - Grouped (2 columns)
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final itemWidth = (constraints.maxWidth - 16) / 2;
+                    final entries = filteredInvestigations.entries.toList();
+                    return Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: entries.map((entry) {
+                        final groupName = entry.key;
+                        final investigations = entry.value;
+                        
+                        return SizedBox(
+                          width: itemWidth,
+                          child: Theme(
+                            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                            child: ExpansionTile(
+                              initiallyExpanded: _searchController.text.isNotEmpty,
+                              tilePadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+                              childrenPadding: const EdgeInsets.only(bottom: 12),
+                              title: Text(
+                                groupName,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1E293B),
+                                  fontFamily: 'ProductSans',
+                                ),
+                              ),
+                              children: [
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: investigations.map((investigation) {
+                                    final isSelected = _selectedInvestigations.any((i) => i['name'] == investigation);
+                                    return InkWell(
+                                      onTap: () => _addInvestigation(investigation),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
+                                          border: Border.all(
+                                            color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
+                                          ),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          investigation,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
+                                            fontFamily: 'ProductSans',
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+              ),
+            ),
+            
             const SizedBox(height: 24),
             
-            // Selected Investigations Table
+            // Selected Investigations Table (2 tables side by side)
             if (_selectedInvestigations.isNotEmpty) ...[
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
@@ -617,188 +822,24 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Table Header
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8F9FA),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: Text(
-                                'Name',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF64748B),
-                                  fontFamily: 'ProductSans',
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                'Value',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF64748B),
-                                  fontFamily: 'ProductSans',
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                'Instructions',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF64748B),
-                                  fontFamily: 'ProductSans',
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                'Comment',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF64748B),
-                                  fontFamily: 'ProductSans',
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 40),
-                          ],
+                      // Left Table
+                      Expanded(
+                        child: _buildTable(
+                          _selectedInvestigations.take((_selectedInvestigations.length / 2).ceil()).toList(),
+                          0,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      // Table Rows
-                      ..._selectedInvestigations.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final investigation = entry.value;
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: Text(
-                                  investigation['name']!,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: Color(0xFF1E293B),
-                                    fontFamily: 'ProductSans',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                flex: 2,
-                                child: TextField(
-                                  key: ValueKey('value_${investigation['name']}_$index'),
-                                  controller: TextEditingController(text: investigation['value'] ?? ''),
-                                  decoration: InputDecoration(
-                                    hintText: 'Value',
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                                    ),
-                                  ),
-                                  style: const TextStyle(fontSize: 13),
-                                  onChanged: (value) => _updateInvestigationField(index, 'value', value),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                flex: 2,
-                                child: TextField(
-                                  key: ValueKey('instructions_${investigation['name']}_$index'),
-                                  controller: TextEditingController(text: investigation['instructions'] ?? ''),
-                                  decoration: InputDecoration(
-                                    hintText: 'Instructions (e.g., with attention to..., centering at...)',
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                                    ),
-                                  ),
-                                  style: const TextStyle(fontSize: 13),
-                                  onChanged: (value) => _updateInvestigationField(index, 'instructions', value),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                flex: 2,
-                                child: TextField(
-                                  key: ValueKey('comment_${investigation['name']}_$index'),
-                                  controller: TextEditingController(text: investigation['comment'] ?? ''),
-                                  decoration: InputDecoration(
-                                    hintText: 'Comment',
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                                    ),
-                                  ),
-                                  style: const TextStyle(fontSize: 13),
-                                  onChanged: (value) => _updateInvestigationField(index, 'comment', value),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              IconButton(
-                                onPressed: () => _removeInvestigation(index),
-                                icon: const Icon(Icons.close, color: Color(0xFFEF4444), size: 20),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+                      const SizedBox(width: 16),
+                      // Right Table
+                      Expanded(
+                        child: _buildTable(
+                          _selectedInvestigations.skip((_selectedInvestigations.length / 2).ceil()).toList(),
+                          (_selectedInvestigations.length / 2).ceil(),
+                        ),
+                      ),
                     ],
                   ),
                 ),
