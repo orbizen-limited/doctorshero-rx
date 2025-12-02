@@ -772,8 +772,8 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
             ),
             
             // Investigation Tags - Grouped (2 columns)
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 300),
+            Expanded(
+              flex: 6,
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -1000,8 +1000,9 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
             
             // Selected Investigations Table (2 tables side by side)
             Expanded(
+              flex: 4,
               child: Container(
-                color: const Color(0xFF1E293B),
+                color: Colors.white,
                 child: _selectedInvestigations.isNotEmpty
                     ? SingleChildScrollView(
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
