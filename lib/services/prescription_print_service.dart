@@ -65,8 +65,7 @@ class PrescriptionPrintService {
     if (pageHeight != null) await prefs.setDouble('print_page_height', pageHeight);
   }
 
-  // Direct print - just calls the regular printPrescription and opens the PDF
-  // The PDF will open in the system PDF viewer where user can print with system fonts
+  // Direct print - Opens system print dialog with full configuration support
   static Future<void> directPrint({
     required String patientName,
     required String age,
@@ -84,24 +83,44 @@ class PrescriptionPrintService {
     required String? followUpDate,
     required String? referral,
   }) async {
-    // Just call the regular printPrescription which saves and opens the PDF
-    await printPrescription(
-      patientName: patientName,
-      age: age,
-      date: date,
-      patientId: patientId,
-      phone: phone,
-      doctorName: doctorName,
-      registrationNumber: registrationNumber,
-      chiefComplaints: chiefComplaints,
-      examination: examination,
-      diagnosis: diagnosis,
-      investigation: investigation,
-      medicines: medicines,
-      advice: advice,
-      followUpDate: followUpDate,
-      referral: referral,
-    );
+    try {
+      print('🖨️ Generating PDF for direct print...');
+      
+      // Generate PDF using existing logic
+      final pdfPath = await printPrescription(
+        patientName: patientName,
+        age: age,
+        date: date,
+        patientId: patientId,
+        phone: phone,
+        doctorName: doctorName,
+        registrationNumber: registrationNumber,
+        chiefComplaints: chiefComplaints,
+        examination: examination,
+        diagnosis: diagnosis,
+        investigation: investigation,
+        medicines: medicines,
+        advice: advice,
+        followUpDate: followUpDate,
+        referral: referral,
+      );
+      
+      // Read the PDF file
+      final file = File(pdfPath);
+      final pdfBytes = await file.readAsBytes();
+      
+      // Open system print dialog
+      await Printing.layoutPdf(
+        name: 'Prescription_${patientName.replaceAll(' ', '_')}_$date.pdf',
+        onLayout: (PdfPageFormat format) async => pdfBytes,
+      );
+      
+      print('✅ Direct print dialog opened successfully');
+    } catch (e) {
+      print('❌ Error in direct print: $e');
+      print('Stack trace: ${StackTrace.current}');
+      rethrow;
+    }
   }
 
   static Future<String> printPrescription({
