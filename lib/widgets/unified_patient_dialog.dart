@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../services/appointment_database_service.dart';
-import '../models/appointment_model.dart';
+import '../services/patient_service.dart';
 
 class UnifiedPatientDialog extends StatefulWidget {
   final String? initialName;
@@ -36,7 +35,8 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
   
   String _selectedGender = 'Male';
   bool _isSearching = false;
-  List<Appointment> _matchedPatients = [];
+  List<Map<String, dynamic>> _matchedPatients = [];
+  final PatientService _patientService = PatientService();
 
   @override
   void initState() {
@@ -90,17 +90,13 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
     setState(() => _isSearching = true);
     
     try {
-      final dbService = AppointmentDatabaseService();
-      final allAppointments = dbService.getAllAppointments();
-      final matches = allAppointments.where((apt) {
-        return apt.phone.contains(phone);
-      }).toList();
-
+      final matches = await _patientService.searchByPhone(phone);
       setState(() {
         _matchedPatients = matches;
         _isSearching = false;
       });
     } catch (e) {
+      print('Error searching by phone: $e');
       setState(() => _isSearching = false);
     }
   }
@@ -109,27 +105,25 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
     setState(() => _isSearching = true);
     
     try {
-      final dbService = AppointmentDatabaseService();
-      final allAppointments = dbService.getAllAppointments();
-      final nameLower = name.toLowerCase();
-      
-      // Find close matches
-      final matches = allAppointments.where((apt) {
-        if (!apt.phone.contains(phone)) return false;
-        
-        final patientNameLower = apt.patientName.toLowerCase();
-        // Check if name contains the search term or vice versa
-        return patientNameLower.contains(nameLower) || nameLower.contains(patientNameLower);
-      }).toList();
+      final matches = await _patientService.searchByPhoneAndName(
+        phone: phone,
+        name: name,
+      );
 
       if (matches.isNotEmpty) {
         // Auto-fill with the best match
         final bestMatch = matches.first;
         setState(() {
-          _nameController.text = bestMatch.patientName;
-          _ageController.text = bestMatch.age.toString();
-          _selectedGender = bestMatch.gender;
-          _patientIdController.text = bestMatch.patientPid ?? '';
+          _nameController.text = bestMatch['name'] ?? '';
+          _ageController.text = (bestMatch['age'] ?? '').toString();
+          
+          // Validate and set gender
+          final gender = bestMatch['gender'];
+          if (gender != null && ['Male', 'Female', 'Other'].contains(gender)) {
+            _selectedGender = gender;
+          }
+          
+          _patientIdController.text = bestMatch['patient_id'] ?? '';
           _matchedPatients = matches;
           _isSearching = false;
         });
@@ -140,6 +134,7 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
         });
       }
     } catch (e) {
+      print('Error searching by phone and name: $e');
       setState(() => _isSearching = false);
     }
   }
@@ -154,13 +149,19 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
     return 'UPID-${DateTime.now().millisecondsSinceEpoch}';
   }
 
-  void _autoFillFromMatch(Appointment appointment) {
+  void _autoFillFromMatch(Map<String, dynamic> patient) {
     setState(() {
-      _nameController.text = appointment.patientName;
-      _ageController.text = appointment.age.toString();
-      _selectedGender = appointment.gender;
-      _phoneController.text = appointment.phone;
-      _patientIdController.text = appointment.patientPid ?? '';
+      _nameController.text = patient['name'] ?? '';
+      _ageController.text = (patient['age'] ?? '').toString();
+      
+      // Validate and set gender
+      final gender = patient['gender'];
+      if (gender != null && ['Male', 'Female', 'Other'].contains(gender)) {
+        _selectedGender = gender;
+      }
+      
+      _phoneController.text = patient['phone'] ?? '';
+      _patientIdController.text = patient['patient_id'] ?? '';
     });
   }
 
@@ -275,7 +276,7 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  '${apt.patientName} - ${apt.phone}',
+                                  '${apt['name']} - ${apt['phone']}',
                                   style: const TextStyle(fontSize: 13),
                                 ),
                               ),
