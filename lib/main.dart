@@ -7,12 +7,17 @@ import 'screens/splash_screen.dart';
 import 'services/medicine_database_service.dart';
 import 'services/prescription_database_service.dart';
 import 'services/appointment_database_service.dart';
+import 'models/cached_credentials.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize Hive
   await Hive.initFlutter();
+  
+  // Register Hive adapters
+  Hive.registerAdapter(CachedCredentialsAdapter());
+  
   await PrescriptionDatabaseService.init();
   await AppointmentDatabaseService.init();
   
