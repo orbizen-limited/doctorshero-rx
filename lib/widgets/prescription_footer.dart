@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 class PrescriptionFooter extends StatelessWidget {
   final String doctorName;
   final String bio;
-  final VoidCallback? onSave;
-  final VoidCallback? onPrint;
+  final VoidCallback? onSaveAndPrint;
+  final VoidCallback? onPrintOnly;
 
   const PrescriptionFooter({
     Key? key,
     this.doctorName = 'Dr. John Doe',
     this.bio = 'MBBS, FCPS',
-    this.onSave,
-    this.onPrint,
+    this.onSaveAndPrint,
+    this.onPrintOnly,
   }) : super(key: key);
 
   @override
@@ -31,11 +31,11 @@ class PrescriptionFooter extends StatelessWidget {
           // Action Buttons
           Row(
             children: [
-              if (onSave != null)
+              if (onSaveAndPrint != null)
                 ElevatedButton.icon(
-                  onPressed: onSave,
+                  onPressed: onSaveAndPrint,
                   icon: const Icon(Icons.save, size: 18),
-                  label: const Text('Save Prescription'),
+                  label: const Text('Save and Print'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFE3001),
                     foregroundColor: Colors.white,
@@ -45,10 +45,10 @@ class PrescriptionFooter extends StatelessWidget {
                     ),
                   ),
                 ),
-              if (onSave != null && onPrint != null) const SizedBox(width: 12),
-              if (onPrint != null)
+              if (onSaveAndPrint != null && onPrintOnly != null) const SizedBox(width: 12),
+              if (onPrintOnly != null)
                 OutlinedButton.icon(
-                  onPressed: onPrint,
+                  onPressed: onPrintOnly,
                   icon: const Icon(Icons.print, size: 18),
                   label: const Text('Print'),
                   style: OutlinedButton.styleFrom(

@@ -361,6 +361,16 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
     }
   }
 
+  Future<void> _saveAndPrint() async {
+    // First save the prescription
+    await _savePrescription();
+    
+    // Then print it (only if save was successful)
+    if (mounted) {
+      await _printPrescription();
+    }
+  }
+
   Future<void> _printPrescription() async {
     // Show loading indicator
     if (!mounted) return;
@@ -672,8 +682,8 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
                         return PrescriptionFooter(
                           doctorName: user?.name ?? 'Dr. John Doe',
                           bio: bio,
-                          onSave: _savePrescription,
-                          onPrint: _printPrescription,
+                          onSaveAndPrint: _saveAndPrint,
+                          onPrintOnly: _printPrescription,
                         );
                       },
                     ),
