@@ -19,7 +19,6 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
   final TextEditingController _customController = TextEditingController();
   
   List<Map<String, String>> _selectedInvestigations = [];
-  final Set<String> _expandedGroups = <String>{};
   
   final Map<String, List<String>> _investigationGroups = {
     'Blood Tests': [
@@ -364,20 +363,15 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
   }
   
   void _addInvestigation(String name) {
-    setState(() {
-      final existingIndex = _selectedInvestigations.indexWhere((i) => i['name'] == name);
-      if (existingIndex >= 0) {
-        // If already selected, remove it (toggle off)
-        _selectedInvestigations.removeAt(existingIndex);
-      } else {
-        // If not selected, add it (toggle on)
+    if (!_selectedInvestigations.any((i) => i['name'] == name)) {
+      setState(() {
         _selectedInvestigations.add({
           'name': name,
           'value': '',
           'note': '',
         });
-      }
-    });
+      });
+    }
   }
   
   void _removeInvestigation(int index) {
@@ -390,6 +384,56 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
     setState(() {
       _selectedInvestigations[index][field] = value;
     });
+  }
+
+  Widget _buildHighlightedText(String text, String query) {
+    if (query.isEmpty) {
+      return Text(
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          color: Color(0xFF64748B),
+          fontFamily: 'ProductSans',
+        ),
+      );
+    }
+
+    final queryLower = query.toLowerCase();
+    final textLower = text.toLowerCase();
+    final index = textLower.indexOf(queryLower);
+
+    if (index == -1) {
+      return Text(
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          color: Color(0xFF64748B),
+          fontFamily: 'ProductSans',
+        ),
+      );
+    }
+
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(
+          fontSize: 13,
+          color: Color(0xFF64748B),
+          fontFamily: 'ProductSans',
+        ),
+        children: [
+          TextSpan(text: text.substring(0, index)),
+          TextSpan(
+            text: text.substring(index, index + query.length),
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: Color(0xFFFE3001),
+              backgroundColor: Color(0xFFFFE5E5),
+            ),
+          ),
+          TextSpan(text: text.substring(index + query.length)),
+        ],
+      ),
+    );
   }
 
   Widget _buildTable(List<Map<String, String>> investigations, int startIndex) {
@@ -728,406 +772,287 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
             ),
             
             // Investigation Tags - Grouped (2 columns)
-            if (_selectedInvestigations.isEmpty)
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final entries = filteredInvestigations.entries.toList();
-                    final leftColumnEntries = <MapEntry<String, List<String>>>[];
-                    final rightColumnEntries = <MapEntry<String, List<String>>>[];
-                    
-                    // Split entries into two columns
-                    for (int i = 0; i < entries.length; i++) {
-                      if (i % 2 == 0) {
-                        leftColumnEntries.add(entries[i]);
-                      } else {
-                        rightColumnEntries.add(entries[i]);
-                      }
-                    }
-                    
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Left Column
-                        Expanded(
-                          child: Column(
-                            children: leftColumnEntries.map((entry) {
-                              final groupName = entry.key;
-                              final investigations = entry.value;
-                              
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Theme(
-                                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                                  child: ExpansionTile(
-                                    key: PageStorageKey<String>('left_$groupName'),
-                                    initiallyExpanded: _searchController.text.isNotEmpty || _expandedGroups.contains(groupName),
-                                    onExpansionChanged: (isExpanded) {
-                                      setState(() {
-                                        if (isExpanded) {
-                                          _expandedGroups.add(groupName);
-                                        } else {
-                                          _expandedGroups.remove(groupName);
-                                        }
-                                      });
-                                    },
-                                    tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                    childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                                    title: Text(
-                                      groupName,
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                        color: Color(0xFF1E293B),
-                                        fontFamily: 'ProductSans',
-                                      ),
-                                    ),
-                                    children: [
-                                      Wrap(
-                                        spacing: 8,
-                                        runSpacing: 8,
-                                        children: investigations.map((investigation) {
-                                          final isSelected = _selectedInvestigations.any((i) => i['name'] == investigation);
-                                          return InkWell(
-                                            onTap: () => _addInvestigation(investigation),
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                              decoration: BoxDecoration(
-                                                color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
-                                                border: Border.all(
-                                                  color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
-                                                ),
-                                                borderRadius: BorderRadius.circular(6),
-                                              ),
-                                              child: Text(
-                                                investigation,
-                                                style: TextStyle(
-                                                  fontSize: 13,
-                                                  color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
-                                                  fontFamily: 'ProductSans',
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        }).toList(),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        // Right Column
-                        Expanded(
-                          child: Column(
-                            children: rightColumnEntries.map((entry) {
-                              final groupName = entry.key;
-                              final investigations = entry.value;
-                              
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Theme(
-                                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                                  child: ExpansionTile(
-                                    key: PageStorageKey<String>('right_$groupName'),
-                                    initiallyExpanded: _searchController.text.isNotEmpty || _expandedGroups.contains(groupName),
-                                    onExpansionChanged: (isExpanded) {
-                                      setState(() {
-                                        if (isExpanded) {
-                                          _expandedGroups.add(groupName);
-                                        } else {
-                                          _expandedGroups.remove(groupName);
-                                        }
-                                      });
-                                    },
-                                    tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                    childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                                    title: Text(
-                                      groupName,
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                        color: Color(0xFF1E293B),
-                                        fontFamily: 'ProductSans',
-                                      ),
-                                    ),
-                                    children: [
-                                      Wrap(
-                                        spacing: 8,
-                                        runSpacing: 8,
-                                        children: investigations.map((investigation) {
-                                          final isSelected = _selectedInvestigations.any((i) => i['name'] == investigation);
-                                          return InkWell(
-                                            onTap: () => _addInvestigation(investigation),
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                              decoration: BoxDecoration(
-                                                color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
-                                                border: Border.all(
-                                                  color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
-                                                ),
-                                                borderRadius: BorderRadius.circular(6),
-                                              ),
-                                              child: Text(
-                                                investigation,
-                                                style: TextStyle(
-                                                  fontSize: 13,
-                                                  color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
-                                                  fontFamily: 'ProductSans',
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        }).toList(),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: const Color(0xFFE2E8F0),
+                      width: 2,
+                    ),
+                  ),
                 ),
-              ),
-            ) else
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final entries = filteredInvestigations.entries.toList();
-                      final leftColumnEntries = <MapEntry<String, List<String>>>[];
-                      final rightColumnEntries = <MapEntry<String, List<String>>>[];
-                      
-                      // Split entries into two columns
-                      for (int i = 0; i < entries.length; i++) {
-                        if (i % 2 == 0) {
-                          leftColumnEntries.add(entries[i]);
-                        } else {
-                          rightColumnEntries.add(entries[i]);
-                        }
-                      }
-                      
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Left Column
-                          Expanded(
-                            child: Column(
-                              children: leftColumnEntries.map((entry) {
-                                final groupName = entry.key;
-                                final investigations = entry.value;
-                                
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Theme(
-                                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                                    child: ExpansionTile(
-                                      initiallyExpanded: _searchController.text.isNotEmpty,
-                                      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                                      title: Text(
-                                        groupName,
-                                        style: const TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          color: Color(0xFF1E293B),
-                                          fontFamily: 'ProductSans',
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final entries = filteredInvestigations.entries.toList();
+                            final leftColumnEntries = <MapEntry<String, List<String>>>[];
+                            final rightColumnEntries = <MapEntry<String, List<String>>>[];
+                            
+                            // Split entries into two columns
+                            for (int i = 0; i < entries.length; i++) {
+                              if (i % 2 == 0) {
+                                leftColumnEntries.add(entries[i]);
+                              } else {
+                                rightColumnEntries.add(entries[i]);
+                              }
+                            }
+                            
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Left Column
+                                Expanded(
+                                  child: Column(
+                                    children: leftColumnEntries.map((entry) {
+                                      final groupName = entry.key;
+                                      final investigations = entry.value;
+                                      
+                                      return Container(
+                                        margin: const EdgeInsets.only(bottom: 12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.05),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                      children: [
-                                        Wrap(
-                                          spacing: 8,
-                                          runSpacing: 8,
-                                          children: investigations.map((investigation) {
-                                            final isSelected = _selectedInvestigations.any((i) => i['name'] == investigation);
-                                            return InkWell(
-                                              onTap: () => _addInvestigation(investigation),
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                decoration: BoxDecoration(
-                                                  color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
-                                                  border: Border.all(
-                                                    color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
-                                                  ),
-                                                  borderRadius: BorderRadius.circular(6),
-                                                ),
-                                                child: Text(
-                                                  investigation,
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                    color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
-                                                    fontFamily: 'ProductSans',
-                                                  ),
-                                                ),
+                                        child: Theme(
+                                          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                                          child: ExpansionTile(
+                                            initiallyExpanded: _searchController.text.isNotEmpty,
+                                            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                                            title: Text(
+                                              groupName,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                                color: Color(0xFF1E293B),
+                                                fontFamily: 'ProductSans',
                                               ),
-                                            );
-                                          }).toList(),
+                                            ),
+                                            children: [
+                                              Wrap(
+                                                spacing: 8,
+                                                runSpacing: 8,
+                                                children: investigations.map((investigation) {
+                                                  final isSelected = _selectedInvestigations.any((i) => i['name'] == investigation);
+                                                  final searchQuery = _searchController.text.toLowerCase();
+                                                  final isMatch = searchQuery.isNotEmpty && 
+                                                      investigation.toLowerCase().contains(searchQuery);
+                                                  return InkWell(
+                                                    onTap: () => _addInvestigation(investigation),
+                                                    child: Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                      decoration: BoxDecoration(
+                                                        color: isSelected 
+                                                            ? const Color(0xFFE8F5E9) 
+                                                            : (isMatch ? const Color(0xFFFFF4E6) : const Color(0xFFF1F5F9)),
+                                                        border: Border.all(
+                                                          color: isSelected 
+                                                              ? const Color(0xFF4CAF50) 
+                                                              : (isMatch ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0)),
+                                                          width: isMatch ? 1.5 : 1,
+                                                        ),
+                                                        borderRadius: BorderRadius.circular(6),
+                                                      ),
+                                                      child: _buildHighlightedText(investigation, _searchController.text),
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ],
-                                    ),
+                                      );
+                                    }).toList(),
                                   ),
-                                );
-                              }).toList(),
-                            ),
+                                ),
+                                const SizedBox(width: 16),
+                                // Right Column
+                                Expanded(
+                                  child: Column(
+                                    children: rightColumnEntries.map((entry) {
+                                      final groupName = entry.key;
+                                      final investigations = entry.value;
+                                      
+                                      return Container(
+                                        margin: const EdgeInsets.only(bottom: 12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.05),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Theme(
+                                          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                                          child: ExpansionTile(
+                                            initiallyExpanded: _searchController.text.isNotEmpty,
+                                            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                                            title: Text(
+                                              groupName,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                                color: Color(0xFF1E293B),
+                                                fontFamily: 'ProductSans',
+                                              ),
+                                            ),
+                                            children: [
+                                              Wrap(
+                                                spacing: 8,
+                                                runSpacing: 8,
+                                                children: investigations.map((investigation) {
+                                                  final isSelected = _selectedInvestigations.any((i) => i['name'] == investigation);
+                                                  final searchQuery = _searchController.text.toLowerCase();
+                                                  final isMatch = searchQuery.isNotEmpty && 
+                                                      investigation.toLowerCase().contains(searchQuery);
+                                                  return InkWell(
+                                                    onTap: () => _addInvestigation(investigation),
+                                                    child: Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                      decoration: BoxDecoration(
+                                                        color: isSelected 
+                                                            ? const Color(0xFFE8F5E9) 
+                                                            : (isMatch ? const Color(0xFFFFF4E6) : const Color(0xFFF1F5F9)),
+                                                        border: Border.all(
+                                                          color: isSelected 
+                                                              ? const Color(0xFF4CAF50) 
+                                                              : (isMatch ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0)),
+                                                          width: isMatch ? 1.5 : 1,
+                                                        ),
+                                                        borderRadius: BorderRadius.circular(6),
+                                                      ),
+                                                      child: _buildHighlightedText(investigation, _searchController.text),
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    // Scroll indicator at the bottom
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8F9FA),
+                        border: Border(
+                          top: BorderSide(
+                            color: const Color(0xFFE2E8F0),
+                            width: 1,
                           ),
-                          const SizedBox(width: 16),
-                          // Right Column
-                          Expanded(
-                            child: Column(
-                              children: rightColumnEntries.map((entry) {
-                                final groupName = entry.key;
-                                final investigations = entry.value;
-                                
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Theme(
-                                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                                    child: ExpansionTile(
-                                      initiallyExpanded: _searchController.text.isNotEmpty,
-                                      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                                      title: Text(
-                                        groupName,
-                                        style: const TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          color: Color(0xFF1E293B),
-                                          fontFamily: 'ProductSans',
-                                        ),
-                                      ),
-                                      children: [
-                                        Wrap(
-                                          spacing: 8,
-                                          runSpacing: 8,
-                                          children: investigations.map((investigation) {
-                                            final isSelected = _selectedInvestigations.any((i) => i['name'] == investigation);
-                                            return InkWell(
-                                              onTap: () => _addInvestigation(investigation),
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                decoration: BoxDecoration(
-                                                  color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
-                                                  border: Border.all(
-                                                    color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
-                                                  ),
-                                                  borderRadius: BorderRadius.circular(6),
-                                                ),
-                                                child: Text(
-                                                  investigation,
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                    color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
-                                                    fontFamily: 'ProductSans',
-                                                  ),
-                                                ),
-                                              ),
-                                            );
-                                          }).toList(),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.keyboard_arrow_down,
+                            color: const Color(0xFF94A3B8),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Scroll for more investigations',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: const Color(0xFF94A3B8),
+                              fontFamily: 'ProductSans',
+                              fontStyle: FontStyle.italic,
                             ),
                           ),
                         ],
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            ),
             
             // Selected Investigations Table (2 tables side by side)
-            if (_selectedInvestigations.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Divider(),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Left Table
-                      Expanded(
-                        child: _buildTable(
-                          _selectedInvestigations.take((_selectedInvestigations.length / 2).ceil()).toList(),
-                          0,
+            Expanded(
+              child: Container(
+                color: const Color(0xFF1E293B),
+                child: _selectedInvestigations.isNotEmpty
+                    ? SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Left Table
+                            Expanded(
+                              child: _buildTable(
+                                _selectedInvestigations.take((_selectedInvestigations.length / 2).ceil()).toList(),
+                                0,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            // Right Table
+                            Expanded(
+                              child: _buildTable(
+                                _selectedInvestigations.skip((_selectedInvestigations.length / 2).ceil()).toList(),
+                                (_selectedInvestigations.length / 2).ceil(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8F9FA),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Text(
+                            'No investigations selected',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF94A3B8),
+                              fontFamily: 'ProductSans',
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      // Right Table
-                      Expanded(
-                        child: _buildTable(
-                          _selectedInvestigations.skip((_selectedInvestigations.length / 2).ceil()).toList(),
-                          (_selectedInvestigations.length / 2).ceil(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
-            ],
+            ),
           ],
         ),
       ),
