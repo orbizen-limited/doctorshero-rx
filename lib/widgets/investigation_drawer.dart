@@ -831,6 +831,7 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
                                         child: Theme(
                                           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                                           child: ExpansionTile(
+                                            key: ValueKey('left_${groupName}_${_searchController.text}'),
                                             initiallyExpanded: _searchController.text.isNotEmpty,
                                             tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                             childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -905,6 +906,7 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
                                         child: Theme(
                                           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                                           child: ExpansionTile(
+                                            key: ValueKey('right_${groupName}_${_searchController.text}'),
                                             initiallyExpanded: _searchController.text.isNotEmpty,
                                             tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                             childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
