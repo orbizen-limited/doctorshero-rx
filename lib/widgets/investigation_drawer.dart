@@ -20,126 +20,142 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
   
   List<Map<String, String>> _selectedInvestigations = [];
   
-  final List<String> _allInvestigations = [
-    // Blood Tests
-    'CBC (Complete Blood Count)',
-    'Blood Sugar (Fasting)',
-    'Blood Sugar (Random)',
-    'HbA1c',
-    'Lipid Profile',
-    'Liver Function Test (LFT)',
-    'Kidney Function Test (KFT)',
-    'Serum Creatinine',
-    'Blood Urea',
-    'Serum Electrolytes',
-    'Thyroid Function Test (TFT)',
-    'TSH',
-    'T3, T4',
-    'Vitamin D',
-    'Vitamin B12',
-    'Serum Calcium',
-    'Serum Uric Acid',
-    'ESR',
-    'CRP',
-    'Prothrombin Time (PT)',
-    'INR',
-    'APTT',
-    'Blood Group & Rh',
-    'Hepatitis B Surface Antigen',
-    'Hepatitis C Antibody',
-    'HIV Test',
-    'VDRL',
-    'Dengue NS1 Antigen',
-    'Dengue IgG/IgM',
-    'Malaria Parasite',
-    'Typhoid Test (Widal)',
-    'Troponin I',
-    'CPK-MB',
-    'D-Dimer',
-    'Ferritin',
-    'Iron Studies',
-    'PSA (Prostate Specific Antigen)',
-    
-    // Urine Tests
-    'Urine Routine & Microscopy',
-    'Urine Culture & Sensitivity',
-    'Urine for Albumin',
-    'Urine for Sugar',
-    'Urine for Pregnancy Test',
-    '24-hour Urine Protein',
-    
-    // Stool Tests
-    'Stool Routine & Microscopy',
-    'Stool for Occult Blood',
-    'Stool Culture',
-    
-    // Imaging
-    'X-ray Chest PA',
-    'X-ray Chest AP',
-    'X-ray Abdomen',
-    'X-ray Spine',
-    'X-ray Pelvis',
-    'X-ray Knee',
-    'X-ray Shoulder',
-    'X-ray Hand',
-    'X-ray Foot',
-    'Ultrasound Abdomen',
-    'Ultrasound Pelvis',
-    'Ultrasound KUB',
-    'Ultrasound Whole Abdomen',
-    'CT Scan Brain',
-    'CT Scan Chest',
-    'CT Scan Abdomen',
-    'MRI Brain',
-    'MRI Spine',
-    'MRI Knee',
-    'Mammography',
-    'DEXA Scan',
-    
-    // Cardiac Tests
-    'ECG',
-    'Echocardiography',
-    'Stress Test (TMT)',
-    'Holter Monitoring',
-    '2D Echo',
-    'Color Doppler',
-    
-    // Endoscopy
-    'Upper GI Endoscopy',
-    'Colonoscopy',
-    'Sigmoidoscopy',
-    'ERCP',
-    
-    // Pulmonary Tests
-    'Pulmonary Function Test (PFT)',
-    'Spirometry',
-    'Chest X-ray',
-    
-    // Other Tests
-    'Pap Smear',
-    'Biopsy',
-    'FNAC',
-    'Bone Marrow Examination',
-    'Sputum for AFB',
-    'Sputum Culture',
-    'Blood Culture',
-    'Throat Swab Culture',
-    'Mantoux Test',
-    'Audiometry',
-    'Visual Acuity Test',
-    'Fundoscopy',
-    'Nerve Conduction Study',
-    'EMG',
-    'EEG',
-  ];
+  final Map<String, List<String>> _investigationGroups = {
+    'Blood Tests': [
+      'CBC (Complete Blood Count)',
+      'Blood Sugar (Fasting)',
+      'Blood Sugar (Random)',
+      'HbA1c',
+      'Lipid Profile',
+      'Liver Function Test (LFT)',
+      'Kidney Function Test (KFT)',
+      'Serum Creatinine',
+      'Blood Urea',
+      'Serum Electrolytes',
+      'Thyroid Function Test (TFT)',
+      'TSH',
+      'T3, T4',
+      'Vitamin D',
+      'Vitamin B12',
+      'Serum Calcium',
+      'Serum Uric Acid',
+      'ESR',
+      'CRP',
+      'Prothrombin Time (PT)',
+      'INR',
+      'APTT',
+      'Blood Group & Rh',
+      'Hepatitis B Surface Antigen',
+      'Hepatitis C Antibody',
+      'HIV Test',
+      'VDRL',
+      'Dengue NS1 Antigen',
+      'Dengue IgG/IgM',
+      'Malaria Parasite',
+      'Typhoid Test (Widal)',
+      'Troponin I',
+      'CPK-MB',
+      'D-Dimer',
+      'Ferritin',
+      'Iron Studies',
+      'PSA (Prostate Specific Antigen)',
+    ],
+    'Urine Tests': [
+      'Urine Routine & Microscopy',
+      'Urine Culture & Sensitivity',
+      'Urine for Albumin',
+      'Urine for Sugar',
+      'Urine for Pregnancy Test',
+      '24-hour Urine Protein',
+    ],
+    'Stool Tests': [
+      'Stool Routine & Microscopy',
+      'Stool for Occult Blood',
+      'Stool Culture',
+    ],
+    'Imaging': [
+      'X-ray Chest PA',
+      'X-ray Chest AP',
+      'X-ray Abdomen',
+      'X-ray Spine',
+      'X-ray Pelvis',
+      'X-ray Knee',
+      'X-ray Shoulder',
+      'X-ray Hand',
+      'X-ray Foot',
+      'Ultrasound Abdomen',
+      'Ultrasound Pelvis',
+      'Ultrasound KUB',
+      'Ultrasound Whole Abdomen',
+      'CT Scan Brain',
+      'CT Scan Chest',
+      'CT Scan Abdomen',
+      'MRI Brain',
+      'MRI Spine',
+      'MRI Knee',
+      'Mammography',
+      'DEXA Scan',
+    ],
+    'Cardiac Tests': [
+      'ECG',
+      'Echocardiography',
+      'Stress Test (TMT)',
+      'Holter Monitoring',
+      '2D Echo',
+      'Color Doppler',
+    ],
+    'Endoscopy': [
+      'Upper GI Endoscopy',
+      'Colonoscopy',
+      'Sigmoidoscopy',
+      'ERCP',
+    ],
+    'Pulmonary Tests': [
+      'Pulmonary Function Test (PFT)',
+      'Spirometry',
+      'Chest X-ray',
+    ],
+    'Other Tests': [
+      'Pap Smear',
+      'Biopsy',
+      'FNAC',
+      'Bone Marrow Examination',
+      'Sputum for AFB',
+      'Sputum Culture',
+      'Blood Culture',
+      'Throat Swab Culture',
+      'Mantoux Test',
+      'Audiometry',
+      'Visual Acuity Test',
+      'Fundoscopy',
+      'Nerve Conduction Study',
+      'EMG',
+      'EEG',
+    ],
+  };
   
-  List<String> _getFilteredInvestigations() {
+  Map<String, List<String>> _getFilteredInvestigations() {
     if (_searchController.text.isEmpty) {
-      return _allInvestigations;
+      return _investigationGroups;
     }
-    return _allInvestigations
-        .where((i) => i.toLowerCase().contains(_searchController.text.toLowerCase()))
-        .toList();
+    
+    final searchQuery = _searchController.text.toLowerCase();
+    final filteredGroups = <String, List<String>>{};
+    
+    _investigationGroups.forEach((groupName, investigations) {
+      final filtered = investigations
+          .where((i) => i.toLowerCase().contains(searchQuery))
+          .toList();
+      if (filtered.isNotEmpty) {
+        filteredGroups[groupName] = filtered;
+      }
+    });
+    
+    return filteredGroups;
+  }
+  
+  List<String> _getAllInvestigations() {
+    return _investigationGroups.values.expand((list) => list).toList();
   }
   
   void _addInvestigation(String name) {
@@ -261,34 +277,60 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
               ),
             ),
             
-            // Investigation Tags
+            // Investigation Tags - Grouped
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: filteredInvestigations.map((investigation) {
-                    final isSelected = _selectedInvestigations.any((i) => i['name'] == investigation);
-                    return InkWell(
-                      onTap: () => _addInvestigation(investigation),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
-                          border: Border.all(
-                            color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
-                          ),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          investigation,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
+                child: Column(
+                  children: filteredInvestigations.entries.map((entry) {
+                    final groupName = entry.key;
+                    final investigations = entry.value;
+                    
+                    return Theme(
+                      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                      child: ExpansionTile(
+                        initiallyExpanded: _searchController.text.isNotEmpty,
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+                        childrenPadding: const EdgeInsets.only(bottom: 12),
+                        title: Text(
+                          groupName,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1E293B),
                             fontFamily: 'ProductSans',
                           ),
                         ),
+                        children: [
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: investigations.map((investigation) {
+                              final isSelected = _selectedInvestigations.any((i) => i['name'] == investigation);
+                              return InkWell(
+                                onTap: () => _addInvestigation(investigation),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF1F5F9),
+                                    border: Border.all(
+                                      color: isSelected ? const Color(0xFF4CAF50) : const Color(0xFFE2E8F0),
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    investigation,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: isSelected ? const Color(0xFF2E7D32) : const Color(0xFF64748B),
+                                      fontFamily: 'ProductSans',
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
                       ),
                     );
                   }).toList(),
