@@ -1159,20 +1159,98 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
     
     // Cardiovascular
     List<String> cvItems = [];
+    
+    // Inspection
     if (_cvInspection.isNotEmpty) {
       cvItems.add('Inspection: $_cvInspection');
+      if (_cvInspectionNotesController.text.isNotEmpty) {
+        cvItems.add('  Notes: ${_cvInspectionNotesController.text}');
+      }
     }
+    
+    // Peripheral Pulses - organized by pulse type
+    Map<String, Map<String, String>> pulsesByType = {
+      'Carotid': {},
+      'Radial': {},
+      'Brachial': {},
+      'Femoral': {},
+      'Popliteal': {},
+      'Posterior Tibial': {},
+      'Dorsalis Pedis': {},
+    };
+    
+    _peripheralPulses.forEach((key, value) {
+      if (value.isNotEmpty && value != '—') {
+        if (key.startsWith('carotid')) {
+          pulsesByType['Carotid']![key.contains('right') ? 'R' : 'L'] = value;
+        } else if (key.startsWith('radial')) {
+          pulsesByType['Radial']![key.contains('right') ? 'R' : 'L'] = value;
+        } else if (key.startsWith('brachial')) {
+          pulsesByType['Brachial']![key.contains('right') ? 'R' : 'L'] = value;
+        } else if (key.startsWith('femoral')) {
+          pulsesByType['Femoral']![key.contains('right') ? 'R' : 'L'] = value;
+        } else if (key.startsWith('popliteal')) {
+          pulsesByType['Popliteal']![key.contains('right') ? 'R' : 'L'] = value;
+        } else if (key.startsWith('posterior')) {
+          pulsesByType['Posterior Tibial']![key.contains('right') ? 'R' : 'L'] = value;
+        } else if (key.startsWith('dorsalis')) {
+          pulsesByType['Dorsalis Pedis']![key.contains('right') ? 'R' : 'L'] = value;
+        }
+      }
+    });
+    
+    List<String> pulseLines = [];
+    pulsesByType.forEach((pulseName, sides) {
+      if (sides.isNotEmpty) {
+        List<String> sideValues = [];
+        if (sides.containsKey('R')) sideValues.add('R-${sides['R']}');
+        if (sides.containsKey('L')) sideValues.add('L-${sides['L']}');
+        pulseLines.add('  - $pulseName: ${sideValues.join(', ')}');
+      }
+    });
+    
+    if (pulseLines.isNotEmpty) {
+      cvItems.add('Peripheral Pulses:\n${pulseLines.join('\n')}');
+    }
+    
+    // JVP
     if (_jvp.isNotEmpty) {
-      cvItems.add('JVP: $_jvp');
+      String jvpText = 'JVP: $_jvp';
+      if (_jvpHeightController.text.isNotEmpty) {
+        jvpText += ' (${_jvpHeightController.text} cm H2O)';
+      }
+      cvItems.add(jvpText);
     }
+    
+    // Precordial Palpation
     if (_precordialPalpation.isNotEmpty) {
       cvItems.add('Precordial Palpation: $_precordialPalpation');
     }
+    
+    // Thrills
+    if (_thrills.isNotEmpty) {
+      cvItems.add('Thrills: ${_thrills.join(', ')}');
+    }
+    
+    // Heart Sounds
     if (_heartSounds.isNotEmpty) {
       cvItems.add('Heart Sounds: $_heartSounds');
+      if (_heartSoundsNotesController.text.isNotEmpty) {
+        cvItems.add('  Notes: ${_heartSoundsNotesController.text}');
+      }
     }
-    if (_murmurTiming.isNotEmpty && _murmurGrade != '1/6') {
-      cvItems.add('Murmur: $_murmurTiming, Grade $_murmurGrade, $_murmurLocation');
+    
+    // Murmur - show if grade is not 1/6 or if any field is customized
+    if (_murmurGrade != '1/6' || _murmurTiming != 'Systolic ejection' || _murmurLocation != 'Aortic' || _murmurRadiation != 'None' || _murmurQuality != 'Harsh') {
+      List<String> murmurDetails = [];
+      murmurDetails.add(_murmurTiming);
+      murmurDetails.add('Grade $_murmurGrade');
+      murmurDetails.add(_murmurLocation);
+      if (_murmurRadiation != 'None') {
+        murmurDetails.add('Radiates to $_murmurRadiation');
+      }
+      murmurDetails.add(_murmurQuality);
+      cvItems.add('Murmur: ${murmurDetails.join(', ')}');
     }
     
     if (cvItems.isNotEmpty) {

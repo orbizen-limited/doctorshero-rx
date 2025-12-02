@@ -224,7 +224,7 @@ class PrescriptionPrintService {
 
               // Vertical Divider
               pw.Container(
-                width: 1,
+                width: 0.5,
                 height: double.infinity,
                 color: PdfColors.grey400,
               ),
@@ -248,7 +248,7 @@ class PrescriptionPrintService {
                       final isSpray = medicine.type.toLowerCase().contains('spray');
                       
                       return pw.Padding(
-                        padding: const pw.EdgeInsets.only(bottom: 8),
+                        padding: const pw.EdgeInsets.only(bottom: 4),
                         child: pw.Row(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
@@ -281,17 +281,25 @@ class PrescriptionPrintService {
                               ),
                             ),
                             if (medicine.duration.isNotEmpty)
-                              pw.Padding(
+                              pw.Container(
+                                width: 80,
+                                alignment: pw.Alignment.center,
                                 padding: const pw.EdgeInsets.only(left: 10),
                                 child: pw.Text(
                                   '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " `-` ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
                                   style: const pw.TextStyle(fontSize: 8),
+                                  textAlign: pw.TextAlign.center,
                                 ),
                               ),
                             if (medicine.advice.isNotEmpty)
-                              pw.Padding(
+                              pw.Container(
+                                width: 60,
                                 padding: const pw.EdgeInsets.only(left: 10),
-                                child: pw.Text(medicine.advice, style: const pw.TextStyle(fontSize: 8)),
+                                child: pw.Text(
+                                  medicine.advice,
+                                  style: const pw.TextStyle(fontSize: 8),
+                                  textAlign: pw.TextAlign.left,
+                                ),
                               ),
                           ],
                         ),
@@ -473,7 +481,7 @@ class PrescriptionPrintService {
 
               // Vertical Divider
               pw.Container(
-                width: 1,
+                width: 0.5,
                 height: double.infinity,
                 color: PdfColors.grey400,
               ),
@@ -497,7 +505,7 @@ class PrescriptionPrintService {
                       final isSpray = medicine.type.toLowerCase().contains('spray');
                       
                       return pw.Padding(
-                        padding: const pw.EdgeInsets.only(bottom: 8),
+                        padding: const pw.EdgeInsets.only(bottom: 4),
                         child: pw.Row(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
@@ -530,17 +538,25 @@ class PrescriptionPrintService {
                               ),
                             ),
                             if (medicine.duration.isNotEmpty)
-                              pw.Padding(
+                              pw.Container(
+                                width: 80,
+                                alignment: pw.Alignment.center,
                                 padding: const pw.EdgeInsets.only(left: 10),
                                 child: pw.Text(
                                   '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " till ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
                                   style: const pw.TextStyle(fontSize: 8),
+                                  textAlign: pw.TextAlign.center,
                                 ),
                               ),
                             if (medicine.advice.isNotEmpty)
-                              pw.Padding(
+                              pw.Container(
+                                width: 60,
                                 padding: const pw.EdgeInsets.only(left: 10),
-                                child: pw.Text(medicine.advice, style: const pw.TextStyle(fontSize: 8)),
+                                child: pw.Text(
+                                  medicine.advice,
+                                  style: const pw.TextStyle(fontSize: 8),
+                                  textAlign: pw.TextAlign.left,
+                                ),
                               ),
                           ],
                         ),
