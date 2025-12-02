@@ -813,6 +813,7 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
             children: [
               Expanded(
                 child: DropdownButtonFormField<String>(
+                  key: ValueKey(_thrills.length), // Reset dropdown when items change
                   value: null,
                   decoration: InputDecoration(
                     hintText: 'Select thrill location...',

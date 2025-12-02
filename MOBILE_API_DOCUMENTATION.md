@@ -525,16 +525,46 @@ POST /api/v1/appointments/{id}/send-sms
 
 ## 👥 Patient Management
 
-### 1. Get Patients List
+### 1. Get Patients List (Enhanced Search)
 ```http
 GET /api/v1/patients
 ```
 
 **Query Parameters:**
-- `search` (optional): Search by name or phone
+- `patient_id` (optional): Search by exact patient ID (e.g., P123456789)
+- `phone` (optional): Search by phone number (partial or exact match)
+- `name` (optional): Search by patient name (partial match)
+- `search` (optional): Generic search by name, phone, or patient_id (for backward compatibility)
 - `gender` (optional): Filter by gender (Male, Female, Other)
 - `per_page` (optional): Items per page (default: 20)
 - `page` (optional): Page number
+
+**Example Requests:**
+
+**Search by Patient ID:**
+```http
+GET /api/v1/patients?patient_id=P123456789
+```
+
+**Search by Phone:**
+```http
+GET /api/v1/patients?phone=01312399777
+```
+
+**Search by Name:**
+```http
+GET /api/v1/patients?name=Shahjalal
+```
+
+**Combined Search (Phone + Name):**
+```http
+GET /api/v1/patients?phone=01312&name=Shah
+```
+
+**Generic Search (backward compatible):**
+```http
+GET /api/v1/patients?search=John
+```
 
 **Response:**
 ```json
@@ -543,10 +573,13 @@ GET /api/v1/patients
     "data": [
         {
             "id": 1,
+            "patient_id": "P123456789",
             "name": "John Doe",
             "phone": "8801234567890",
             "gender": "Male",
             "age": 35,
+            "blood_group": "A+",
+            "address": "Dhaka",
             "last_visit": "2025-10-25T10:30:00.000000Z",
             "created_at": "2025-10-20T08:00:00.000000Z"
         }
@@ -557,9 +590,24 @@ GET /api/v1/patients
         "per_page": 20,
         "total": 25,
         "has_more": true
+    },
+    "search_params": {
+        "patient_id": "P123456789",
+        "phone": null,
+        "name": null,
+        "search": null,
+        "gender": null
     }
 }
 ```
+
+**📌 Search Logic:**
+- `patient_id`: Exact match only
+- `phone`: Partial match (LIKE %phone%)
+- `name`: Partial match (LIKE %name%)
+- `search`: Searches across name, phone, AND patient_id
+- Multiple parameters work together with AND logic
+- All searches are case-insensitive
 
 ### 2. Search Similar Patients
 ```http
