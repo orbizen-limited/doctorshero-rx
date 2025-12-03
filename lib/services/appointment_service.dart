@@ -91,11 +91,15 @@ class AppointmentService {
         throw Exception('HTTP ${response.statusCode}: ${response.body}');
       }
     } catch (e) {
-      print('Exception in getAppointments: $e');
+      print('⚠️ Online appointments failed: $e');
+      print('📦 Attempting to load from cache...');
+      
       // Return cached data if available
       final cachedAppointments = _dbService.getAllAppointments();
+      print('📦 Found ${cachedAppointments.length} cached appointments');
+      
       if (cachedAppointments.isNotEmpty) {
-        print('Returning ${cachedAppointments.length} cached appointments');
+        print('✅ Returning ${cachedAppointments.length} cached appointments (offline mode)');
         return {
           'appointments': cachedAppointments,
           'total': cachedAppointments.length,
@@ -105,7 +109,17 @@ class AppointmentService {
           'cacheAge': _dbService.getCacheAgeMinutes(),
         };
       }
-      throw Exception('Error: $e');
+      
+      // No cached data - return empty list instead of throwing
+      print('⚠️ No cached appointments found - returning empty list');
+      return {
+        'appointments': <Appointment>[],
+        'total': 0,
+        'current_page': 1,
+        'last_page': 1,
+        'fromCache': false,
+        'error': e.toString(),
+      };
     }
   }
 
@@ -138,14 +152,24 @@ class AppointmentService {
         throw Exception('HTTP ${response.statusCode}: ${response.body}');
       }
     } catch (e) {
-      print('Exception in getAppointmentStats: $e');
+      print('⚠️ Online stats failed: $e');
+      print('📦 Attempting to load stats from cache...');
+      
       // Return cached stats if available
       final cachedStats = _dbService.getStats();
       if (cachedStats != null) {
-        print('Returning cached stats');
+        print('✅ Returning cached stats (offline mode)');
         return cachedStats;
       }
-      throw Exception('Error: $e');
+      
+      // No cached stats - return default empty stats
+      print('⚠️ No cached stats found - returning default stats');
+      return AppointmentStats(
+        totalAppointments: 0,
+        pendingTasks: 0,
+        completedTask: 0,
+        cancelledTask: 0,
+      );
     }
   }
 
