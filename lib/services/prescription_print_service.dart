@@ -127,16 +127,11 @@ class PrescriptionPrintService {
     required String? followUpDate,
     required String? referral,
   }) async {
+    // Initialize Bangla fonts
+    await _initializeBanglaFonts();
+    
     final margins = await getMarginSettings();
-    final banglaFont = await _loadBanglaFont();
-    final pdf = pw.Document(
-      theme: pw.ThemeData.withFont(
-        base: banglaFont,
-        bold: banglaFont,
-        italic: banglaFont,
-        boldItalic: banglaFont,
-      ),
-    );
+    final pdf = pw.Document();
 
     pdf.addPage(
       pw.Page(
@@ -385,16 +380,11 @@ class PrescriptionPrintService {
     required String? followUpDate,
     required String? referral,
   }) async {
+    // Initialize Bangla fonts
+    await _initializeBanglaFonts();
+    
     final margins = await getMarginSettings();
-    final banglaFont = await _loadBanglaFont();
-    final pdf = pw.Document(
-      theme: pw.ThemeData.withFont(
-        base: banglaFont,
-        bold: banglaFont,
-        italic: banglaFont,
-        boldItalic: banglaFont,
-      ),
-    );
+    final pdf = pw.Document();
 
     pdf.addPage(
       pw.Page(
