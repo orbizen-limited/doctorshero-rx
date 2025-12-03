@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:hive/hive.dart';
 import 'package:bcrypt/bcrypt.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/cached_credentials.dart';
 
 class OfflineAuthService {
@@ -13,17 +13,18 @@ class OfflineAuthService {
   static const int _maxOfflineLogins = 100; // Max offline logins before requiring online
 
   final LocalAuthentication _localAuth = LocalAuthentication();
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   // Get or create encryption key for Hive
+  // Using SharedPreferences instead of FlutterSecureStorage for macOS compatibility
   Future<List<int>> _getEncryptionKey() async {
-    String? keyString = await _secureStorage.read(key: _encryptionKeyName);
+    final prefs = await SharedPreferences.getInstance();
+    String? keyString = prefs.getString(_encryptionKeyName);
     
     if (keyString == null) {
       // Generate new 256-bit encryption key
       final key = Hive.generateSecureKey();
       keyString = base64Encode(key);
-      await _secureStorage.write(key: _encryptionKeyName, value: keyString);
+      await prefs.setString(_encryptionKeyName, keyString);
       return key;
     }
     
