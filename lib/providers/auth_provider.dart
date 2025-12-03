@@ -91,11 +91,25 @@ class AuthProvider with ChangeNotifier {
 
   // Logout
   Future<void> logout() async {
+    await _apiService.logout();
+    
+    // DON'T clear cached credentials - keep them for offline login
+    // User can still login offline after logout
+    
+    _user = null;
+    _errorMessage = null;
+    _isOfflineMode = false;
+    _daysSinceOnline = null;
+    notifyListeners();
+  }
+  
+  // Force clear credentials (for security/privacy)
+  Future<void> logoutAndClearCache() async {
     final email = _user?.email;
     
     await _apiService.logout();
     
-    // Clear cached credentials
+    // Clear cached credentials completely
     if (email != null) {
       await _offlineAuthService.clearCachedCredentials(email);
     }
