@@ -75,12 +75,12 @@ class PrescriptionHtmlService {
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  BanglaText('Name: ${patientName.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                  BanglaText('Age: ${age.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('Name: $patientName', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('Age: $age', fontSize: 9, fontWeight: pw.FontWeight.bold),
                   if (phone != null && phone.isNotEmpty)
-                    BanglaText('Phone: ${phone.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                  BanglaText('Date: ${date.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                  BanglaText('ID: ${patientId.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                    _getTextWidget('Phone: $phone', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('Date: $date', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('ID: $patientId', fontSize: 9, fontWeight: pw.FontWeight.bold),
                 ],
               ),
               pw.SizedBox(height: 15),
@@ -98,44 +98,44 @@ class PrescriptionHtmlService {
                         children: [
                           // Chief Complaint
                           if (chiefComplaints.isNotEmpty) ...[
-                            BanglaText('Chief Complaint', fontSize: 11, fontWeight: pw.FontWeight.bold),
+                            _getTextWidget('Chief Complaint', fontSize: 11, fontWeight: pw.FontWeight.bold),
                             pw.SizedBox(height: 5),
                             ...chiefComplaints.map((complaint) => pw.Padding(
                               padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                              child: BanglaText('- ${complaint.fix}', fontSize: 9),
+                              child: _getTextWidget('- $complaint', fontSize: 9),
                             )),
                             pw.SizedBox(height: 12),
                           ],
 
                           // On Examinations
                           if (examination.isNotEmpty) ...[
-                            BanglaText('On Examinations', fontSize: 11, fontWeight: pw.FontWeight.bold),
+                            _getTextWidget('On Examinations', fontSize: 11, fontWeight: pw.FontWeight.bold),
                             pw.SizedBox(height: 5),
                             ...examination.entries.map((entry) => pw.Padding(
                               padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                              child: BanglaText('- ${entry.key.fix}: ${entry.value.fix}', fontSize: 9),
+                              child: _getTextWidget('- ${entry.key}: ${entry.value}', fontSize: 9),
                             )),
                             pw.SizedBox(height: 12),
                           ],
 
                           // Diagnosis
                           if (diagnosis.isNotEmpty) ...[
-                            BanglaText('Diagnosis', fontSize: 11, fontWeight: pw.FontWeight.bold),
+                            _getTextWidget('Diagnosis', fontSize: 11, fontWeight: pw.FontWeight.bold),
                             pw.SizedBox(height: 5),
                             ...diagnosis.map((item) => pw.Padding(
                               padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                              child: BanglaText('- ${item.fix}', fontSize: 9),
+                              child: _getTextWidget('- $item', fontSize: 9),
                             )),
                             pw.SizedBox(height: 12),
                           ],
 
                           // Investigation
                           if (investigation.isNotEmpty) ...[
-                            BanglaText('Investigation', fontSize: 11, fontWeight: pw.FontWeight.bold),
+                            _getTextWidget('Investigation', fontSize: 11, fontWeight: pw.FontWeight.bold),
                             pw.SizedBox(height: 5),
                             ...investigation.map((item) => pw.Padding(
                               padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                              child: BanglaText('- ${item.fix}', fontSize: 9),
+                              child: _getTextWidget('- $item', fontSize: 9),
                             )),
                           ],
                         ],
