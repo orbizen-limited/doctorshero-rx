@@ -17,6 +17,35 @@ class PrescriptionHtmlService {
     }
   }
 
+  // Check if string contains Bangla characters (Unicode range: U+0980 to U+09FF)
+  static bool _containsBangla(String text) {
+    return text.runes.any((rune) => rune >= 0x0980 && rune <= 0x09FF);
+  }
+
+  // Get appropriate text widget - BanglaText for Bangla, pw.Text for English
+  static pw.Widget _getTextWidget(String text, {double? fontSize, pw.FontWeight? fontWeight, pw.TextAlign? textAlign}) {
+    final hasBangla = _containsBangla(text);
+    final processedText = hasBangla ? text.fix : text;
+    
+    if (hasBangla) {
+      return BanglaText(
+        processedText,
+        fontSize: fontSize ?? 9,
+        fontWeight: fontWeight ?? pw.FontWeight.normal,
+        textAlign: textAlign ?? pw.TextAlign.left,
+      );
+    } else {
+      return pw.Text(
+        processedText,
+        style: pw.TextStyle(
+          fontSize: fontSize ?? 9,
+          fontWeight: fontWeight,
+        ),
+        textAlign: textAlign,
+      );
+    }
+  }
+
   // Get margin settings from SharedPreferences
   static Future<Map<String, double>> getMarginSettings() async {
     final prefs = await SharedPreferences.getInstance();
@@ -160,7 +189,7 @@ class PrescriptionHtmlService {
                       child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          BanglaText('Rx,', fontSize: 12, fontWeight: pw.FontWeight.bold),
+                          _getTextWidget('Rx,', fontSize: 12, fontWeight: pw.FontWeight.bold),
                           pw.SizedBox(height: 10),
 
                           // Medicines List
@@ -175,13 +204,13 @@ class PrescriptionHtmlService {
                               child: pw.Row(
                                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                                 children: [
-                                  BanglaText('$index. ', fontSize: 9),
+                                  _getTextWidget('$index. ', fontSize: 9),
                                   pw.Expanded(
                                     child: pw.Column(
                                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                                       children: [
-                                        BanglaText(
-                                          '${medicine.type.fix} ${medicine.name.fix}',
+                                        _getTextWidget(
+                                          '${medicine.type} ${medicine.name}',
                                           fontSize: 9,
                                           fontWeight: pw.FontWeight.bold,
                                         ),
@@ -189,17 +218,17 @@ class PrescriptionHtmlService {
                                         if ((isInj || isSpray) && medicine.quantity.isNotEmpty && medicine.frequency.isNotEmpty)
                                           pw.Padding(
                                             padding: const pw.EdgeInsets.only(top: 2),
-                                            child: BanglaText(
+                                            child: _getTextWidget(
                                               isInj && medicine.route.isNotEmpty
-                                                  ? '${medicine.quantity.fix} x ${medicine.frequency.fix} (Route: ${medicine.route.fix})'
-                                                  : '${medicine.quantity.fix} x ${medicine.frequency.fix}',
+                                                  ? '${medicine.quantity} x ${medicine.frequency} (Route: ${medicine.route})'
+                                                  : '${medicine.quantity} x ${medicine.frequency}',
                                               fontSize: 8,
                                             ),
                                           )
                                         else if (medicine.dosage.isNotEmpty)
                                           pw.Padding(
                                             padding: const pw.EdgeInsets.only(top: 2),
-                                            child: BanglaText(medicine.dosage.fix, fontSize: 8),
+                                            child: _getTextWidget(medicine.dosage, fontSize: 8),
                                           ),
                                       ],
                                     ),
@@ -209,8 +238,8 @@ class PrescriptionHtmlService {
                                       width: 80,
                                       alignment: pw.Alignment.center,
                                       padding: const pw.EdgeInsets.only(left: 10),
-                                      child: BanglaText(
-                                        '${medicine.duration.fix}${medicine.interval.isNotEmpty ? " (${medicine.interval.fix})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " - ${medicine.tillNumber.fix} ${medicine.tillUnit.fix}" : ""}',
+                                      child: _getTextWidget(
+                                        '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " - ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
                                         fontSize: 8,
                                         textAlign: pw.TextAlign.center,
                                       ),
@@ -219,8 +248,8 @@ class PrescriptionHtmlService {
                                     pw.Container(
                                       width: 60,
                                       padding: const pw.EdgeInsets.only(left: 10),
-                                      child: BanglaText(
-                                        medicine.advice.fix,
+                                      child: _getTextWidget(
+                                        medicine.advice,
                                         fontSize: 8,
                                         textAlign: pw.TextAlign.left,
                                       ),
@@ -234,11 +263,11 @@ class PrescriptionHtmlService {
 
                           // Advice
                           if (advice.isNotEmpty) ...[
-                            BanglaText('Advices', fontSize: 10, fontWeight: pw.FontWeight.bold),
+                            _getTextWidget('Advices', fontSize: 10, fontWeight: pw.FontWeight.bold),
                             pw.SizedBox(height: 5),
                             ...advice.asMap().entries.map((entry) => pw.Padding(
                               padding: const pw.EdgeInsets.only(bottom: 3),
-                              child: BanglaText('${entry.key + 1}. ${entry.value.fix}', fontSize: 8),
+                              child: _getTextWidget('${entry.key + 1}. ${entry.value}', fontSize: 8),
                             )),
                             pw.SizedBox(height: 10),
                           ],
@@ -248,13 +277,13 @@ class PrescriptionHtmlService {
                             pw.Row(
                               children: [
                                 if (followUpDate != null) ...[
-                                  BanglaText('Follow-up: ', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                                  BanglaText(followUpDate.fix, fontSize: 9),
+                                  _getTextWidget('Follow-up: ', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                                  _getTextWidget(followUpDate, fontSize: 9),
                                 ],
                                 if (followUpDate != null && referral != null) pw.SizedBox(width: 20),
                                 if (referral != null) ...[
-                                  BanglaText('Referral: ', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                                  pw.Expanded(child: BanglaText(referral.fix, fontSize: 9)),
+                                  _getTextWidget('Referral: ', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                                  pw.Expanded(child: _getTextWidget(referral, fontSize: 9)),
                                 ],
                               ],
                             ),

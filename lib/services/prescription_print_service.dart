@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -17,6 +18,35 @@ class PrescriptionPrintService {
       await BanglaFontManager().initialize();
       _isInitialized = true;
       print('Bangla font manager initialized successfully');
+    }
+  }
+
+  // Check if string contains Bangla characters (Unicode range: U+0980 to U+09FF)
+  static bool _containsBangla(String text) {
+    return text.runes.any((rune) => rune >= 0x0980 && rune <= 0x09FF);
+  }
+
+  // Get appropriate text widget - BanglaText for Bangla, pw.Text for English
+  static pw.Widget _getTextWidget(String text, {double? fontSize, pw.FontWeight? fontWeight, pw.TextAlign? textAlign}) {
+    final hasBangla = _containsBangla(text);
+    final processedText = hasBangla ? text.fix : text;
+    
+    if (hasBangla) {
+      return BanglaText(
+        processedText,
+        fontSize: fontSize ?? 9,
+        fontWeight: fontWeight ?? pw.FontWeight.normal,
+        textAlign: textAlign ?? pw.TextAlign.left,
+      );
+    } else {
+      return pw.Text(
+        processedText,
+        style: pw.TextStyle(
+          fontSize: fontSize ?? 9,
+          fontWeight: fontWeight,
+        ),
+        textAlign: textAlign,
+      );
     }
   }
   // Get margin settings from SharedPreferences
@@ -152,12 +182,12 @@ class PrescriptionPrintService {
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  BanglaText('Name: ${patientName.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                  BanglaText('Age: ${age.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('Name: $patientName', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('Age: $age', fontSize: 9, fontWeight: pw.FontWeight.bold),
                   if (phone != null && phone.isNotEmpty)
-                    BanglaText('Phone: ${phone.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                  BanglaText('Date: ${date.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                  BanglaText('ID: ${patientId.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                    _getTextWidget('Phone: $phone', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('Date: $date', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('ID: $patientId', fontSize: 9, fontWeight: pw.FontWeight.bold),
                 ],
               ),
               pw.SizedBox(height: 15),
@@ -173,38 +203,38 @@ class PrescriptionPrintService {
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           if (chiefComplaints.isNotEmpty) ...[
-                            pw.Text('Chief Complaint', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                            _getTextWidget('Chief Complaint', fontSize: 11, fontWeight: pw.FontWeight.bold),
                             pw.SizedBox(height: 5),
                             ...chiefComplaints.map((complaint) => pw.Padding(
                               padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                              child: pw.Text('- $complaint', style: const pw.TextStyle(fontSize: 9)),
+                              child: _getTextWidget('- $complaint', fontSize: 9),
                             )),
                             pw.SizedBox(height: 12),
                           ],
                           if (examination.isNotEmpty) ...[
-                            pw.Text('On Examinations', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                            _getTextWidget('On Examinations', fontSize: 11, fontWeight: pw.FontWeight.bold),
                             pw.SizedBox(height: 5),
                             ...examination.entries.map((entry) => pw.Padding(
                               padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                              child: pw.Text('- ${entry.key}: ${entry.value}', style: const pw.TextStyle(fontSize: 9)),
+                              child: _getTextWidget('- ${entry.key}: ${entry.value}', fontSize: 9),
                             )),
                             pw.SizedBox(height: 12),
                           ],
                           if (diagnosis.isNotEmpty) ...[
-                            pw.Text('Diagnosis', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                            _getTextWidget('Diagnosis', fontSize: 11, fontWeight: pw.FontWeight.bold),
                             pw.SizedBox(height: 5),
                             ...diagnosis.map((item) => pw.Padding(
                               padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                              child: pw.Text('- $item', style: const pw.TextStyle(fontSize: 9)),
+                              child: _getTextWidget('- $item', fontSize: 9),
                             )),
                             pw.SizedBox(height: 12),
                           ],
                           if (investigation.isNotEmpty) ...[
-                            pw.Text('Investigation', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                            _getTextWidget('Investigation', fontSize: 11, fontWeight: pw.FontWeight.bold),
                             pw.SizedBox(height: 5),
                             ...investigation.map((item) => pw.Padding(
                               padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                              child: pw.Text('- $item', style: const pw.TextStyle(fontSize: 9)),
+                              child: _getTextWidget('- $item', fontSize: 9),
                             )),
                           ],
                         ],
@@ -218,7 +248,7 @@ class PrescriptionPrintService {
                       child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Text('Rx,', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                          _getTextWidget('Rx,', fontSize: 12, fontWeight: pw.FontWeight.bold),
                           pw.SizedBox(height: 10),
                           ...medicines.asMap().entries.map((entry) {
                             final index = entry.key + 1;
@@ -230,24 +260,24 @@ class PrescriptionPrintService {
                               child: pw.Row(
                                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                                 children: [
-                                  pw.Text('$index. ', style: const pw.TextStyle(fontSize: 9)),
+                                  _getTextWidget('$index. ', fontSize: 9),
                                   pw.Expanded(
                                     child: pw.Column(
                                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                                       children: [
-                                        pw.Text('${medicine.type} ${medicine.name}', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                                        _getTextWidget('${medicine.type} ${medicine.name}', fontSize: 9, fontWeight: pw.FontWeight.bold),
                                         if ((isInj || isSpray) && medicine.quantity.isNotEmpty && medicine.frequency.isNotEmpty)
                                           pw.Padding(
                                             padding: const pw.EdgeInsets.only(top: 2),
-                                            child: pw.Text(
+                                            child: _getTextWidget(
                                               isInj && medicine.route.isNotEmpty ? '${medicine.quantity} x ${medicine.frequency} (Route: ${medicine.route})' : '${medicine.quantity} x ${medicine.frequency}',
-                                              style: const pw.TextStyle(fontSize: 8),
+                                              fontSize: 8,
                                             ),
                                           )
                                         else if (medicine.dosage.isNotEmpty)
                                           pw.Padding(
                                             padding: const pw.EdgeInsets.only(top: 2),
-                                            child: pw.Text(medicine.dosage, style: const pw.TextStyle(fontSize: 8)),
+                                            child: _getTextWidget(medicine.dosage, fontSize: 8),
                                           ),
                                       ],
                                     ),
@@ -257,9 +287,9 @@ class PrescriptionPrintService {
                                       width: 80,
                                       alignment: pw.Alignment.center,
                                       padding: const pw.EdgeInsets.only(left: 10),
-                                      child: pw.Text(
-                                        '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " `-` ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
-                                        style: const pw.TextStyle(fontSize: 8),
+                                      child: _getTextWidget(
+                                        '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " - ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
+                                        fontSize: 8,
                                         textAlign: pw.TextAlign.center,
                                       ),
                                     ),
@@ -267,7 +297,7 @@ class PrescriptionPrintService {
                                     pw.Container(
                                       width: 60,
                                       padding: const pw.EdgeInsets.only(left: 10),
-                                      child: pw.Text(medicine.advice, style: const pw.TextStyle(fontSize: 8), textAlign: pw.TextAlign.left),
+                                      child: _getTextWidget(medicine.advice, fontSize: 8, textAlign: pw.TextAlign.left),
                                     ),
                                 ],
                               ),
@@ -275,11 +305,11 @@ class PrescriptionPrintService {
                           }),
                           pw.SizedBox(height: 15),
                           if (advice.isNotEmpty) ...[
-                            pw.Text('Advices', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                            _getTextWidget('Advices', fontSize: 10, fontWeight: pw.FontWeight.bold),
                             pw.SizedBox(height: 5),
                             ...advice.asMap().entries.map((entry) => pw.Padding(
                               padding: const pw.EdgeInsets.only(bottom: 3),
-                              child: pw.Text('${entry.key + 1}. ${entry.value}', style: const pw.TextStyle(fontSize: 8)),
+                              child: _getTextWidget('${entry.key + 1}. ${entry.value}', fontSize: 8),
                             )),
                             pw.SizedBox(height: 10),
                           ],
@@ -287,13 +317,13 @@ class PrescriptionPrintService {
                             pw.Row(
                               children: [
                                 if (followUpDate != null) ...[
-                                  pw.Text('Follow-up: ', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-                                  pw.Text(followUpDate, style: const pw.TextStyle(fontSize: 9)),
+                                  _getTextWidget('Follow-up: ', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                                  _getTextWidget(followUpDate, fontSize: 9),
                                 ],
                                 if (followUpDate != null && referral != null) pw.SizedBox(width: 20),
                                 if (referral != null) ...[
-                                  pw.Text('Referral: ', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-                                  pw.Expanded(child: pw.Text(referral, style: const pw.TextStyle(fontSize: 9))),
+                                  _getTextWidget('Referral: ', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                                  pw.Expanded(child: _getTextWidget(referral, fontSize: 9)),
                                 ],
                               ],
                             ),
@@ -357,12 +387,12 @@ class PrescriptionPrintService {
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  BanglaText('Name: ${patientName.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                  BanglaText('Age: ${age.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('Name: $patientName', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('Age: $age', fontSize: 9, fontWeight: pw.FontWeight.bold),
                   if (phone != null && phone.isNotEmpty)
-                    BanglaText('Phone: ${phone.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                  BanglaText('Date: ${date.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                  BanglaText('ID: ${patientId.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                    _getTextWidget('Phone: $phone', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('Date: $date', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('ID: $patientId', fontSize: 9, fontWeight: pw.FontWeight.bold),
                 ],
               ),
               pw.SizedBox(height: 15),
@@ -380,44 +410,44 @@ class PrescriptionPrintService {
                         children: [
                           // Chief Complaint
                     if (chiefComplaints.isNotEmpty) ...[
-                      BanglaText('Chief Complaint', fontSize: 11, fontWeight: pw.FontWeight.bold),
+                      _getTextWidget('Chief Complaint', fontSize: 11, fontWeight: pw.FontWeight.bold),
                       pw.SizedBox(height: 5),
                       ...chiefComplaints.map((complaint) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: BanglaText('- ${complaint.fix}', fontSize: 9),
+                        child: _getTextWidget('- $complaint', fontSize: 9),
                       )),
                       pw.SizedBox(height: 12),
                     ],
 
                     // On Examinations
                     if (examination.isNotEmpty) ...[
-                      BanglaText('On Examinations', fontSize: 11, fontWeight: pw.FontWeight.bold),
+                      _getTextWidget('On Examinations', fontSize: 11, fontWeight: pw.FontWeight.bold),
                       pw.SizedBox(height: 5),
                       ...examination.entries.map((entry) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: BanglaText('- ${entry.key.fix}: ${entry.value.fix}', fontSize: 9),
+                        child: _getTextWidget('- ${entry.key}: ${entry.value}', fontSize: 9),
                       )),
                       pw.SizedBox(height: 12),
                     ],
 
                     // Diagnosis
                     if (diagnosis.isNotEmpty) ...[
-                      BanglaText('Diagnosis', fontSize: 11, fontWeight: pw.FontWeight.bold),
+                      _getTextWidget('Diagnosis', fontSize: 11, fontWeight: pw.FontWeight.bold),
                       pw.SizedBox(height: 5),
                       ...diagnosis.map((item) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: BanglaText('- ${item.fix}', fontSize: 9),
+                        child: _getTextWidget('- $item', fontSize: 9),
                       )),
                       pw.SizedBox(height: 12),
                     ],
 
                     // Investigation
                     if (investigation.isNotEmpty) ...[
-                      BanglaText('Investigation', fontSize: 11, fontWeight: pw.FontWeight.bold),
+                      _getTextWidget('Investigation', fontSize: 11, fontWeight: pw.FontWeight.bold),
                       pw.SizedBox(height: 5),
                       ...investigation.map((item) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: BanglaText('- ${item.fix}', fontSize: 9),
+                        child: _getTextWidget('- $item', fontSize: 9),
                       )),
                     ],
                   ],
@@ -442,7 +472,7 @@ class PrescriptionPrintService {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    BanglaText('Rx,', fontSize: 12, fontWeight: pw.FontWeight.bold),
+                    _getTextWidget('Rx,', fontSize: 12, fontWeight: pw.FontWeight.bold),
                     pw.SizedBox(height: 10),
 
                     // Medicines List
@@ -457,13 +487,13 @@ class PrescriptionPrintService {
                         child: pw.Row(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
-                            BanglaText('$index. ', fontSize: 9),
+                            _getTextWidget('$index. ', fontSize: 9),
                             pw.Expanded(
                               child: pw.Column(
                                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                                 children: [
-                                  BanglaText(
-                                    '${medicine.type.fix} ${medicine.name.fix}',
+                                  _getTextWidget(
+                                    '${medicine.type} ${medicine.name}',
                                     fontSize: 9,
                                     fontWeight: pw.FontWeight.bold,
                                   ),
@@ -471,17 +501,17 @@ class PrescriptionPrintService {
                                   if ((isInj || isSpray) && medicine.quantity.isNotEmpty && medicine.frequency.isNotEmpty)
                                     pw.Padding(
                                       padding: const pw.EdgeInsets.only(top: 2),
-                                      child: BanglaText(
+                                      child: _getTextWidget(
                                         isInj && medicine.route.isNotEmpty
-                                            ? '${medicine.quantity.fix} x ${medicine.frequency.fix} (Route: ${medicine.route.fix})'
-                                            : '${medicine.quantity.fix} x ${medicine.frequency.fix}',
+                                            ? '${medicine.quantity} x ${medicine.frequency} (Route: ${medicine.route})'
+                                            : '${medicine.quantity} x ${medicine.frequency}',
                                         fontSize: 8,
                                       ),
                                     )
                                   else if (medicine.dosage.isNotEmpty)
                                     pw.Padding(
                                       padding: const pw.EdgeInsets.only(top: 2),
-                                      child: BanglaText(medicine.dosage.fix, fontSize: 8),
+                                      child: _getTextWidget(medicine.dosage, fontSize: 8),
                                     ),
                                 ],
                               ),
@@ -491,8 +521,8 @@ class PrescriptionPrintService {
                                 width: 80,
                                 alignment: pw.Alignment.center,
                                 padding: const pw.EdgeInsets.only(left: 10),
-                                child: BanglaText(
-                                  '${medicine.duration.fix}${medicine.interval.isNotEmpty ? " (${medicine.interval.fix})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " - ${medicine.tillNumber.fix} ${medicine.tillUnit.fix}" : ""}',
+                                child: _getTextWidget(
+                                  '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " - ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
                                   fontSize: 8,
                                   textAlign: pw.TextAlign.center,
                                 ),
@@ -501,8 +531,8 @@ class PrescriptionPrintService {
                               pw.Container(
                                 width: 60,
                                 padding: const pw.EdgeInsets.only(left: 10),
-                                child: BanglaText(
-                                  medicine.advice.fix,
+                                child: _getTextWidget(
+                                  medicine.advice,
                                   fontSize: 8,
                                   textAlign: pw.TextAlign.left,
                                 ),
@@ -516,11 +546,11 @@ class PrescriptionPrintService {
 
                     // Advice
                     if (advice.isNotEmpty) ...[
-                      BanglaText('Advices', fontSize: 10, fontWeight: pw.FontWeight.bold),
+                      _getTextWidget('Advices', fontSize: 10, fontWeight: pw.FontWeight.bold),
                       pw.SizedBox(height: 5),
                       ...advice.asMap().entries.map((entry) => pw.Padding(
                         padding: const pw.EdgeInsets.only(bottom: 3),
-                        child: BanglaText('${entry.key + 1}. ${entry.value.fix}', fontSize: 8),
+                        child: _getTextWidget('${entry.key + 1}. ${entry.value}', fontSize: 8),
                       )),
                       pw.SizedBox(height: 10),
                     ],
@@ -530,13 +560,13 @@ class PrescriptionPrintService {
                       pw.Row(
                         children: [
                           if (followUpDate != null) ...[
-                            BanglaText('Follow-up: ', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                            BanglaText(followUpDate.fix, fontSize: 9),
+                            _getTextWidget('Follow-up: ', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                            _getTextWidget(followUpDate, fontSize: 9),
                           ],
                           if (followUpDate != null && referral != null) pw.SizedBox(width: 20),
                           if (referral != null) ...[
-                            BanglaText('Referral: ', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                            pw.Expanded(child: BanglaText(referral.fix, fontSize: 9)),
+                            _getTextWidget('Referral: ', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                            pw.Expanded(child: _getTextWidget(referral, fontSize: 9)),
                           ],
                         ],
                       ),
@@ -610,12 +640,12 @@ class PrescriptionPrintService {
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  BanglaText('Name: ${patientName.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                  BanglaText('Age: ${age.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('Name: $patientName', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('Age: $age', fontSize: 9, fontWeight: pw.FontWeight.bold),
                   if (phone != null && phone.isNotEmpty)
-                    BanglaText('Phone: ${phone.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                  BanglaText('Date: ${date.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                  BanglaText('ID: ${patientId.fix}', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                    _getTextWidget('Phone: $phone', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('Date: $date', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  _getTextWidget('ID: $patientId', fontSize: 9, fontWeight: pw.FontWeight.bold),
                 ],
               ),
               pw.SizedBox(height: 15),
@@ -633,44 +663,44 @@ class PrescriptionPrintService {
                         children: [
                           // Chief Complaint
                     if (chiefComplaints.isNotEmpty) ...[
-                      BanglaText('Chief Complaint', fontSize: 11, fontWeight: pw.FontWeight.bold),
+                      _getTextWidget('Chief Complaint', fontSize: 11, fontWeight: pw.FontWeight.bold),
                       pw.SizedBox(height: 5),
                       ...chiefComplaints.map((complaint) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: BanglaText('- ${complaint.fix}', fontSize: 9),
+                        child: _getTextWidget('- $complaint', fontSize: 9),
                       )),
                       pw.SizedBox(height: 12),
                     ],
 
                     // On Examinations
                     if (examination.isNotEmpty) ...[
-                      BanglaText('On Examinations', fontSize: 11, fontWeight: pw.FontWeight.bold),
+                      _getTextWidget('On Examinations', fontSize: 11, fontWeight: pw.FontWeight.bold),
                       pw.SizedBox(height: 5),
                       ...examination.entries.map((entry) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: BanglaText('- ${entry.key.fix}: ${entry.value.fix}', fontSize: 9),
+                        child: _getTextWidget('- ${entry.key}: ${entry.value}', fontSize: 9),
                       )),
                       pw.SizedBox(height: 12),
                     ],
 
                     // Diagnosis
                     if (diagnosis.isNotEmpty) ...[
-                      BanglaText('Diagnosis', fontSize: 11, fontWeight: pw.FontWeight.bold),
+                      _getTextWidget('Diagnosis', fontSize: 11, fontWeight: pw.FontWeight.bold),
                       pw.SizedBox(height: 5),
                       ...diagnosis.map((item) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: BanglaText('- ${item.fix}', fontSize: 9),
+                        child: _getTextWidget('- $item', fontSize: 9),
                       )),
                       pw.SizedBox(height: 12),
                     ],
 
                     // Investigation
                     if (investigation.isNotEmpty) ...[
-                      BanglaText('Investigation', fontSize: 11, fontWeight: pw.FontWeight.bold),
+                      _getTextWidget('Investigation', fontSize: 11, fontWeight: pw.FontWeight.bold),
                       pw.SizedBox(height: 5),
                       ...investigation.map((item) => pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 10, bottom: 3),
-                        child: BanglaText('- ${item.fix}', fontSize: 9),
+                        child: _getTextWidget('- $item', fontSize: 9),
                       )),
                     ],
                   ],
@@ -695,7 +725,7 @@ class PrescriptionPrintService {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    BanglaText('Rx,', fontSize: 12, fontWeight: pw.FontWeight.bold),
+                    _getTextWidget('Rx,', fontSize: 12, fontWeight: pw.FontWeight.bold),
                     pw.SizedBox(height: 10),
 
                     // Medicines List
@@ -710,13 +740,13 @@ class PrescriptionPrintService {
                         child: pw.Row(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
-                            BanglaText('$index. ', fontSize: 9),
+                            _getTextWidget('$index. ', fontSize: 9),
                             pw.Expanded(
                               child: pw.Column(
                                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                                 children: [
-                                  BanglaText(
-                                    '${medicine.type.fix} ${medicine.name.fix}',
+                                  _getTextWidget(
+                                    '${medicine.type} ${medicine.name}',
                                     fontSize: 9,
                                     fontWeight: pw.FontWeight.bold,
                                   ),
@@ -724,17 +754,17 @@ class PrescriptionPrintService {
                                   if ((isInj || isSpray) && medicine.quantity.isNotEmpty && medicine.frequency.isNotEmpty)
                                     pw.Padding(
                                       padding: const pw.EdgeInsets.only(top: 2),
-                                      child: BanglaText(
+                                      child: _getTextWidget(
                                         isInj && medicine.route.isNotEmpty
-                                            ? '${medicine.quantity.fix} x ${medicine.frequency.fix} (Route: ${medicine.route.fix})'
-                                            : '${medicine.quantity.fix} x ${medicine.frequency.fix}',
+                                            ? '${medicine.quantity} x ${medicine.frequency} (Route: ${medicine.route})'
+                                            : '${medicine.quantity} x ${medicine.frequency}',
                                         fontSize: 8,
                                       ),
                                     )
                                   else if (medicine.dosage.isNotEmpty)
                                     pw.Padding(
                                       padding: const pw.EdgeInsets.only(top: 2),
-                                      child: BanglaText(medicine.dosage.fix, fontSize: 8),
+                                      child: _getTextWidget(medicine.dosage, fontSize: 8),
                                     ),
                                 ],
                               ),
@@ -744,8 +774,8 @@ class PrescriptionPrintService {
                                 width: 80,
                                 alignment: pw.Alignment.center,
                                 padding: const pw.EdgeInsets.only(left: 10),
-                                child: BanglaText(
-                                  '${medicine.duration.fix}${medicine.interval.isNotEmpty ? " (${medicine.interval.fix})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " - ${medicine.tillNumber.fix} ${medicine.tillUnit.fix}" : ""}',
+                                child: _getTextWidget(
+                                  '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " - ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
                                   fontSize: 8,
                                   textAlign: pw.TextAlign.center,
                                 ),
@@ -754,8 +784,8 @@ class PrescriptionPrintService {
                               pw.Container(
                                 width: 60,
                                 padding: const pw.EdgeInsets.only(left: 10),
-                                child: BanglaText(
-                                  medicine.advice.fix,
+                                child: _getTextWidget(
+                                  medicine.advice,
                                   fontSize: 8,
                                   textAlign: pw.TextAlign.left,
                                 ),
@@ -769,11 +799,11 @@ class PrescriptionPrintService {
 
                     // Advice
                     if (advice.isNotEmpty) ...[
-                      BanglaText('Advices', fontSize: 10, fontWeight: pw.FontWeight.bold),
+                      _getTextWidget('Advices', fontSize: 10, fontWeight: pw.FontWeight.bold),
                       pw.SizedBox(height: 5),
                       ...advice.asMap().entries.map((entry) => pw.Padding(
                         padding: const pw.EdgeInsets.only(bottom: 3),
-                        child: BanglaText('${entry.key + 1}. ${entry.value.fix}', fontSize: 8),
+                        child: _getTextWidget('${entry.key + 1}. ${entry.value}', fontSize: 8),
                       )),
                       pw.SizedBox(height: 10),
                     ],
@@ -783,13 +813,13 @@ class PrescriptionPrintService {
                       pw.Row(
                         children: [
                           if (followUpDate != null) ...[
-                            BanglaText('Follow-up: ', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                            BanglaText(followUpDate.fix, fontSize: 9),
+                            _getTextWidget('Follow-up: ', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                            _getTextWidget(followUpDate, fontSize: 9),
                           ],
                           if (followUpDate != null && referral != null) pw.SizedBox(width: 20),
                           if (referral != null) ...[
-                            BanglaText('Referral: ', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                            pw.Expanded(child: BanglaText(referral.fix, fontSize: 9)),
+                            _getTextWidget('Referral: ', fontSize: 9, fontWeight: pw.FontWeight.bold),
+                            pw.Expanded(child: _getTextWidget(referral, fontSize: 9)),
                           ],
                         ],
                       ),
