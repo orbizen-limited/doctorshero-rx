@@ -25,18 +25,17 @@ class PrescriptionHtmlService {
   // Get appropriate text widget - BanglaText for Bangla, pw.Text for English
   static pw.Widget _getTextWidget(String text, {double? fontSize, pw.FontWeight? fontWeight, pw.TextAlign? textAlign}) {
     final hasBangla = _containsBangla(text);
-    final processedText = hasBangla ? text.fix : text;
     
     if (hasBangla) {
       return BanglaText(
-        processedText,
+        text,
         fontSize: fontSize ?? 9,
         fontWeight: fontWeight ?? pw.FontWeight.normal,
         textAlign: textAlign ?? pw.TextAlign.left,
       );
     } else {
       return pw.Text(
-        processedText,
+        text,
         style: pw.TextStyle(
           fontSize: fontSize ?? 9,
           fontWeight: fontWeight,
