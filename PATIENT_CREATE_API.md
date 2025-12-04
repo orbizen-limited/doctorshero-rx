@@ -15,12 +15,12 @@ A new API endpoint has been added to create patients with intelligent duplicate 
 ## 🎯 Problem Solved
 
 ### Before
-❌ No API endpoint to create patients from mobile app  
-❌ Risk of creating duplicate patient records  
-❌ No way to handle family members with shared phones  
+❌ No API endpoint to create patients from mobile app
+❌ Risk of creating duplicate patient records
+❌ No way to handle family members with shared phones
 
 ### After
-✅ Complete patient creation endpoint  
+✅ Complete patient creation endpoint
 ✅ Automatic duplicate detection by phone  
 ✅ Confirmation workflow for similar patients  
 ✅ Force create option for family members  
