@@ -19,6 +19,8 @@ class _AdviceDrawerState extends State<AdviceDrawer> {
   final TextEditingController _customController = TextEditingController();
   List<String> _filteredItems = [];
   List<String> _selectedAdvice = [];
+  Map<String, DateTime> _lastTapTime = {};
+  Map<String, bool> _previousState = {};
 
   final List<String> _predefinedAdvice = [
     'Take medicines after meals for better absorption',
@@ -65,13 +67,42 @@ class _AdviceDrawerState extends State<AdviceDrawer> {
   }
 
   void _toggleAdvice(String advice) {
-    setState(() {
-      if (_selectedAdvice.contains(advice)) {
-        _selectedAdvice.remove(advice);
-      } else {
-        _selectedAdvice.add(advice);
-      }
-    });
+    final now = DateTime.now();
+    final lastTap = _lastTapTime[advice];
+    final wasSelected = _selectedAdvice.contains(advice);
+    
+    // Check for double-click (within 300ms)
+    if (lastTap != null && now.difference(lastTap).inMilliseconds < 300) {
+      // Double-click: undo the previous state
+      setState(() {
+        final previousWasSelected = _previousState[advice] ?? false;
+        if (previousWasSelected && !_selectedAdvice.contains(advice)) {
+          // Was selected before first click, now deselected, so undo by selecting
+          _selectedAdvice.add(advice);
+        } else if (!previousWasSelected && _selectedAdvice.contains(advice)) {
+          // Was not selected before first click, now selected, so undo by deselecting
+          _selectedAdvice.remove(advice);
+        }
+      });
+      _lastTapTime.remove(advice);
+      _previousState.remove(advice);
+      // Update in real-time
+      widget.onAdviceSelected(_selectedAdvice);
+    } else {
+      // Single click: toggle normally
+      // Store previous state before toggling
+      _previousState[advice] = wasSelected;
+      setState(() {
+        if (wasSelected) {
+          _selectedAdvice.remove(advice);
+        } else {
+          _selectedAdvice.add(advice);
+        }
+      });
+      _lastTapTime[advice] = now;
+      // Update in real-time
+      widget.onAdviceSelected(_selectedAdvice);
+    }
   }
 
   void _addCustomAdvice() {
@@ -80,6 +111,8 @@ class _AdviceDrawerState extends State<AdviceDrawer> {
         _selectedAdvice.add(_customController.text);
       });
       _customController.clear();
+      // Update in real-time
+      widget.onAdviceSelected(_selectedAdvice);
     }
   }
 
@@ -87,11 +120,8 @@ class _AdviceDrawerState extends State<AdviceDrawer> {
     setState(() {
       _selectedAdvice.remove(advice);
     });
-  }
-
-  void _done() {
+    // Update in real-time
     widget.onAdviceSelected(_selectedAdvice);
-    Navigator.pop(context);
   }
 
   @override
@@ -136,49 +166,75 @@ class _AdviceDrawerState extends State<AdviceDrawer> {
                       fontFamily: 'ProductSans',
                     ),
                   ),
-                  Row(
-                    children: [
-                      ElevatedButton(
-                        onPressed: _done,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFFFE3001),
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        ),
-                        child: const Text('Done'),
-                      ),
-                      const SizedBox(width: 12),
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close, color: Colors.white),
-                      ),
-                    ],
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Colors.white),
                   ),
                 ],
               ),
             ),
             
-            // Search Bar
+            // Search Bar and Custom Input Row
             Padding(
               padding: const EdgeInsets.all(20),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search advice...',
-                  hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFFFE3001)),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              child: Row(
+                children: [
+                  // Search Bar - Half width
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search advice...',
+                        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                        prefixIcon: const Icon(Icons.search, color: Color(0xFFFE3001)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFFE3001), width: 2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                      style: const TextStyle(fontSize: 14, fontFamily: 'ProductSans'),
+                      onChanged: _filterItems,
+                    ),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFFE3001), width: 2),
+                  const SizedBox(width: 12),
+                  // Custom Input - Half width
+                  Expanded(
+                    child: TextField(
+                      controller: _customController,
+                      decoration: InputDecoration(
+                        hintText: 'Add custom advice...',
+                        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFFE3001), width: 2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                      style: const TextStyle(fontSize: 14, fontFamily: 'ProductSans'),
+                      onSubmitted: (_) => _addCustomAdvice(),
+                    ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-                style: const TextStyle(fontSize: 14, fontFamily: 'ProductSans'),
-                onChanged: _filterItems,
+                  const SizedBox(width: 12),
+                  // Add Button
+                  ElevatedButton(
+                    onPressed: _addCustomAdvice,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFE3001),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    ),
+                    child: const Text('Add'),
+                  ),
+                ],
               ),
             ),
 
@@ -217,41 +273,6 @@ class _AdviceDrawerState extends State<AdviceDrawer> {
               ),
             ),
 
-            // Custom Advice Input
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _customController,
-                      decoration: InputDecoration(
-                        hintText: 'Add custom advice...',
-                        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      ),
-                      style: const TextStyle(fontSize: 14, fontFamily: 'ProductSans'),
-                      onSubmitted: (_) => _addCustomAdvice(),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: _addCustomAdvice,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFE3001),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                    ),
-                    child: const Text('Add'),
-                  ),
-                ],
-              ),
-            ),
 
             // Selected Advice List
             if (_selectedAdvice.isNotEmpty)

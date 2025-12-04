@@ -27,17 +27,13 @@ class PrescriptionPrintService {
   }
 
   // Get appropriate text widget - BanglaText for Bangla, pw.Text for English
+  // Handles mixed Bangla/English text by splitting and rendering separately
   static pw.Widget _getTextWidget(String text, {double? fontSize, pw.FontWeight? fontWeight, pw.TextAlign? textAlign}) {
+    // Check if text contains both Bangla and English (e.g., "খাওয়ার পরে (After meal)")
     final hasBangla = _containsBangla(text);
     
-    if (hasBangla) {
-      return BanglaText(
-        text,
-        fontSize: fontSize ?? 9,
-        fontWeight: fontWeight ?? pw.FontWeight.normal,
-        textAlign: textAlign ?? pw.TextAlign.left,
-      );
-    } else {
+    if (!hasBangla) {
+      // Pure English text
       return pw.Text(
         text,
         style: pw.TextStyle(
@@ -47,6 +43,44 @@ class PrescriptionPrintService {
         textAlign: textAlign,
       );
     }
+    
+    // Check if text has English in parentheses (e.g., "খাওয়ার পরে (After meal)")
+    final parenMatch = RegExp(r'^(.+?)\s*\(([^)]+)\)\s*$').firstMatch(text);
+    if (parenMatch != null) {
+      final banglaPart = parenMatch.group(1)!.trim();
+      final englishPart = parenMatch.group(2)!.trim();
+      
+      // Render as Row with Bangla and English parts
+      return pw.Row(
+        mainAxisSize: pw.MainAxisSize.min,
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          BanglaText(
+            banglaPart,
+            fontSize: fontSize ?? 9,
+            fontWeight: fontWeight ?? pw.FontWeight.normal,
+            textAlign: pw.TextAlign.left,
+          ),
+          pw.SizedBox(width: 4),
+          pw.Text(
+            '($englishPart)',
+            style: pw.TextStyle(
+              fontSize: fontSize ?? 9,
+              fontWeight: fontWeight,
+            ),
+            textAlign: pw.TextAlign.left,
+          ),
+        ],
+      );
+    }
+    
+    // Pure Bangla text or mixed without parentheses pattern
+    return BanglaText(
+      text,
+      fontSize: fontSize ?? 9,
+      fontWeight: fontWeight ?? pw.FontWeight.normal,
+      textAlign: textAlign ?? pw.TextAlign.left,
+    );
   }
   // Get margin settings from SharedPreferences
   static Future<Map<String, double>> getMarginSettings() async {
@@ -281,23 +315,27 @@ class PrescriptionPrintService {
                                       ],
                                     ),
                                   ),
-                                  if (medicine.duration.isNotEmpty)
-                                    pw.Container(
-                                      width: 80,
-                                      alignment: pw.Alignment.center,
-                                      padding: const pw.EdgeInsets.only(left: 10),
-                                      child: _getTextWidget(
-                                        '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " - ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
-                                        fontSize: 8,
-                                        textAlign: pw.TextAlign.center,
-                                      ),
-                                    ),
-                                  if (medicine.advice.isNotEmpty)
-                                    pw.Container(
-                                      width: 60,
-                                      padding: const pw.EdgeInsets.only(left: 10),
-                                      child: _getTextWidget(medicine.advice, fontSize: 8, textAlign: pw.TextAlign.left),
-                                    ),
+                                  // Duration column - always present with fixed width
+                                  pw.Container(
+                                    width: 80,
+                                    alignment: pw.Alignment.center,
+                                    padding: const pw.EdgeInsets.only(left: 10),
+                                    child: medicine.duration.isNotEmpty
+                                        ? _getTextWidget(
+                                            '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " - ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
+                                            fontSize: 8,
+                                            textAlign: pw.TextAlign.center,
+                                          )
+                                        : pw.SizedBox.shrink(),
+                                  ),
+                                  // Advice column - always present with fixed width
+                                  pw.Container(
+                                    width: 60,
+                                    padding: const pw.EdgeInsets.only(left: 10),
+                                    child: medicine.advice.isNotEmpty
+                                        ? _getTextWidget(medicine.advice, fontSize: 8, textAlign: pw.TextAlign.left)
+                                        : pw.SizedBox.shrink(),
+                                  ),
                                 ],
                               ),
                             );
@@ -515,27 +553,31 @@ class PrescriptionPrintService {
                                 ],
                               ),
                             ),
-                            if (medicine.duration.isNotEmpty)
-                              pw.Container(
-                                width: 80,
-                                alignment: pw.Alignment.center,
-                                padding: const pw.EdgeInsets.only(left: 10),
-                                child: _getTextWidget(
-                                  '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " - ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
-                                  fontSize: 8,
-                                  textAlign: pw.TextAlign.center,
-                                ),
-                              ),
-                            if (medicine.advice.isNotEmpty)
-                              pw.Container(
-                                width: 60,
-                                padding: const pw.EdgeInsets.only(left: 10),
-                                child: _getTextWidget(
-                                  medicine.advice,
-                                  fontSize: 8,
-                                  textAlign: pw.TextAlign.left,
-                                ),
-                              ),
+                            // Duration column - always present with fixed width
+                            pw.Container(
+                              width: 80,
+                              alignment: pw.Alignment.center,
+                              padding: const pw.EdgeInsets.only(left: 10),
+                              child: medicine.duration.isNotEmpty
+                                  ? _getTextWidget(
+                                      '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " - ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
+                                      fontSize: 8,
+                                      textAlign: pw.TextAlign.center,
+                                    )
+                                  : pw.SizedBox.shrink(),
+                            ),
+                            // Advice column - always present with fixed width
+                            pw.Container(
+                              width: 60,
+                              padding: const pw.EdgeInsets.only(left: 10),
+                              child: medicine.advice.isNotEmpty
+                                  ? _getTextWidget(
+                                      medicine.advice,
+                                      fontSize: 8,
+                                      textAlign: pw.TextAlign.left,
+                                    )
+                                  : pw.SizedBox.shrink(),
+                            ),
                           ],
                         ),
                       );
@@ -768,27 +810,31 @@ class PrescriptionPrintService {
                                 ],
                               ),
                             ),
-                            if (medicine.duration.isNotEmpty)
-                              pw.Container(
-                                width: 80,
-                                alignment: pw.Alignment.center,
-                                padding: const pw.EdgeInsets.only(left: 10),
-                                child: _getTextWidget(
-                                  '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " - ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
-                                  fontSize: 8,
-                                  textAlign: pw.TextAlign.center,
-                                ),
-                              ),
-                            if (medicine.advice.isNotEmpty)
-                              pw.Container(
-                                width: 60,
-                                padding: const pw.EdgeInsets.only(left: 10),
-                                child: _getTextWidget(
-                                  medicine.advice,
-                                  fontSize: 8,
-                                  textAlign: pw.TextAlign.left,
-                                ),
-                              ),
+                            // Duration column - always present with fixed width
+                            pw.Container(
+                              width: 80,
+                              alignment: pw.Alignment.center,
+                              padding: const pw.EdgeInsets.only(left: 10),
+                              child: medicine.duration.isNotEmpty
+                                  ? _getTextWidget(
+                                      '${medicine.duration}${medicine.interval.isNotEmpty ? " (${medicine.interval})" : ""}${medicine.tillNumber == "চলবে" || medicine.tillNumber == "Continues" ? " - চলবে" : medicine.tillNumber.isNotEmpty ? " - ${medicine.tillNumber} ${medicine.tillUnit}" : ""}',
+                                      fontSize: 8,
+                                      textAlign: pw.TextAlign.center,
+                                    )
+                                  : pw.SizedBox.shrink(),
+                            ),
+                            // Advice column - always present with fixed width
+                            pw.Container(
+                              width: 60,
+                              padding: const pw.EdgeInsets.only(left: 10),
+                              child: medicine.advice.isNotEmpty
+                                  ? _getTextWidget(
+                                      medicine.advice,
+                                      fontSize: 8,
+                                      textAlign: pw.TextAlign.left,
+                                    )
+                                  : pw.SizedBox.shrink(),
+                            ),
                           ],
                         ),
                       );

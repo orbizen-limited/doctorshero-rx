@@ -79,6 +79,7 @@ class _DosageDrawerState extends State<DosageDrawer> {
     _durationUnit = widget.currentDurationUnit.isEmpty ? 'দিন' : _convertToBangla(widget.currentDurationUnit);
     _tillUnit = widget.currentTillUnit.isEmpty ? 'দিন' : _convertToBangla(widget.currentTillUnit);
     _isContinues = widget.currentTillNumber == 'Continues' || widget.currentTillNumber == 'চলবে';
+    _isDurationContinues = widget.currentDurationNumber == 'Continues' || widget.currentDurationNumber == 'চলবে';
   }
 
   @override
@@ -273,11 +274,14 @@ class _DosageDrawerState extends State<DosageDrawer> {
                               TextField(
                                 controller: _durationNumberController,
                                 keyboardType: TextInputType.number,
+                                enabled: !_isDurationContinues,
                                 decoration: InputDecoration(
                                   hintText: '7',
                                   hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                                   contentPadding: const EdgeInsets.all(12),
+                                  filled: _isDurationContinues,
+                                  fillColor: _isDurationContinues ? const Color(0xFFF1F5F9) : null,
                                 ),
                               ),
                             ],
@@ -299,11 +303,13 @@ class _DosageDrawerState extends State<DosageDrawer> {
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  filled: _isDurationContinues,
+                                  fillColor: _isDurationContinues ? const Color(0xFFF1F5F9) : null,
                                 ),
                                 items: ['দিন', 'সপ্তাহ', 'মাস', 'বছর'].map((unit) {
                                   return DropdownMenuItem(value: unit, child: Text(unit));
                                 }).toList(),
-                                onChanged: (value) {
+                                onChanged: _isDurationContinues ? null : (value) {
                                   if (value != null) {
                                     setState(() {
                                       _durationUnit = value;

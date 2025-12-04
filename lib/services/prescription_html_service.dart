@@ -23,17 +23,13 @@ class PrescriptionHtmlService {
   }
 
   // Get appropriate text widget - BanglaText for Bangla, pw.Text for English
+  // Handles mixed Bangla/English text by splitting and rendering separately
   static pw.Widget _getTextWidget(String text, {double? fontSize, pw.FontWeight? fontWeight, pw.TextAlign? textAlign}) {
+    // Check if text contains both Bangla and English (e.g., "খাওয়ার পরে (After meal)")
     final hasBangla = _containsBangla(text);
     
-    if (hasBangla) {
-      return BanglaText(
-        text,
-        fontSize: fontSize ?? 9,
-        fontWeight: fontWeight ?? pw.FontWeight.normal,
-        textAlign: textAlign ?? pw.TextAlign.left,
-      );
-    } else {
+    if (!hasBangla) {
+      // Pure English text
       return pw.Text(
         text,
         style: pw.TextStyle(
@@ -43,6 +39,44 @@ class PrescriptionHtmlService {
         textAlign: textAlign,
       );
     }
+    
+    // Check if text has English in parentheses (e.g., "খাওয়ার পরে (After meal)")
+    final parenMatch = RegExp(r'^(.+?)\s*\(([^)]+)\)\s*$').firstMatch(text);
+    if (parenMatch != null) {
+      final banglaPart = parenMatch.group(1)!.trim();
+      final englishPart = parenMatch.group(2)!.trim();
+      
+      // Render as Row with Bangla and English parts
+      return pw.Row(
+        mainAxisSize: pw.MainAxisSize.min,
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          BanglaText(
+            banglaPart,
+            fontSize: fontSize ?? 9,
+            fontWeight: fontWeight ?? pw.FontWeight.normal,
+            textAlign: pw.TextAlign.left,
+          ),
+          pw.SizedBox(width: 4),
+          pw.Text(
+            '($englishPart)',
+            style: pw.TextStyle(
+              fontSize: fontSize ?? 9,
+              fontWeight: fontWeight,
+            ),
+            textAlign: pw.TextAlign.left,
+          ),
+        ],
+      );
+    }
+    
+    // Pure Bangla text or mixed without parentheses pattern
+    return BanglaText(
+      text,
+      fontSize: fontSize ?? 9,
+      fontWeight: fontWeight ?? pw.FontWeight.normal,
+      textAlign: textAlign ?? pw.TextAlign.left,
+    );
   }
 
   // Get margin settings from SharedPreferences

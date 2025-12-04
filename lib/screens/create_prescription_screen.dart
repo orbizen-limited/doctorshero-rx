@@ -472,8 +472,7 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
       onWillPop: _showExitConfirmation,
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
-        body: SingleChildScrollView(
-        child: LayoutBuilder(
+        body: LayoutBuilder(
           builder: (context, constraints) {
             // Responsive padding based on screen width
             double horizontalPadding = 16;
@@ -503,200 +502,216 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
               maxWidth = 1760;
             }
 
-            return Center(
-              child: Container(
-                constraints: BoxConstraints(maxWidth: maxWidth),
-                margin: EdgeInsets.symmetric(
-                  horizontal: horizontalPadding,
-                  vertical: 32,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 25,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    PatientInfoCard(
-                      patientInfo: patientInfo,
-                      isEditable: widget.savedPrescription == null,
-                      onUpdate: (field, value) {
-                        setState(() {
-                          switch (field) {
-                            case 'name':
-                              patientInfo = PrescriptionPatientInfo(
-                                name: value,
-                                age: patientInfo.age,
-                                gender: patientInfo.gender,
-                                date: patientInfo.date,
-                                patientId: patientInfo.patientId,
-                                phone: patientInfo.phone,
-                                bloodGroup: patientInfo.bloodGroup,
-                                address: patientInfo.address,
-                              );
-                              break;
-                            case 'age':
-                              patientInfo = PrescriptionPatientInfo(
-                                name: patientInfo.name,
-                                age: value,
-                                gender: patientInfo.gender,
-                                date: patientInfo.date,
-                                patientId: patientInfo.patientId,
-                                phone: patientInfo.phone,
-                                bloodGroup: patientInfo.bloodGroup,
-                                address: patientInfo.address,
-                              );
-                              break;
-                            case 'gender':
-                              patientInfo = PrescriptionPatientInfo(
-                                name: patientInfo.name,
-                                age: patientInfo.age,
-                                gender: value,
-                                date: patientInfo.date,
-                                patientId: patientInfo.patientId,
-                                phone: patientInfo.phone,
-                                bloodGroup: patientInfo.bloodGroup,
-                                address: patientInfo.address,
-                              );
-                              break;
-                            case 'date':
-                              patientInfo = PrescriptionPatientInfo(
-                                name: patientInfo.name,
-                                age: patientInfo.age,
-                                gender: patientInfo.gender,
-                                date: value,
-                                patientId: patientInfo.patientId,
-                                phone: patientInfo.phone,
-                                bloodGroup: patientInfo.bloodGroup,
-                                address: patientInfo.address,
-                              );
-                              break;
-                            case 'patientId':
-                              // Try to fetch patient details from API
-                              _lookupPatient(value);
-                              break;
-                            case 'phone':
-                              // Auto-generate UPID + full phone number
-                              String newPatientId = patientInfo.patientId;
-                              if (value.isNotEmpty && patientInfo.patientId.isEmpty) {
-                                newPatientId = 'UPID$value';
-                              }
-                              patientInfo = PrescriptionPatientInfo(
-                                name: patientInfo.name,
-                                age: patientInfo.age,
-                                gender: patientInfo.gender,
-                                date: patientInfo.date,
-                                patientId: newPatientId,
-                                phone: value,
-                                bloodGroup: patientInfo.bloodGroup,
-                                address: patientInfo.address,
-                              );
-                              break;
-                          }
-                        });
-                      },
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: constraints.maxWidth >= 1024
-                          ? Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Left Column - Clinical Sections
-                                SizedBox(
-                                  width: 380,
-                                  child: ClinicalSections(
-                                    clinicalData: clinicalData,
-                                    onUpdate: _updateClinicalData,
-                                  ),
-                                ),
-                                const SizedBox(width: 48),
-                                // Vertical Separator
-                                Container(
-                                  width: 1,
-                                  height: 600,
-                                  color: const Color(0xFFE2E8F0),
-                                ),
-                                const SizedBox(width: 48),
-                                // Right Column - Prescription
-                                Expanded(
-                                  child: MedicineList(
-                                    medicines: medicines,
-                                    onAdd: _addMedicine,
-                                    onDelete: _deleteMedicine,
-                                    onReorder: _reorderMedicines,
-                                    onUpdate: _updateMedicine,
-                                    onAdviceUpdate: _updateAdvice,
-                                    onFollowUpUpdate: _updateFollowUpDate,
-                                    onReferralUpdate: _updateReferral,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Column(
-                              children: [
-                                ClinicalSections(
-                                  clinicalData: clinicalData,
-                                  onUpdate: _updateClinicalData,
-                                ),
-                                const SizedBox(height: 32),
-                                MedicineList(
-                                  medicines: medicines,
-                                  onAdd: _addMedicine,
-                                  onDelete: _deleteMedicine,
-                                  onReorder: _reorderMedicines,
-                                  onUpdate: _updateMedicine,
-                                  onAdviceUpdate: _updateAdvice,
-                                  onFollowUpUpdate: _updateFollowUpDate,
-                                  onReferralUpdate: _updateReferral,
-                                ),
-                              ],
+            return Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Center(
+                      child: Container(
+                        constraints: BoxConstraints(maxWidth: maxWidth),
+                        margin: EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
+                          vertical: 32,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 25,
+                              offset: const Offset(0, 10),
                             ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            PatientInfoCard(
+                              patientInfo: patientInfo,
+                              isEditable: widget.savedPrescription == null,
+                              onUpdate: (field, value) {
+                                setState(() {
+                                  switch (field) {
+                                    case 'name':
+                                      patientInfo = PrescriptionPatientInfo(
+                                        name: value,
+                                        age: patientInfo.age,
+                                        gender: patientInfo.gender,
+                                        date: patientInfo.date,
+                                        patientId: patientInfo.patientId,
+                                        phone: patientInfo.phone,
+                                        bloodGroup: patientInfo.bloodGroup,
+                                        address: patientInfo.address,
+                                      );
+                                      break;
+                                    case 'age':
+                                      patientInfo = PrescriptionPatientInfo(
+                                        name: patientInfo.name,
+                                        age: value,
+                                        gender: patientInfo.gender,
+                                        date: patientInfo.date,
+                                        patientId: patientInfo.patientId,
+                                        phone: patientInfo.phone,
+                                        bloodGroup: patientInfo.bloodGroup,
+                                        address: patientInfo.address,
+                                      );
+                                      break;
+                                    case 'gender':
+                                      patientInfo = PrescriptionPatientInfo(
+                                        name: patientInfo.name,
+                                        age: patientInfo.age,
+                                        gender: value,
+                                        date: patientInfo.date,
+                                        patientId: patientInfo.patientId,
+                                        phone: patientInfo.phone,
+                                        bloodGroup: patientInfo.bloodGroup,
+                                        address: patientInfo.address,
+                                      );
+                                      break;
+                                    case 'date':
+                                      patientInfo = PrescriptionPatientInfo(
+                                        name: patientInfo.name,
+                                        age: patientInfo.age,
+                                        gender: patientInfo.gender,
+                                        date: value,
+                                        patientId: patientInfo.patientId,
+                                        phone: patientInfo.phone,
+                                        bloodGroup: patientInfo.bloodGroup,
+                                        address: patientInfo.address,
+                                      );
+                                      break;
+                                    case 'patientId':
+                                      // Try to fetch patient details from API
+                                      _lookupPatient(value);
+                                      break;
+                                    case 'phone':
+                                      // Auto-generate UPID + full phone number
+                                      String newPatientId = patientInfo.patientId;
+                                      if (value.isNotEmpty && patientInfo.patientId.isEmpty) {
+                                        newPatientId = 'UPID$value';
+                                      }
+                                      patientInfo = PrescriptionPatientInfo(
+                                        name: patientInfo.name,
+                                        age: patientInfo.age,
+                                        gender: patientInfo.gender,
+                                        date: patientInfo.date,
+                                        patientId: newPatientId,
+                                        phone: value,
+                                        bloodGroup: patientInfo.bloodGroup,
+                                        address: patientInfo.address,
+                                      );
+                                      break;
+                                  }
+                                });
+                              },
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(32.0),
+                              child: constraints.maxWidth >= 1024
+                                  ? Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // Left Column - Clinical Sections
+                                        SizedBox(
+                                          width: 380,
+                                          child: ClinicalSections(
+                                            clinicalData: clinicalData,
+                                            onUpdate: _updateClinicalData,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 48),
+                                        // Vertical Separator
+                                        Container(
+                                          width: 1,
+                                          height: 600,
+                                          color: const Color(0xFFE2E8F0),
+                                        ),
+                                        const SizedBox(width: 48),
+                                        // Right Column - Prescription
+                                        Expanded(
+                                          child: MedicineList(
+                                            medicines: medicines,
+                                            onAdd: _addMedicine,
+                                            onDelete: _deleteMedicine,
+                                            onReorder: _reorderMedicines,
+                                            onUpdate: _updateMedicine,
+                                            onAdviceUpdate: _updateAdvice,
+                                            onFollowUpUpdate: _updateFollowUpDate,
+                                            onReferralUpdate: _updateReferral,
+                                            currentAdvice: adviceList,
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : Column(
+                                      children: [
+                                        ClinicalSections(
+                                          clinicalData: clinicalData,
+                                          onUpdate: _updateClinicalData,
+                                        ),
+                                        const SizedBox(height: 32),
+                                        MedicineList(
+                                          medicines: medicines,
+                                          onAdd: _addMedicine,
+                                          onDelete: _deleteMedicine,
+                                          onReorder: _reorderMedicines,
+                                          onUpdate: _updateMedicine,
+                                          onAdviceUpdate: _updateAdvice,
+                                          onFollowUpUpdate: _updateFollowUpDate,
+                                          onReferralUpdate: _updateReferral,
+                                          currentAdvice: adviceList,
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    Consumer<AuthProvider>(
-                      builder: (context, authProvider, child) {
-                        final user = authProvider.user;
-                        // Use bio from API if available, otherwise build from qualification and specialization
-                        String bio = 'MBBS, FCPS';
-                        if (user != null) {
-                          if (user.bio != null && user.bio!.isNotEmpty) {
-                            // Use bio from API
-                            bio = user.bio!;
-                          } else {
-                            // Build bio from qualification and specialization
-                            final parts = <String>[];
-                            if (user.qualification != null && user.qualification!.isNotEmpty) {
-                              parts.add(user.qualification!);
-                            }
-                            if (user.specialization != null && user.specialization!.isNotEmpty) {
-                              parts.add(user.specialization!);
-                            }
-                            if (parts.isNotEmpty) {
-                              bio = parts.join(', ');
-                            }
-                          }
+                  ),
+                ),
+                // Footer fixed at bottom
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, child) {
+                    final user = authProvider.user;
+                    // Use bio from API if available, otherwise build from qualification and specialization
+                    String bio = 'MBBS, FCPS';
+                    if (user != null) {
+                      if (user.bio != null && user.bio!.isNotEmpty) {
+                        // Use bio from API
+                        bio = user.bio!;
+                      } else {
+                        // Build bio from qualification and specialization
+                        final parts = <String>[];
+                        if (user.qualification != null && user.qualification!.isNotEmpty) {
+                          parts.add(user.qualification!);
                         }
-                        return PrescriptionFooter(
+                        if (user.specialization != null && user.specialization!.isNotEmpty) {
+                          parts.add(user.specialization!);
+                        }
+                        if (parts.isNotEmpty) {
+                          bio = parts.join(', ');
+                        }
+                      }
+                    }
+                    return Center(
+                      child: Container(
+                        constraints: BoxConstraints(maxWidth: maxWidth),
+                        margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                        child: PrescriptionFooter(
                           doctorName: user?.name ?? 'Dr. John Doe',
                           bio: bio,
                           onSaveAndPrint: _saveAndPrint,
                           onPrintOnly: _printPrescription,
-                        );
-                      },
-                    ),
-                  ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              ),
+              ],
             );
           },
-        ),
         ),
       ),
     );

@@ -13,6 +13,7 @@ class MedicineList extends StatefulWidget {
   final Function(List<String>)? onAdviceUpdate;
   final Function(DateTime?)? onFollowUpUpdate;
   final Function(String?)? onReferralUpdate;
+  final List<String>? currentAdvice;
 
   const MedicineList({
     Key? key,
@@ -24,6 +25,7 @@ class MedicineList extends StatefulWidget {
     this.onAdviceUpdate,
     this.onFollowUpUpdate,
     this.onReferralUpdate,
+    this.currentAdvice,
   }) : super(key: key);
 
   @override
@@ -35,6 +37,22 @@ class _MedicineListState extends State<MedicineList> {
   List<String> _selectedAdvice = [];
   DateTime? _followUpDate;
   final TextEditingController _referralController = TextEditingController();
+  
+  @override
+  void initState() {
+    super.initState();
+    if (widget.currentAdvice != null) {
+      _selectedAdvice = List.from(widget.currentAdvice!);
+    }
+  }
+  
+  @override
+  void didUpdateWidget(MedicineList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentAdvice != null && widget.currentAdvice != oldWidget.currentAdvice) {
+      _selectedAdvice = List.from(widget.currentAdvice!);
+    }
+  }
   
   void _addEmptyMedicine() {
     final medicine = Medicine(
@@ -55,7 +73,7 @@ class _MedicineListState extends State<MedicineList> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header with Add Button
+        // Header with Add Buttons
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -75,15 +93,61 @@ class _MedicineListState extends State<MedicineList> {
                 ),
               ],
             ),
-            ElevatedButton.icon(
-              onPressed: _addEmptyMedicine,
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add Medicine'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFE3001),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              ),
+            Row(
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    showGeneralDialog(
+                      context: context,
+                      barrierDismissible: true,
+                      barrierLabel: '',
+                      transitionDuration: const Duration(milliseconds: 300),
+                      pageBuilder: (context, animation, secondaryAnimation) {
+                        return Align(
+                          alignment: Alignment.centerRight,
+                          child: AdviceDrawer(
+                            selectedAdvice: _selectedAdvice,
+                            onAdviceSelected: (advice) {
+                              setState(() {
+                                _selectedAdvice = advice;
+                              });
+                              widget.onAdviceUpdate?.call(advice);
+                            },
+                          ),
+                        );
+                      },
+                      transitionBuilder: (context, animation, secondaryAnimation, child) {
+                        return SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(1, 0),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        );
+                      },
+                    );
+                  },
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add Advice'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFFFE3001),
+                    side: const BorderSide(color: Color(0xFFFE3001)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton.icon(
+                  onPressed: _addEmptyMedicine,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add Medicine'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFE3001),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -127,79 +191,44 @@ class _MedicineListState extends State<MedicineList> {
           ),
         
         // Advice Section
-        const SizedBox(height: 24),
-        const Text(
-          'ADVICE',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF64748B),
-            letterSpacing: 0.5,
-            fontFamily: 'ProductSans',
+        if (_selectedAdvice.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          const Text(
+            'ADVICE',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF64748B),
+              letterSpacing: 0.5,
+              fontFamily: 'ProductSans',
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: () {
-            Scaffold.of(context).openEndDrawer();
-            Future.delayed(const Duration(milliseconds: 100), () {
-              showGeneralDialog(
-                context: context,
-                barrierDismissible: true,
-                barrierLabel: '',
-                transitionDuration: const Duration(milliseconds: 300),
-                pageBuilder: (context, animation, secondaryAnimation) {
-                  return Align(
-                    alignment: Alignment.centerRight,
-                    child: AdviceDrawer(
-                      selectedAdvice: _selectedAdvice,
-                      onAdviceSelected: (advice) {
-                        setState(() {
-                          _selectedAdvice = advice;
-                        });
-                        widget.onAdviceUpdate?.call(advice);
-                      },
-                    ),
-                  );
-                },
-                transitionBuilder: (context, animation, secondaryAnimation, child) {
-                  return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(1, 0),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  );
-                },
-              );
-            });
-          },
-          child: Container(
+          const SizedBox(height: 8),
+          Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
-            child: Row(
-              children: [
-                Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: _selectedAdvice.asMap().entries.map((entry) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: entry.key < _selectedAdvice.length - 1 ? 8 : 0),
                   child: Text(
-                    _selectedAdvice.isEmpty
-                        ? 'Take medicines after meals for better absorption.\nDrink plenty of water (2-3 liters daily).\nAvoid direct sunlight exposure.'
-                        : _selectedAdvice.join('\n'),
-                    style: TextStyle(
+                    '${entry.key + 1}. ${entry.value}',
+                    style: const TextStyle(
                       fontSize: 14,
-                      color: _selectedAdvice.isEmpty ? const Color(0xFF94A3B8) : const Color(0xFF1E293B),
+                      color: Color(0xFF1E293B),
                       fontFamily: 'ProductSans',
                     ),
                   ),
-                ),
-                const Icon(Icons.edit, color: Color(0xFF64748B), size: 18),
-              ],
+                );
+              }).toList(),
             ),
           ),
-        ),
+        ],
         
         // Follow-up and Referral Row
         const SizedBox(height: 24),

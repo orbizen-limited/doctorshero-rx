@@ -59,9 +59,15 @@ class _MedicineCardState extends State<MedicineCard> {
     _currentType = widget.medicine.type;
     
     // Parse duration into number and unit
-    final durationParts = _parseDuration(widget.medicine.duration);
-    _durationNumberController = TextEditingController(text: durationParts['number'] ?? '');
-    _durationUnit = durationParts['unit'] ?? 'Days';
+    // Check if duration is "চলবে" first
+    if (widget.medicine.duration == 'চলবে' || widget.medicine.duration == 'Continues') {
+      _durationNumberController = TextEditingController(text: 'চলবে');
+      _durationUnit = 'Days'; // Default, won't be used
+    } else {
+      final durationParts = _parseDuration(widget.medicine.duration);
+      _durationNumberController = TextEditingController(text: durationParts['number'] ?? '');
+      _durationUnit = durationParts['unit'] ?? 'Days';
+    }
   }
 
   Map<String, String?> _parseDuration(String duration) {
@@ -103,9 +109,12 @@ class _MedicineCardState extends State<MedicineCard> {
 
   void _updateMedicine() {
     if (widget.onUpdate != null) {
+      // If durationNumber is "চলবে", only use "চলবে" without unit
       final duration = _durationNumberController.text.isEmpty 
           ? '' 
-          : '${_durationNumberController.text} $_durationUnit';
+          : (_durationNumberController.text == 'চলবে' || _durationNumberController.text == 'Continues')
+              ? 'চলবে'
+              : '${_durationNumberController.text} $_durationUnit';
       
       final updatedMedicine = Medicine(
         id: widget.medicine.id,
@@ -574,7 +583,9 @@ class _MedicineCardState extends State<MedicineCard> {
                                     Text(
                                       _durationNumberController.text.isEmpty
                                           ? 'Click to set'
-                                          : '${_durationNumberController.text} $_durationUnit${_intervalController.text.isNotEmpty ? " (${_intervalController.text})" : ""}${_tillNumber == "চলবে" || _tillNumber == "Continues" ? " - চলবে" : _tillNumber.isNotEmpty ? " till $_tillNumber $_tillUnit" : ""}',
+                                          : (_durationNumberController.text == 'চলবে' || _durationNumberController.text == 'Continues')
+                                              ? 'চলবে${_intervalController.text.isNotEmpty ? " (${_intervalController.text})" : ""}${_tillNumber == "চলবে" || _tillNumber == "Continues" ? " - চলবে" : _tillNumber.isNotEmpty ? " till $_tillNumber $_tillUnit" : ""}'
+                                              : '${_durationNumberController.text} $_durationUnit${_intervalController.text.isNotEmpty ? " (${_intervalController.text})" : ""}${_tillNumber == "চলবে" || _tillNumber == "Continues" ? " - চলবে" : _tillNumber.isNotEmpty ? " till $_tillNumber $_tillUnit" : ""}',
                                       style: const TextStyle(
                                         fontSize: 12,
                                         fontFamily: 'ProductSans',
