@@ -5,6 +5,7 @@ import 'examination_drawer.dart';
 import 'diagnosis_drawer.dart';
 import 'chief_complaint_drawer.dart';
 import 'investigation_drawer.dart';
+import 'history_drawer.dart';
 
 class ClinicalSections extends StatelessWidget {
   final ClinicalData clinicalData;
@@ -213,6 +214,51 @@ class ClinicalSections extends StatelessWidget {
       return;
     }
     
+    // Use special history drawer for history field
+    if (field == 'history') {
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        barrierColor: Colors.black54,
+        transitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return Align(
+            alignment: Alignment.centerRight,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: HistoryDrawer(
+                onSave: (historyItems) {
+                  if (onUpdate != null) {
+                    // Format history items as bullet list
+                    String preview = historyItems.map((h) {
+                      String line = h['name']!;
+                      if (h['value']!.isNotEmpty) {
+                        line += ' - ${h['value']}';
+                      }
+                      if (h['note']!.isNotEmpty) {
+                        line += ' (${h['note']})';
+                      }
+                      return line;
+                    }).join('\n• ');
+                    if (preview.isNotEmpty) {
+                      preview = '• $preview';
+                    }
+                    onUpdate!(field, preview);
+                  }
+                },
+                onClose: () => Navigator.of(context).pop(),
+              ),
+            ),
+          );
+        },
+      );
+      return;
+    }
+    
     // Use regular drawer for other fields
     showGeneralDialog(
       context: context,
@@ -331,7 +377,7 @@ class ClinicalSections extends StatelessWidget {
                       fontFamily: 'ProductSans',
                     ),
                   )
-                : (field == 'chiefComplaint' || field == 'examination' || field == 'diagnosis' || field == 'investigation') && content.contains('\n•')
+                : (field == 'chiefComplaint' || field == 'examination' || field == 'diagnosis' || field == 'investigation' || field == 'history') && content.contains('\n•')
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: content.split('\n•').where((line) => line.trim().isNotEmpty).map((line) {

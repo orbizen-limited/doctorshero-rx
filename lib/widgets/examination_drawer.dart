@@ -70,6 +70,18 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
   String _murmurRadiation = '';
   String _murmurQuality = '';
 
+  // Integumentary System
+  String _skinColorLesions = '';
+  final TextEditingController _skinColorLesionsNotesController = TextEditingController();
+  String _skinPalpation = '';
+  final TextEditingController _skinPalpationNotesController = TextEditingController();
+  String _pressureAreasEdema = '';
+  final TextEditingController _pressureAreasEdemaNotesController = TextEditingController();
+  String _hair = '';
+  final TextEditingController _hairNotesController = TextEditingController();
+  String _nails = '';
+  final TextEditingController _nailsNotesController = TextEditingController();
+
   final List<String> _consciousnessOptions = [
     'Alert', 'Drowsy', 'Confused', 'Unresponsive', 'Oriented x3'
   ];
@@ -111,6 +123,11 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
     _cvInspectionNotesController.dispose();
     _jvpHeightController.dispose();
     _heartSoundsNotesController.dispose();
+    _skinColorLesionsNotesController.dispose();
+    _skinPalpationNotesController.dispose();
+    _pressureAreasEdemaNotesController.dispose();
+    _hairNotesController.dispose();
+    _nailsNotesController.dispose();
     super.dispose();
   }
 
@@ -668,6 +685,237 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIntegumentaryTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // A. Clinical Examination Procedures
+          const Text(
+            'A. Clinical Examination Procedures',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF2563EB),
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Skin - Color & Lesions
+          const Text(
+            'Skin - Color & Lesions',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _skinColorLesions.isEmpty ? null : _skinColorLesions,
+            decoration: InputDecoration(
+              hintText: '-- Select --',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            items: [
+              'Normal color',
+              'Pallor',
+              'Cyanosis',
+              'Jaundice',
+              'Erythema',
+              'Hyperpigmentation',
+              'Hypopigmentation',
+              'No lesions',
+              'Macule/Patch',
+              'Papule/Plaque',
+              'Nodule/Tumor',
+              'Vesicle/Bulla',
+              'Pustule',
+              'Wheal',
+              'Cyst',
+              'Crust',
+              'Scale',
+              'Excoriation',
+              'Fissure',
+              'Ulcer',
+            ].map((item) {
+              return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 13)));
+            }).toList(),
+            onChanged: (value) => setState(() => _skinColorLesions = value ?? ''),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _skinColorLesionsNotesController,
+            decoration: InputDecoration(
+              hintText: 'Describe lesion shape, size, distribution (ABCDE)...',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            maxLines: 2,
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Skin - Palpation
+          const Text(
+            'Skin - Palpation',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _skinPalpation.isEmpty ? null : _skinPalpation,
+            decoration: InputDecoration(
+              hintText: '-- Select --',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            items: [
+              'Normal temperature',
+              'Warm',
+              'Cool',
+              'Normal moisture',
+              'Diaphoretic',
+              'Dry (xerosis)',
+              'Normal texture',
+              'Rough/scaly',
+              'Normal turgor',
+              'Tenting (dehydration)',
+            ].map((item) {
+              return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 13)));
+            }).toList(),
+            onChanged: (value) => setState(() => _skinPalpation = value ?? ''),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _skinPalpationNotesController,
+            decoration: InputDecoration(
+              hintText: 'Describe localized temp changes, etc.',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            maxLines: 2,
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Pressure Areas & Edema
+          const Text(
+            'Pressure Areas & Edema',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _pressureAreasEdema.isEmpty ? null : _pressureAreasEdema,
+            decoration: InputDecoration(
+              hintText: '-- Select --',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            items: [
+              'No pressure area erythema',
+              'Blanchable erythema',
+              'Non-blanchable erythema (Stage 1)',
+              'No edema',
+              'Pitting edema',
+              'Non-pitting edema',
+            ].map((item) {
+              return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 13)));
+            }).toList(),
+            onChanged: (value) => setState(() => _pressureAreasEdema = value ?? ''),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _pressureAreasEdemaNotesController,
+            decoration: InputDecoration(
+              hintText: 'Grade pitting edema (1-4+), note location...',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            maxLines: 2,
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Hair
+          const Text(
+            'Hair',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _hair.isEmpty ? null : _hair,
+            decoration: InputDecoration(
+              hintText: '-- Select --',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            items: [
+              'Normal distribution & texture',
+              'Alopecia (diffuse/patchy)',
+              'Hirsutism',
+              'Brittle/coarse hair',
+              'Scalp scaling/lesions',
+            ].map((item) {
+              return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 13)));
+            }).toList(),
+            onChanged: (value) => setState(() => _hair = value ?? ''),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _hairNotesController,
+            decoration: InputDecoration(
+              hintText: 'Describe findings...',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            maxLines: 2,
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Nails
+          const Text(
+            'Nails',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _nails.isEmpty ? null : _nails,
+            decoration: InputDecoration(
+              hintText: '-- Select --',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            items: [
+              'Normal color & shape',
+              'Cyanosis',
+              'Pallor',
+              'Splinter hemorrhages',
+              'Clubbing',
+              'Koilonychia (spooning)',
+              'Pitting',
+              'Beau\'s lines',
+              'Onycholysis',
+              'Normal capillary refill (<3s)',
+              'Delayed capillary refill',
+            ].map((item) {
+              return DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 13)));
+            }).toList(),
+            onChanged: (value) => setState(() => _nails = value ?? ''),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _nailsNotesController,
+            decoration: InputDecoration(
+              hintText: 'Describe specific nail changes...',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            maxLines: 2,
           ),
         ],
       ),
@@ -1262,6 +1510,48 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
       sections.add('Cardiovascular:\n• ${cvItems.join('\n• ')}');
     }
     
+    // Integumentary System
+    List<String> integumentaryItems = [];
+    
+    if (_skinColorLesions.isNotEmpty) {
+      integumentaryItems.add('Skin - Color & Lesions: $_skinColorLesions');
+      if (_skinColorLesionsNotesController.text.isNotEmpty) {
+        integumentaryItems.add('  Notes: ${_skinColorLesionsNotesController.text}');
+      }
+    }
+    
+    if (_skinPalpation.isNotEmpty) {
+      integumentaryItems.add('Skin - Palpation: $_skinPalpation');
+      if (_skinPalpationNotesController.text.isNotEmpty) {
+        integumentaryItems.add('  Notes: ${_skinPalpationNotesController.text}');
+      }
+    }
+    
+    if (_pressureAreasEdema.isNotEmpty) {
+      integumentaryItems.add('Pressure Areas & Edema: $_pressureAreasEdema');
+      if (_pressureAreasEdemaNotesController.text.isNotEmpty) {
+        integumentaryItems.add('  Notes: ${_pressureAreasEdemaNotesController.text}');
+      }
+    }
+    
+    if (_hair.isNotEmpty) {
+      integumentaryItems.add('Hair: $_hair');
+      if (_hairNotesController.text.isNotEmpty) {
+        integumentaryItems.add('  Notes: ${_hairNotesController.text}');
+      }
+    }
+    
+    if (_nails.isNotEmpty) {
+      integumentaryItems.add('Nails: $_nails');
+      if (_nailsNotesController.text.isNotEmpty) {
+        integumentaryItems.add('  Notes: ${_nailsNotesController.text}');
+      }
+    }
+    
+    if (integumentaryItems.isNotEmpty) {
+      sections.add('Integumentary System:\n• ${integumentaryItems.join('\n• ')}');
+    }
+    
     return sections.join('\n\n');
   }
 
@@ -1344,6 +1634,17 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
                           'murmurLocation': _murmurLocation,
                           'murmurRadiation': _murmurRadiation,
                           'murmurQuality': _murmurQuality,
+                          // Integumentary System
+                          'skinColorLesions': _skinColorLesions,
+                          'skinColorLesionsNotes': _skinColorLesionsNotesController.text,
+                          'skinPalpation': _skinPalpation,
+                          'skinPalpationNotes': _skinPalpationNotesController.text,
+                          'pressureAreasEdema': _pressureAreasEdema,
+                          'pressureAreasEdemaNotes': _pressureAreasEdemaNotesController.text,
+                          'hair': _hair,
+                          'hairNotes': _hairNotesController.text,
+                          'nails': _nails,
+                          'nailsNotes': _nailsNotesController.text,
                         },
                       });
                       widget.onClose();
@@ -1407,7 +1708,7 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
                 controller: _tabController,
                 children: [
                   _buildGeneralExaminationTab(),
-                  _buildComingSoonTab('Integumentary'),
+                  _buildIntegumentaryTab(),
                   _buildCardiovascularTab(),
                   _buildComingSoonTab('Respiratory'),
                   _buildComingSoonTab('Gastrointestinal'),
