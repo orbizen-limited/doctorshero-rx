@@ -14,13 +14,52 @@ class HistoryDrawer extends StatefulWidget {
   State<HistoryDrawer> createState() => _HistoryDrawerState();
 }
 
-class _HistoryDrawerState extends State<HistoryDrawer> {
+class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _customController = TextEditingController();
-  
+  late TabController _tabController;
   
   // Selected items - using HistoryItem class for Value, For, Duration, Note
   List<HistoryItem> _selectedItems = [];
+  
+  // Tab configuration
+  final List<Map<String, dynamic>> _tabs = [
+    {
+      'key': 'presentingComplaint',
+      'title': 'History of Presenting Complaint',
+      'sections': ['presentingComplaint'],
+    },
+    {
+      'key': 'pastMedical',
+      'title': 'Past Medical History',
+      'sections': ['pastMedical'],
+    },
+    {
+      'key': 'drugHistory',
+      'title': 'Drug History',
+      'sections': ['drugHistory'],
+    },
+    {
+      'key': 'familyHistory',
+      'title': 'Family History',
+      'sections': ['familyHistory'],
+    },
+    {
+      'key': 'menstrualObstetric',
+      'title': 'Menstrual & Obstetric',
+      'sections': ['menstrualHistory', 'obstetricHistory'],
+    },
+    {
+      'key': 'personalSocial',
+      'title': 'Personal & Social',
+      'sections': ['personalHistory', 'socioeconomicHistory', 'occupationalHistory'],
+    },
+    {
+      'key': 'immunization',
+      'title': 'Immunization History',
+      'sections': ['immunizationHistory'],
+    },
+  ];
   
   // Custom options for each section
   final Map<String, List<String>> _customOptions = {
@@ -171,18 +210,34 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
   };
 
   @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: _tabs.length, vsync: this);
+  }
+
+  @override
   void dispose() {
+    _tabController.dispose();
     _searchController.dispose();
     _customController.dispose();
     super.dispose();
   }
-
-  Map<String, List<String>> _getFilteredOptions() {
+  
+  // Get sections for current tab
+  List<String> _getCurrentTabSections() {
+    final currentTab = _tabs[_tabController.index];
+    return currentTab['sections'] as List<String>;
+  }
+  
+  // Get filtered options for current tab
+  Map<String, List<String>> _getFilteredOptionsForTab() {
     final searchQuery = _searchController.text.toLowerCase();
     final filteredGroups = <String, List<String>>{};
+    final currentSections = _getCurrentTabSections();
     
-    // Combine predefined and custom options for each section
-    _predefinedOptions.forEach((sectionKey, predefinedList) {
+    // Combine predefined and custom options for each section in current tab
+    for (var sectionKey in currentSections) {
+      final predefinedList = _predefinedOptions[sectionKey] ?? [];
       final customList = _customOptions[sectionKey] ?? [];
       final allOptions = [...predefinedList, ...customList];
       
@@ -198,10 +253,11 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
           filteredGroups[sectionKey] = filtered;
         }
       }
-    });
+    }
     
     return filteredGroups;
   }
+
 
 
   void _addItem(String name) {
@@ -360,8 +416,6 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredOptions = _getFilteredOptions();
-    
     return Material(
       child: Container(
         width: MediaQuery.of(context).size.width * 0.6,
@@ -424,6 +478,31 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
               ),
             ),
             
+            // Tabs
+            Container(
+              color: const Color(0xFFFE3001),
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                indicatorColor: Colors.white,
+                indicatorWeight: 3,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white70,
+                labelStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'ProductSans',
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.normal,
+                  fontFamily: 'ProductSans',
+                ),
+                tabs: _tabs.map((tab) => Tab(text: tab['title'] as String)).toList(),
+                onTap: (index) => setState(() {}),
+              ),
+            ),
+            
             // Search Bar and Custom Input on same row
             Padding(
               padding: const EdgeInsets.all(20),
@@ -476,229 +555,84 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
               ),
             ),
             
-            // History Tags - Grouped (2 columns)
+            // Tab Content
             Expanded(
               flex: 6,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border(
-                    bottom: BorderSide(
-                      color: const Color(0xFFE2E8F0),
-                      width: 2,
+              child: Column(
+                children: [
+                  // Search Bar and Custom Input
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        // Search field - half width
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            onChanged: (_) => setState(() {}),
+                            decoration: InputDecoration(
+                              hintText: 'Search...',
+                              prefixIcon: const Icon(Icons.search),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Custom input field - half width
+                        Expanded(
+                          child: TextField(
+                            controller: _customController,
+                            onSubmitted: (value) {
+                              if (value.isNotEmpty) {
+                                _addCustomItem();
+                              }
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Type custom item...',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: _addCustomItem,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFE3001),
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          ),
+                          child: const Text('Add'),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final entries = filteredOptions.entries.toList();
-                            final leftColumnEntries = <MapEntry<String, List<String>>>[];
-                            final rightColumnEntries = <MapEntry<String, List<String>>>[];
-                            
-                            // Split entries into two columns
-                            for (int i = 0; i < entries.length; i++) {
-                              if (i % 2 == 0) {
-                                leftColumnEntries.add(entries[i]);
-                              } else {
-                                rightColumnEntries.add(entries[i]);
-                              }
-                            }
-                            
-                            return Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Left Column
-                                Expanded(
-                                  child: Column(
-                                    children: leftColumnEntries.map((entry) {
-                                      final sectionKey = entry.key;
-                                      final options = entry.value;
-                                      final title = _sectionTitles[sectionKey] ?? sectionKey;
-                                      
-                                      return Container(
-                                        margin: const EdgeInsets.only(bottom: 12),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(12),
-                                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.05),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Theme(
-                                          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                                          child: ExpansionTile(
-                                            key: ValueKey('left_${sectionKey}_${_searchController.text}'),
-                                            initiallyExpanded: _searchController.text.isNotEmpty,
-                                            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                                            title: Text(
-                                              title,
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w700,
-                                                color: Color(0xFF1E293B),
-                                                fontFamily: 'ProductSans',
-                                              ),
-                                            ),
-                                            children: [
-                                              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                                                children: options.map((option) {
-                                                  final isSelected = _selectedItems.any((item) => item.name == option);
-                                                  final searchQuery = _searchController.text.toLowerCase();
-                                                  final isMatch = searchQuery.isNotEmpty && 
-                                                      option.toLowerCase().contains(searchQuery);
-                  return InkWell(
-                                                    onTap: () => _addItem(option),
+                  
+                  // Tab View Content
+                  Expanded(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                                                        color: isSelected 
-                                                            ? const Color(0xFFFFE5DD) 
-                                                            : (isMatch ? const Color(0xFFFFF4E6) : const Color(0xFFF1F5F9)),
-                        border: Border.all(
-                                                          color: isSelected 
-                                                              ? const Color(0xFFFE3001) 
-                                                              : (isMatch ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0)),
-                                                          width: isMatch ? 1.5 : 1,
-                        ),
-                                                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (isSelected)
-                            const Padding(
-                              padding: EdgeInsets.only(right: 6),
-                              child: Icon(
-                                Icons.check_circle,
-                                size: 16,
-                                color: Color(0xFFFE3001),
-                              ),
-                            ),
-                                                          _buildHighlightedText(option, _searchController.text),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  );
-                                                }).toList(),
+                        color: Colors.white,
+                        border: Border(
+                          bottom: BorderSide(
+                            color: const Color(0xFFE2E8F0),
+                            width: 2,
                           ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-                                const SizedBox(width: 16),
-                                // Right Column
-            Expanded(
-                child: Column(
-                                    children: rightColumnEntries.map((entry) {
-                                      final sectionKey = entry.key;
-                                      final options = entry.value;
-                                      final title = _sectionTitles[sectionKey] ?? sectionKey;
-                                      
-                                      return Container(
-                                        margin: const EdgeInsets.only(bottom: 12),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(12),
-                                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.05),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Theme(
-                                          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                                          child: ExpansionTile(
-                                            key: ValueKey('right_${sectionKey}_${_searchController.text}'),
-                                            initiallyExpanded: _searchController.text.isNotEmpty,
-                                            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                                            title: Text(
-                                              title,
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w700,
-                                                color: Color(0xFF1E293B),
-                                                fontFamily: 'ProductSans',
-                                              ),
-                                            ),
-                                            children: [
-                                              Wrap(
-                                                spacing: 8,
-                                                runSpacing: 8,
-                                                children: options.map((option) {
-                                                  final isSelected = _selectedItems.any((item) => item.name == option);
-                                                  final searchQuery = _searchController.text.toLowerCase();
-                                                  final isMatch = searchQuery.isNotEmpty && 
-                                                      option.toLowerCase().contains(searchQuery);
-                                                  return InkWell(
-                                                    onTap: () => _addItem(option),
-                                                    child: Container(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                      decoration: BoxDecoration(
-                                                        color: isSelected 
-                                                            ? const Color(0xFFFFE5DD) 
-                                                            : (isMatch ? const Color(0xFFFFF4E6) : const Color(0xFFF1F5F9)),
-                                                        border: Border.all(
-                                                          color: isSelected 
-                                                              ? const Color(0xFFFE3001) 
-                                                              : (isMatch ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0)),
-                                                          width: isMatch ? 1.5 : 1,
-                                                        ),
-                                                        borderRadius: BorderRadius.circular(6),
-                                                      ),
-                                                      child: Row(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                          if (isSelected)
-                                                            const Padding(
-                                                              padding: EdgeInsets.only(right: 6),
-                                                              child: Icon(
-                                                                Icons.check_circle,
-                                                                size: 16,
-                                                                color: Color(0xFFFE3001),
-                                                              ),
-                                                            ),
-                                                          _buildHighlightedText(option, _searchController.text),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  );
-                  }).toList(),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
                         ),
                       ),
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: _tabs.map((tab) {
+                          return _buildTabContent(tab['sections'] as List<String>);
+                        }).toList(),
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             
@@ -772,6 +706,215 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
     );
   }
 
+
+  Widget _buildTabContent(List<String> sectionKeys) {
+    final filteredOptions = _getFilteredOptionsForTab();
+    
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final entries = filteredOptions.entries.toList();
+          final leftColumnEntries = <MapEntry<String, List<String>>>[];
+          final rightColumnEntries = <MapEntry<String, List<String>>>[];
+          
+          // Split entries into two columns
+          for (int i = 0; i < entries.length; i++) {
+            if (i % 2 == 0) {
+              leftColumnEntries.add(entries[i]);
+            } else {
+              rightColumnEntries.add(entries[i]);
+            }
+          }
+          
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left Column
+              Expanded(
+                child: Column(
+                  children: leftColumnEntries.map((entry) {
+                    final sectionKey = entry.key;
+                    final options = entry.value;
+                    final title = _sectionTitles[sectionKey] ?? sectionKey;
+                    
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Theme(
+                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                        child: ExpansionTile(
+                          key: ValueKey('left_${sectionKey}_${_searchController.text}'),
+                          initiallyExpanded: _searchController.text.isNotEmpty,
+                          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                          title: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1E293B),
+                              fontFamily: 'ProductSans',
+                            ),
+                          ),
+                          children: [
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: options.map((option) {
+                                final isSelected = _selectedItems.any((item) => item.name == option);
+                                final searchQuery = _searchController.text.toLowerCase();
+                                final isMatch = searchQuery.isNotEmpty && 
+                                    option.toLowerCase().contains(searchQuery);
+                                return InkWell(
+                                  onTap: () => _addItem(option),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: isSelected 
+                                          ? const Color(0xFFFFE5DD) 
+                                          : (isMatch ? const Color(0xFFFFF4E6) : const Color(0xFFF1F5F9)),
+                                      border: Border.all(
+                                        color: isSelected 
+                                            ? const Color(0xFFFE3001) 
+                                            : (isMatch ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0)),
+                                        width: isMatch ? 1.5 : 1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (isSelected)
+                                          const Padding(
+                                            padding: EdgeInsets.only(right: 6),
+                                            child: Icon(
+                                              Icons.check_circle,
+                                              size: 16,
+                                              color: Color(0xFFFE3001),
+                                            ),
+                                          ),
+                                        _buildHighlightedText(option, _searchController.text),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Right Column
+              Expanded(
+                child: Column(
+                  children: rightColumnEntries.map((entry) {
+                    final sectionKey = entry.key;
+                    final options = entry.value;
+                    final title = _sectionTitles[sectionKey] ?? sectionKey;
+                    
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Theme(
+                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                        child: ExpansionTile(
+                          key: ValueKey('right_${sectionKey}_${_searchController.text}'),
+                          initiallyExpanded: _searchController.text.isNotEmpty,
+                          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                          title: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1E293B),
+                              fontFamily: 'ProductSans',
+                            ),
+                          ),
+                          children: [
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: options.map((option) {
+                                final isSelected = _selectedItems.any((item) => item.name == option);
+                                final searchQuery = _searchController.text.toLowerCase();
+                                final isMatch = searchQuery.isNotEmpty && 
+                                    option.toLowerCase().contains(searchQuery);
+                                return InkWell(
+                                  onTap: () => _addItem(option),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: isSelected 
+                                          ? const Color(0xFFFFE5DD) 
+                                          : (isMatch ? const Color(0xFFFFF4E6) : const Color(0xFFF1F5F9)),
+                                      border: Border.all(
+                                        color: isSelected 
+                                            ? const Color(0xFFFE3001) 
+                                            : (isMatch ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0)),
+                                        width: isMatch ? 1.5 : 1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (isSelected)
+                                          const Padding(
+                                            padding: EdgeInsets.only(right: 6),
+                                            child: Icon(
+                                              Icons.check_circle,
+                                              size: 16,
+                                              color: Color(0xFFFE3001),
+                                            ),
+                                          ),
+                                        _buildHighlightedText(option, _searchController.text),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
 
   Widget _buildTable(List<HistoryItem> items, int startIndex) {
     if (items.isEmpty) {
