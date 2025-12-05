@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+// Simulate UserModel
 class UserModel {
   final int id;
   final String name;
@@ -34,13 +37,11 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    // Handle notification_preferences which might be Map or List from API
     Map<String, dynamic>? notifPrefs;
     if (json['notification_preferences'] != null) {
       if (json['notification_preferences'] is Map) {
         notifPrefs = json['notification_preferences'] as Map<String, dynamic>;
       } else if (json['notification_preferences'] is List) {
-        // If it's a list, convert to empty map or handle as needed
         notifPrefs = {};
       }
     }
@@ -63,24 +64,44 @@ class UserModel {
       updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
     );
   }
+}
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'email': email,
-      'role': role,
-      'phone': phone,
-      'is_staff': isStaff,
-      'registration_number': registrationNumber,
-      'specialization': specialization,
-      'qualification': qualification,
-      'bio': bio,
-      'notification_preferences': notificationPreferences,
-      'username': username,
-      'is_active': isActive,
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
-    };
+void main() {
+  print('🧪 Testing UserModel with New API Response\n');
+  
+  // Simulate actual API response
+  final apiResponse = {
+    "id": 10,
+    "name": "Dr. AFM Helal Uddin",
+    "email": "dr.helal.uddin@gmail.com",
+    "username": "afmhelaluddin",
+    "phone": "01718572634",
+    "role": "doctor",
+    "is_active": true
+  };
+  
+  print('📦 API Response:');
+  print(JsonEncoder.withIndent('  ').convert(apiResponse));
+  
+  try {
+    print('\n🔄 Parsing with UserModel.fromJson()...');
+    final user = UserModel.fromJson(apiResponse);
+    
+    print('✅ SUCCESS! User parsed correctly:');
+    print('  ID: ${user.id}');
+    print('  Name: ${user.name}');
+    print('  Email: ${user.email}');
+    print('  Username: ${user.username}');
+    print('  Phone: ${user.phone}');
+    print('  Role: ${user.role}');
+    print('  Is Active: ${user.isActive}');
+    print('  Created At: ${user.createdAt ?? "null (OK)"}');
+    print('  Updated At: ${user.updatedAt ?? "null (OK)"}');
+    
+    print('\n✅ UserModel is now compatible with new API!');
+    
+  } catch (e, stackTrace) {
+    print('❌ ERROR: $e');
+    print('Stack trace: $stackTrace');
   }
 }
