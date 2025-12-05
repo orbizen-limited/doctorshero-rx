@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://demo.doctorshero.com';
+  static const String baseUrl = 'https://doctorshero.com';
   static const String authBaseUrl = '$baseUrl/api/mobile/auth';
   
   String? _token;

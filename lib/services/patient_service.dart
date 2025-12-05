@@ -4,7 +4,7 @@ import 'api_service.dart';
 
 class PatientService {
   final ApiService _apiService = ApiService();
-  static const String baseUrl = 'https://demo.doctorshero.com';
+  static const String baseUrl = 'https://doctorshero.com';
 
   /// Search patients by phone number
   /// Returns list of patients matching the phone (partial match)
