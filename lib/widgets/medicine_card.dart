@@ -549,55 +549,48 @@ class _MedicineCardState extends State<MedicineCard> {
                             style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
                           ),
                           const SizedBox(height: 4),
-                          Row(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    // Show dosage or quantity x frequency
-                                    if (_isInjectionOrSpray() && _quantityController.text.isNotEmpty && _frequencyController.text.isNotEmpty)
-                                      Text(
-                                        '${_quantityController.text} x ${_frequencyController.text}',
-                                        style: const TextStyle(
-                                          fontSize: 10,
-                                          fontFamily: 'ProductSans',
-                                          color: Color(0xFF64748B),
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
-                                      )
-                                    else if (!_isInjectionOrSpray() && _dosageController.text.isNotEmpty)
-                                      Text(
-                                        _dosageController.text,
-                                        style: const TextStyle(
-                                          fontSize: 10,
-                                          fontFamily: 'ProductSans',
-                                          color: Color(0xFF64748B),
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
-                                      ),
-                                    // Show duration
-                                    Text(
-                                      _durationNumberController.text.isEmpty
-                                          ? 'Click to set'
-                                          : (_durationNumberController.text == 'চলবে' || _durationNumberController.text == 'Continues')
-                                              ? 'চলবে${_intervalController.text.isNotEmpty ? " (${_intervalController.text})" : ""}${_tillNumber == "চলবে" || _tillNumber == "Continues" ? " - চলবে" : _tillNumber.isNotEmpty ? " till $_tillNumber $_tillUnit" : ""}'
-                                              : '${_durationNumberController.text} $_durationUnit${_intervalController.text.isNotEmpty ? " (${_intervalController.text})" : ""}${_tillNumber == "চলবে" || _tillNumber == "Continues" ? " - চলবে" : _tillNumber.isNotEmpty ? " till $_tillNumber $_tillUnit" : ""}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontFamily: 'ProductSans',
-                                        color: Color(0xFF1E293B),
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                    ),
-                                  ],
+                              // Show dosage or quantity x frequency
+                              if (_isInjectionOrSpray() && _quantityController.text.isNotEmpty && _frequencyController.text.isNotEmpty)
+                                Text(
+                                  '${_quantityController.text} x ${_frequencyController.text}',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontFamily: 'ProductSans',
+                                    color: Color(0xFF64748B),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                )
+                              else if (!_isInjectionOrSpray() && _dosageController.text.isNotEmpty)
+                                Text(
+                                  _dosageController.text,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontFamily: 'ProductSans',
+                                    color: Color(0xFF64748B),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
+                              // Show duration
+                              Text(
+                                _durationNumberController.text.isEmpty
+                                    ? 'Click to set'
+                                    : (_durationNumberController.text == 'চলবে' || _durationNumberController.text == 'Continues')
+                                        ? 'চলবে${_intervalController.text.isNotEmpty ? " (${_intervalController.text})" : ""}${_tillNumber == "চলবে" || _tillNumber == "Continues" ? " - চলবে" : _tillNumber.isNotEmpty ? " till $_tillNumber $_tillUnit" : ""}'
+                                        : '${_durationNumberController.text} $_durationUnit${_intervalController.text.isNotEmpty ? " (${_intervalController.text})" : ""}${_tillNumber == "চলবে" || _tillNumber == "Continues" ? " - চলবে" : _tillNumber.isNotEmpty ? " till $_tillNumber $_tillUnit" : ""}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: 'ProductSans',
+                                  color: Color(0xFF1E293B),
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
-                              const Icon(Icons.edit, size: 16, color: Color(0xFF64748B)),
                             ],
                           ),
                         ],

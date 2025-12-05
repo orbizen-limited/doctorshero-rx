@@ -67,24 +67,50 @@ class PatientInfoCard extends StatelessWidget {
 
   Widget _buildInfoField(BuildContext context, String label, String value, String field) {
     return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label.toUpperCase(),
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
-              letterSpacing: 0.5,
-              fontFamily: 'ProductSans',
-            ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
+      child: isEditable && onUpdate != null
+          ? InkWell(
+              onTap: () => _showUnifiedPatientDialog(context),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF64748B),
+                      letterSpacing: 0.5,
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    value.isEmpty ? '-' : value,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF64748B),
+                    letterSpacing: 0.5,
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
                   value.isEmpty ? '-' : value,
                   style: const TextStyle(
                     fontSize: 15,
@@ -93,43 +119,57 @@ class PatientInfoCard extends StatelessWidget {
                     fontFamily: 'ProductSans',
                   ),
                 ),
-              ),
-              if (isEditable && onUpdate != null)
-                InkWell(
-                  onTap: () => _showUnifiedPatientDialog(context),
-                  child: const Icon(
-                    Icons.edit,
-                    size: 16,
-                    color: Color(0xFF3B82F6),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
+              ],
+            ),
     );
   }
 
   Widget _buildGenderField(BuildContext context) {
     return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'GENDER',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
-              letterSpacing: 0.5,
-              fontFamily: 'ProductSans',
-            ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
+      child: isEditable && onUpdate != null
+          ? InkWell(
+              onTap: () => _showUnifiedPatientDialog(context),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'GENDER',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF64748B),
+                      letterSpacing: 0.5,
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    patientInfo.gender.isEmpty ? '-' : patientInfo.gender,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'GENDER',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF64748B),
+                    letterSpacing: 0.5,
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
                   patientInfo.gender.isEmpty ? '-' : patientInfo.gender,
                   style: const TextStyle(
                     fontSize: 15,
@@ -138,43 +178,57 @@ class PatientInfoCard extends StatelessWidget {
                     fontFamily: 'ProductSans',
                   ),
                 ),
-              ),
-              if (isEditable && onUpdate != null)
-                InkWell(
-                  onTap: () => _showUnifiedPatientDialog(context),
-                  child: const Icon(
-                    Icons.edit,
-                    size: 16,
-                    color: Color(0xFF3B82F6),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
+              ],
+            ),
     );
   }
 
   Widget _buildDateField(BuildContext context) {
     return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'DATE',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
-              letterSpacing: 0.5,
-              fontFamily: 'ProductSans',
-            ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
+      child: isEditable && onUpdate != null
+          ? InkWell(
+              onTap: () => _showUnifiedPatientDialog(context),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'DATE',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF64748B),
+                      letterSpacing: 0.5,
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    patientInfo.date.isEmpty ? '-' : patientInfo.date,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'DATE',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF64748B),
+                    letterSpacing: 0.5,
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
                   patientInfo.date.isEmpty ? '-' : patientInfo.date,
                   style: const TextStyle(
                     fontSize: 15,
@@ -183,20 +237,8 @@ class PatientInfoCard extends StatelessWidget {
                     fontFamily: 'ProductSans',
                   ),
                 ),
-              ),
-              if (isEditable && onUpdate != null)
-                InkWell(
-                  onTap: () => _showUnifiedPatientDialog(context),
-                  child: const Icon(
-                    Icons.edit,
-                    size: 16,
-                    color: Color(0xFF3B82F6),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
+              ],
+            ),
     );
   }
 

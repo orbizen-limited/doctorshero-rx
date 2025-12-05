@@ -18,11 +18,6 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _customController = TextEditingController();
   
-  // Predefined option controllers for each section
-  final Map<String, TextEditingController> _predefinedControllers = {};
-  
-  // Custom option controllers for each section
-  final Map<String, TextEditingController> _sectionCustomControllers = {};
   
   // Selected items - using HistoryItem class for Value, For, Duration, Note
   List<HistoryItem> _selectedItems = [];
@@ -176,49 +171,38 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
   };
 
   @override
-  void initState() {
-    super.initState();
-    // Initialize controllers for all sections
-    for (var sectionKey in _predefinedOptions.keys) {
-      _predefinedControllers[sectionKey] = TextEditingController();
-      _sectionCustomControllers[sectionKey] = TextEditingController();
-    }
-  }
-
-  @override
   void dispose() {
     _searchController.dispose();
     _customController.dispose();
-    for (var controller in _predefinedControllers.values) {
-      controller.dispose();
-    }
-    for (var controller in _sectionCustomControllers.values) {
-      controller.dispose();
-    }
     super.dispose();
   }
 
-  List<String> _getAllOptions() {
-    final allOptions = <String>[];
-    for (var options in _predefinedOptions.values) {
-      allOptions.addAll(options);
-    }
-    for (var customOptions in _customOptions.values) {
-      allOptions.addAll(customOptions);
-    }
-    return allOptions.toSet().toList(); // Remove duplicates
+  Map<String, List<String>> _getFilteredOptions() {
+    final searchQuery = _searchController.text.toLowerCase();
+    final filteredGroups = <String, List<String>>{};
+    
+    // Combine predefined and custom options for each section
+    _predefinedOptions.forEach((sectionKey, predefinedList) {
+      final customList = _customOptions[sectionKey] ?? [];
+      final allOptions = [...predefinedList, ...customList];
+      
+      if (searchQuery.isEmpty) {
+        // If no search, show all options
+        filteredGroups[sectionKey] = allOptions;
+      } else {
+        // Filter by search query
+        final filtered = allOptions
+            .where((option) => option.toLowerCase().contains(searchQuery))
+            .toList();
+        if (filtered.isNotEmpty) {
+          filteredGroups[sectionKey] = filtered;
+        }
+      }
+    });
+    
+    return filteredGroups;
   }
 
-  List<String> _getFilteredOptions() {
-    final allOptions = _getAllOptions();
-    
-    if (_searchController.text.isEmpty) {
-      return allOptions;
-    }
-    
-    final query = _searchController.text.toLowerCase();
-    return allOptions.where((option) => option.toLowerCase().contains(query)).toList();
-  }
 
   void _addItem(String name) {
     // Check if item already exists
@@ -289,16 +273,14 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
     );
   }
 
-  void _addCustomOption(String sectionKey) {
-    final controller = _sectionCustomControllers[sectionKey];
-    if (controller != null && controller.text.isNotEmpty) {
+  void _addCustomOption(String sectionKey, String customText) {
+    if (customText.isNotEmpty) {
       setState(() {
         final customList = _customOptions[sectionKey] ?? [];
-        if (!customList.contains(controller.text)) {
-          customList.add(controller.text);
+        if (!customList.contains(customText)) {
+          customList.add(customText);
         }
-        _addItem(controller.text);
-        controller.clear();
+        _addItem(customText);
       });
     }
   }
@@ -324,6 +306,56 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
     
     widget.onSave(historyItems);
     Navigator.pop(context);
+  }
+
+  Widget _buildHighlightedText(String text, String query) {
+    if (query.isEmpty) {
+      return Text(
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          color: Color(0xFF64748B),
+          fontFamily: 'ProductSans',
+        ),
+      );
+    }
+
+    final queryLower = query.toLowerCase();
+    final textLower = text.toLowerCase();
+    final index = textLower.indexOf(queryLower);
+
+    if (index == -1) {
+      return Text(
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          color: Color(0xFF64748B),
+          fontFamily: 'ProductSans',
+        ),
+      );
+    }
+
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(
+          fontSize: 13,
+          color: Color(0xFF64748B),
+          fontFamily: 'ProductSans',
+        ),
+        children: [
+          TextSpan(text: text.substring(0, index)),
+          TextSpan(
+            text: text.substring(index, index + query.length),
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: Color(0xFFFE3001),
+              backgroundColor: Color(0xFFFFE5E5),
+            ),
+          ),
+          TextSpan(text: text.substring(index + query.length)),
+        ],
+      ),
+    );
   }
 
   @override
@@ -417,6 +449,11 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
                   Expanded(
                     child: TextField(
                       controller: _customController,
+                      onSubmitted: (value) {
+                        if (value.isNotEmpty) {
+                          _addCustomItem();
+                        }
+                      },
                       decoration: InputDecoration(
                         hintText: 'Type custom item...',
                         border: OutlineInputBorder(
@@ -439,24 +476,104 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
               ),
             ),
             
-            // Predefined Items (Tags)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Wrap(
+            // History Tags - Grouped (2 columns)
+            Expanded(
+              flex: 6,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: const Color(0xFFE2E8F0),
+                      width: 2,
+                    ),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final entries = filteredOptions.entries.toList();
+                            final leftColumnEntries = <MapEntry<String, List<String>>>[];
+                            final rightColumnEntries = <MapEntry<String, List<String>>>[];
+                            
+                            // Split entries into two columns
+                            for (int i = 0; i < entries.length; i++) {
+                              if (i % 2 == 0) {
+                                leftColumnEntries.add(entries[i]);
+                              } else {
+                                rightColumnEntries.add(entries[i]);
+                              }
+                            }
+                            
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Left Column
+                                Expanded(
+                                  child: Column(
+                                    children: leftColumnEntries.map((entry) {
+                                      final sectionKey = entry.key;
+                                      final options = entry.value;
+                                      final title = _sectionTitles[sectionKey] ?? sectionKey;
+                                      
+                                      return Container(
+                                        margin: const EdgeInsets.only(bottom: 12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.05),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Theme(
+                                          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                                          child: ExpansionTile(
+                                            key: ValueKey('left_${sectionKey}_${_searchController.text}'),
+                                            initiallyExpanded: _searchController.text.isNotEmpty,
+                                            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                                            title: Text(
+                                              title,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                                color: Color(0xFF1E293B),
+                                                fontFamily: 'ProductSans',
+                                              ),
+                                            ),
+                                            children: [
+                                              Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: filteredOptions.map((item) {
-                  final isSelected = _selectedItems.any((selected) => selected.name == item);
+                                                children: options.map((option) {
+                                                  final isSelected = _selectedItems.any((item) => item.name == option);
+                                                  final searchQuery = _searchController.text.toLowerCase();
+                                                  final isMatch = searchQuery.isNotEmpty && 
+                                                      option.toLowerCase().contains(searchQuery);
                   return InkWell(
-                    onTap: () => _addItem(item),
+                                                    onTap: () => _addItem(option),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFFFFE5DD) : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(6),
+                                                        color: isSelected 
+                                                            ? const Color(0xFFFFE5DD) 
+                                                            : (isMatch ? const Color(0xFFFFF4E6) : const Color(0xFFF1F5F9)),
                         border: Border.all(
-                          color: isSelected ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0),
+                                                          color: isSelected 
+                                                              ? const Color(0xFFFE3001) 
+                                                              : (isMatch ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0)),
+                                                          width: isMatch ? 1.5 : 1,
                         ),
+                                                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -470,14 +587,12 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
                                 color: Color(0xFFFE3001),
                               ),
                             ),
-                          Text(
-                            item,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isSelected ? const Color(0xFFFE3001) : const Color(0xFF475569),
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                              fontFamily: 'ProductSans',
-                            ),
+                                                          _buildHighlightedText(option, _searchController.text),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  );
+                                                }).toList(),
                           ),
                         ],
                       ),
@@ -486,18 +601,103 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
                 }).toList(),
               ),
             ),
-            const SizedBox(height: 20),
-            const Divider(),
-            
-            // History Sections with Custom Options
+                                const SizedBox(width: 16),
+                                // Right Column
             Expanded(
-              flex: 3,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: Column(
-                  children: _predefinedOptions.keys.map((sectionKey) {
-                    return _buildHistorySection(sectionKey);
+                                    children: rightColumnEntries.map((entry) {
+                                      final sectionKey = entry.key;
+                                      final options = entry.value;
+                                      final title = _sectionTitles[sectionKey] ?? sectionKey;
+                                      
+                                      return Container(
+                                        margin: const EdgeInsets.only(bottom: 12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.05),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Theme(
+                                          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                                          child: ExpansionTile(
+                                            key: ValueKey('right_${sectionKey}_${_searchController.text}'),
+                                            initiallyExpanded: _searchController.text.isNotEmpty,
+                                            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                                            title: Text(
+                                              title,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                                color: Color(0xFF1E293B),
+                                                fontFamily: 'ProductSans',
+                                              ),
+                                            ),
+                                            children: [
+                                              Wrap(
+                                                spacing: 8,
+                                                runSpacing: 8,
+                                                children: options.map((option) {
+                                                  final isSelected = _selectedItems.any((item) => item.name == option);
+                                                  final searchQuery = _searchController.text.toLowerCase();
+                                                  final isMatch = searchQuery.isNotEmpty && 
+                                                      option.toLowerCase().contains(searchQuery);
+                                                  return InkWell(
+                                                    onTap: () => _addItem(option),
+                                                    child: Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                      decoration: BoxDecoration(
+                                                        color: isSelected 
+                                                            ? const Color(0xFFFFE5DD) 
+                                                            : (isMatch ? const Color(0xFFFFF4E6) : const Color(0xFFF1F5F9)),
+                                                        border: Border.all(
+                                                          color: isSelected 
+                                                              ? const Color(0xFFFE3001) 
+                                                              : (isMatch ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0)),
+                                                          width: isMatch ? 1.5 : 1,
+                                                        ),
+                                                        borderRadius: BorderRadius.circular(6),
+                                                      ),
+                                                      child: Row(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                          if (isSelected)
+                                                            const Padding(
+                                                              padding: EdgeInsets.only(right: 6),
+                                                              child: Icon(
+                                                                Icons.check_circle,
+                                                                size: 16,
+                                                                color: Color(0xFFFE3001),
+                                                              ),
+                                                            ),
+                                                          _buildHighlightedText(option, _searchController.text),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  );
                   }).toList(),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -572,151 +772,6 @@ class _HistoryDrawerState extends State<HistoryDrawer> {
     );
   }
 
-  Widget _buildHistorySection(String sectionKey) {
-    final title = _sectionTitles[sectionKey] ?? sectionKey;
-    final customList = _customOptions[sectionKey] ?? [];
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
-              fontFamily: 'ProductSans',
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Autocomplete<String>(
-                  optionsBuilder: (TextEditingValue textEditingValue) {
-                    final options = _predefinedOptions[sectionKey] ?? [];
-                    if (textEditingValue.text.isEmpty) {
-                      return options;
-                    }
-                    return options.where((option) =>
-                      option.toLowerCase().contains(textEditingValue.text.toLowerCase())
-                    ).toList();
-                  },
-                  fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                    _predefinedControllers[sectionKey] = controller;
-                    return TextField(
-                      controller: controller,
-                      focusNode: focusNode,
-                      onSubmitted: (value) {
-                        if (value.isNotEmpty) {
-                          _addItem(value);
-                          controller.clear();
-                        }
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Type or select from predefined options...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        isDense: true,
-                      ),
-                    );
-                  },
-                  onSelected: (String option) {
-                    _addItem(option);
-                    _predefinedControllers[sectionKey]?.clear();
-                  },
-                ),
-              ),
-              const SizedBox(width: 12),
-              ElevatedButton(
-                onPressed: () {
-                  final controller = _predefinedControllers[sectionKey];
-                  if (controller != null && controller.text.isNotEmpty) {
-                    _addItem(controller.text);
-                    controller.clear();
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3B82F6),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-                child: const Text('Add', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _sectionCustomControllers[sectionKey],
-                  decoration: InputDecoration(
-                    hintText: 'Add new custom option...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    isDense: true,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              ElevatedButton(
-                onPressed: () => _addCustomOption(sectionKey),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-                child: const Text('Add New', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              ElevatedButton(
-                onPressed: () => _showCustomOptions(sectionKey),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFBBF24),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                child: const Text('Show Custom', style: TextStyle(color: Colors.white)),
-              ),
-              const SizedBox(width: 12),
-              ElevatedButton(
-                onPressed: () => _clearCustomOptions(sectionKey),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEF4444),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                child: const Text('Clear Custom', style: TextStyle(color: Colors.white)),
-              ),
-              const Spacer(),
-              if (customList.isNotEmpty)
-                Text(
-                  'Custom options: ${customList.length}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF64748B),
-                    fontFamily: 'ProductSans',
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildTable(List<HistoryItem> items, int startIndex) {
     if (items.isEmpty) {
