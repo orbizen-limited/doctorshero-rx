@@ -46,6 +46,8 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
   DateTime? followUpDate;
   String? referralText;
   bool _hasUnsavedChanges = false;
+  bool _discountEnabled = false;
+  String? _discountAmount;
 
   @override
   void initState() {
@@ -207,7 +209,7 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
 
   void _addMedicine(Medicine medicine) {
     setState(() {
-      medicines.add(medicine);
+      medicines.insert(0, medicine);
       _hasUnsavedChanges = true;
     });
   }
@@ -274,6 +276,13 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
   void _updateReferral(String? referral) {
     setState(() {
       referralText = referral;
+    });
+  }
+
+  void _updateDiscount(bool enabled, String? amount) {
+    setState(() {
+      _discountEnabled = enabled;
+      _discountAmount = amount;
     });
   }
 
@@ -432,6 +441,7 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
           advice: adviceList,
           followUpDate: followUpDate != null ? DateFormat('dd/MM/yyyy').format(followUpDate!) : null,
           referral: referralText,
+          discountAmount: _discountEnabled && _discountAmount != null && _discountAmount!.isNotEmpty ? _discountAmount : null,
         );
       } catch (printError) {
         print('PDF print error: $printError');
@@ -618,6 +628,7 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
                                           child: ClinicalSections(
                                             clinicalData: clinicalData,
                                             onUpdate: _updateClinicalData,
+                                            onDiscountUpdate: _updateDiscount,
                                           ),
                                         ),
                                         const SizedBox(width: 48),
@@ -649,6 +660,7 @@ class _CreatePrescriptionScreenState extends State<CreatePrescriptionScreen> {
                                         ClinicalSections(
                                           clinicalData: clinicalData,
                                           onUpdate: _updateClinicalData,
+                                          onDiscountUpdate: _updateDiscount,
                                         ),
                                         const SizedBox(height: 32),
                                         MedicineList(

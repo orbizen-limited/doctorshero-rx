@@ -1,4 +1,6 @@
 import 'package:hive/hive.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import '../models/saved_prescription.dart';
 import '../models/saved_medicine.dart';
 
@@ -18,8 +20,41 @@ class PrescriptionDatabaseService {
       Hive.registerAdapter(SavedMedicineAdapter());
     }
     
-    // Open the box
-    await Hive.openBox<SavedPrescription>(_boxName);
+    // Check if box is already open
+    if (Hive.isBoxOpen(_boxName)) {
+      return;
+    }
+    
+    // Open the box with error handling for lock files
+    try {
+      await Hive.openBox<SavedPrescription>(_boxName);
+    } on PathAccessException catch (e) {
+      // Handle lock file issues - try to delete stale lock file
+      if (e.message.contains('lock')) {
+        try {
+          final documentsDir = await getApplicationDocumentsDirectory();
+          final lockFile = File('${documentsDir.path}/$_boxName.lock');
+          if (await lockFile.exists()) {
+            await lockFile.delete();
+            // Retry opening the box
+            await Hive.openBox<SavedPrescription>(_boxName);
+          }
+        } catch (_) {
+          // If box is already open, that's fine - ignore the error
+          if (!Hive.isBoxOpen(_boxName)) {
+            // If we still can't open it, just log and continue
+            // The app can still run, but database operations will fail
+            print('Warning: Could not open prescriptions box due to lock file');
+          }
+        }
+      } else {
+        // For other PathAccessException, just log and continue
+        print('Warning: Could not open prescriptions box: ${e.message}');
+      }
+    } catch (e) {
+      // For any other exception, log and continue
+      print('Warning: Could not open prescriptions box: $e');
+    }
   }
 
   // Save a prescription

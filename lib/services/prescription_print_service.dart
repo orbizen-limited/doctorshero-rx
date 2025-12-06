@@ -26,6 +26,66 @@ class PrescriptionPrintService {
     return text.runes.any((rune) => rune >= 0x0980 && rune <= 0x09FF);
   }
 
+  // Get text widget that wraps properly for constrained width
+  static pw.Widget _getWrappedTextWidget(String text, double maxWidth, {double? fontSize, pw.FontWeight? fontWeight, pw.TextAlign? textAlign}) {
+    final hasBangla = _containsBangla(text);
+    
+    if (!hasBangla) {
+      return pw.SizedBox(
+        width: maxWidth,
+        child: pw.Text(
+          text,
+          style: pw.TextStyle(
+            fontSize: fontSize ?? 9,
+            fontWeight: fontWeight,
+          ),
+          textAlign: textAlign,
+        ),
+      );
+    }
+    
+    final parenMatch = RegExp(r'^(.+?)\s*\(([^)]+)\)\s*$').firstMatch(text);
+    if (parenMatch != null) {
+      final banglaPart = parenMatch.group(1)!.trim();
+      final englishPart = parenMatch.group(2)!.trim();
+      
+      // Render as Column to allow wrapping
+      return pw.SizedBox(
+        width: maxWidth,
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          mainAxisSize: pw.MainAxisSize.min,
+          children: [
+            BanglaText(
+              banglaPart,
+              fontSize: fontSize ?? 9,
+              fontWeight: fontWeight ?? pw.FontWeight.normal,
+              textAlign: pw.TextAlign.left,
+            ),
+            pw.Text(
+              '($englishPart)',
+              style: pw.TextStyle(
+                fontSize: fontSize ?? 9,
+                fontWeight: fontWeight,
+              ),
+              textAlign: pw.TextAlign.left,
+            ),
+          ],
+        ),
+      );
+    }
+    
+    return pw.SizedBox(
+      width: maxWidth,
+      child: BanglaText(
+        text,
+        fontSize: fontSize ?? 9,
+        fontWeight: fontWeight ?? pw.FontWeight.normal,
+        textAlign: textAlign ?? pw.TextAlign.left,
+      ),
+    );
+  }
+
   // Get appropriate text widget - BanglaText for Bangla, pw.Text for English
   // Handles mixed Bangla/English text by splitting and rendering separately
   static pw.Widget _getTextWidget(String text, {double? fontSize, pw.FontWeight? fontWeight, pw.TextAlign? textAlign}) {
@@ -133,6 +193,7 @@ class PrescriptionPrintService {
     required List<String> advice,
     required String? followUpDate,
     required String? referral,
+    String? discountAmount,
   }) async {
     try {
       print('🖨️ Opening native print dialog...');
@@ -155,6 +216,7 @@ class PrescriptionPrintService {
         advice: advice,
         followUpDate: followUpDate,
         referral: referral,
+        discountAmount: discountAmount,
       );
       
       // Open native print dialog directly (Windows/Mac/Linux)
@@ -188,6 +250,7 @@ class PrescriptionPrintService {
     required List<String> advice,
     required String? followUpDate,
     required String? referral,
+    String? discountAmount,
   }) async {
     // Initialize Bangla fonts
     await _initializeBanglaFonts();
@@ -270,12 +333,16 @@ class PrescriptionPrintService {
                               child: _getTextWidget('- $item', fontSize: 9),
                             )),
                           ],
+                          if (discountAmount != null && discountAmount.isNotEmpty) ...[
+                            pw.SizedBox(height: 8),
+                            _getTextWidget('Please give $discountAmount% discount', fontSize: 9),
+                          ],
                         ],
                       ),
                     ),
-                    pw.SizedBox(width: 10),
-                    pw.Container(width: 0.5, height: double.infinity, color: PdfColors.grey400),
-                    pw.SizedBox(width: 10),
+                    pw.SizedBox(width: 8),
+                    pw.Container(width: 1, height: double.infinity, color: PdfColors.grey800),
+                    pw.SizedBox(width: 8),
                     // Right Column - Medicines
                     pw.Expanded(
                       child: pw.Column(
@@ -333,7 +400,7 @@ class PrescriptionPrintService {
                                     width: 60,
                                     padding: const pw.EdgeInsets.only(left: 10),
                                     child: medicine.advice.isNotEmpty
-                                        ? _getTextWidget(medicine.advice, fontSize: 8, textAlign: pw.TextAlign.left)
+                                        ? _getWrappedTextWidget(medicine.advice, 60, fontSize: 8, textAlign: pw.TextAlign.left)
                                         : pw.SizedBox.shrink(),
                                   ),
                                 ],
@@ -397,6 +464,7 @@ class PrescriptionPrintService {
     required List<String> advice,
     required String? followUpDate,
     required String? referral,
+    String? discountAmount,
   }) async {
     // Initialize Bangla fonts
     await _initializeBanglaFonts();
@@ -487,22 +555,26 @@ class PrescriptionPrintService {
                         child: _getTextWidget('- $item', fontSize: 9),
                       )),
                     ],
+                    if (discountAmount != null && discountAmount.isNotEmpty) ...[
+                      pw.SizedBox(height: 8),
+                      _getTextWidget('Please give $discountAmount% discount', fontSize: 9),
+                    ],
                   ],
                 ),
               ),
 
               // Spacing before separator
-              pw.SizedBox(width: 10),
+              pw.SizedBox(width: 8),
 
               // Vertical Divider
               pw.Container(
-                width: 0.5,
+                width: 1,
                 height: double.infinity,
-                color: PdfColors.grey400,
+                color: PdfColors.grey800,
               ),
 
               // Spacing after separator
-              pw.SizedBox(width: 10),
+              pw.SizedBox(width: 8),
 
               // Right Column - Rx (Medicines)
               pw.Expanded(
@@ -571,8 +643,9 @@ class PrescriptionPrintService {
                               width: 60,
                               padding: const pw.EdgeInsets.only(left: 10),
                               child: medicine.advice.isNotEmpty
-                                  ? _getTextWidget(
+                                  ? _getWrappedTextWidget(
                                       medicine.advice,
+                                      60,
                                       fontSize: 8,
                                       textAlign: pw.TextAlign.left,
                                     )
@@ -654,6 +727,7 @@ class PrescriptionPrintService {
     required List<String> advice,
     required String? followUpDate,
     required String? referral,
+    String? discountAmount,
   }) async {
     // Initialize Bangla fonts
     await _initializeBanglaFonts();
@@ -744,22 +818,26 @@ class PrescriptionPrintService {
                         child: _getTextWidget('- $item', fontSize: 9),
                       )),
                     ],
+                    if (discountAmount != null && discountAmount.isNotEmpty) ...[
+                      pw.SizedBox(height: 8),
+                      _getTextWidget('Please give $discountAmount% discount', fontSize: 9),
+                    ],
                   ],
                 ),
               ),
 
               // Spacing before separator
-              pw.SizedBox(width: 10),
+              pw.SizedBox(width: 8),
 
               // Vertical Divider
               pw.Container(
-                width: 0.5,
+                width: 1,
                 height: double.infinity,
-                color: PdfColors.grey400,
+                color: PdfColors.grey800,
               ),
 
               // Spacing after separator
-              pw.SizedBox(width: 10),
+              pw.SizedBox(width: 8),
 
               // Right Column - Rx (Medicines)
               pw.Expanded(
@@ -828,8 +906,9 @@ class PrescriptionPrintService {
                               width: 60,
                               padding: const pw.EdgeInsets.only(left: 10),
                               child: medicine.advice.isNotEmpty
-                                  ? _getTextWidget(
+                                  ? _getWrappedTextWidget(
                                       medicine.advice,
+                                      60,
                                       fontSize: 8,
                                       textAlign: pw.TextAlign.left,
                                     )

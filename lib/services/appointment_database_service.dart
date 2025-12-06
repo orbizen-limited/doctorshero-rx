@@ -1,4 +1,6 @@
 import 'package:hive/hive.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import '../models/saved_appointment.dart';
 import '../models/appointment_model.dart';
 
@@ -16,9 +18,57 @@ class AppointmentDatabaseService {
       Hive.registerAdapter(SavedAppointmentStatsAdapter());
     }
 
-    // Open boxes
-    await Hive.openBox<SavedAppointment>(_appointmentsBoxName);
-    await Hive.openBox<SavedAppointmentStats>(_statsBoxName);
+    // Open appointments box with error handling
+    if (!Hive.isBoxOpen(_appointmentsBoxName)) {
+      try {
+        await Hive.openBox<SavedAppointment>(_appointmentsBoxName);
+      } on PathAccessException catch (e) {
+        if (e.message.contains('lock')) {
+          try {
+            final documentsDir = await getApplicationDocumentsDirectory();
+            final lockFile = File('${documentsDir.path}/$_appointmentsBoxName.lock');
+            if (await lockFile.exists()) {
+              await lockFile.delete();
+              await Hive.openBox<SavedAppointment>(_appointmentsBoxName);
+            }
+          } catch (_) {
+            if (!Hive.isBoxOpen(_appointmentsBoxName)) {
+              print('Warning: Could not open $_appointmentsBoxName box due to lock file');
+            }
+          }
+        } else {
+          print('Warning: Could not open $_appointmentsBoxName box: ${e.message}');
+        }
+      } catch (e) {
+        print('Warning: Could not open $_appointmentsBoxName box: $e');
+      }
+    }
+
+    // Open stats box with error handling
+    if (!Hive.isBoxOpen(_statsBoxName)) {
+      try {
+        await Hive.openBox<SavedAppointmentStats>(_statsBoxName);
+      } on PathAccessException catch (e) {
+        if (e.message.contains('lock')) {
+          try {
+            final documentsDir = await getApplicationDocumentsDirectory();
+            final lockFile = File('${documentsDir.path}/$_statsBoxName.lock');
+            if (await lockFile.exists()) {
+              await lockFile.delete();
+              await Hive.openBox<SavedAppointmentStats>(_statsBoxName);
+            }
+          } catch (_) {
+            if (!Hive.isBoxOpen(_statsBoxName)) {
+              print('Warning: Could not open $_statsBoxName box due to lock file');
+            }
+          }
+        } else {
+          print('Warning: Could not open $_statsBoxName box: ${e.message}');
+        }
+      } catch (e) {
+        print('Warning: Could not open $_statsBoxName box: $e');
+      }
+    }
   }
 
   // Get appointments box

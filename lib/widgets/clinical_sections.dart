@@ -7,15 +7,32 @@ import 'chief_complaint_drawer.dart';
 import 'investigation_drawer.dart';
 import 'history_drawer.dart';
 
-class ClinicalSections extends StatelessWidget {
+class ClinicalSections extends StatefulWidget {
   final ClinicalData clinicalData;
   final Function(String field, String value)? onUpdate;
+  final Function(bool enabled, String? amount)? onDiscountUpdate;
 
   const ClinicalSections({
     Key? key,
     required this.clinicalData,
     this.onUpdate,
+    this.onDiscountUpdate,
   }) : super(key: key);
+
+  @override
+  State<ClinicalSections> createState() => _ClinicalSectionsState();
+}
+
+class _ClinicalSectionsState extends State<ClinicalSections> {
+
+  bool _discountEnabled = false;
+  final TextEditingController _discountController = TextEditingController();
+
+  @override
+  void dispose() {
+    _discountController.dispose();
+    super.dispose();
+  }
 
   // Predefined items for each section
   final Map<String, List<String>> _predefinedItems = const {
@@ -66,7 +83,7 @@ class ClinicalSections extends StatelessWidget {
               ).animate(animation),
               child: ChiefComplaintDrawer(
                 onSave: (complaints) {
-                  if (onUpdate != null) {
+                  if (widget.onUpdate != null) {
                     // Format complaints as bullet list
                     String preview = complaints.map((c) {
                       String line = c['name']!;
@@ -81,7 +98,7 @@ class ClinicalSections extends StatelessWidget {
                     if (preview.isNotEmpty) {
                       preview = '• $preview';
                     }
-                    onUpdate!(field, preview);
+                    widget.onUpdate!(field, preview);
                   }
                 },
                 onClose: () => Navigator.of(context).pop(),
@@ -111,8 +128,8 @@ class ClinicalSections extends StatelessWidget {
               ).animate(animation),
               child: ExaminationDrawer(
                 onSave: (data) {
-                  if (onUpdate != null) {
-                    onUpdate!(field, data['preview'] ?? '');
+                  if (widget.onUpdate != null) {
+                    widget.onUpdate!(field, data['preview'] ?? '');
                   }
                 },
                 onClose: () => Navigator.of(context).pop(),
@@ -142,7 +159,7 @@ class ClinicalSections extends StatelessWidget {
               ).animate(animation),
               child: DiagnosisDrawer(
                 onSave: (diagnoses) {
-                  if (onUpdate != null) {
+                  if (widget.onUpdate != null) {
                     // Format diagnoses as bullet list
                     String preview = diagnoses.map((d) {
                       String line = d['name']!;
@@ -157,7 +174,7 @@ class ClinicalSections extends StatelessWidget {
                     if (preview.isNotEmpty) {
                       preview = '• $preview';
                     }
-                    onUpdate!(field, preview);
+                    widget.onUpdate!(field, preview);
                   }
                 },
                 onClose: () => Navigator.of(context).pop(),
@@ -187,7 +204,7 @@ class ClinicalSections extends StatelessWidget {
               ).animate(animation),
               child: InvestigationDrawer(
                 onSave: (investigations) {
-                  if (onUpdate != null) {
+                  if (widget.onUpdate != null) {
                     // Format investigations as bullet list
                     String preview = investigations.map((i) {
                       String line = i['name']!;
@@ -202,7 +219,7 @@ class ClinicalSections extends StatelessWidget {
                     if (preview.isNotEmpty) {
                       preview = '• $preview';
                     }
-                    onUpdate!(field, preview);
+                    widget.onUpdate!(field, preview);
                   }
                 },
                 onClose: () => Navigator.of(context).pop(),
@@ -232,14 +249,14 @@ class ClinicalSections extends StatelessWidget {
               ).animate(animation),
               child: HistoryDrawer(
                 onSave: (historyItems) {
-                  if (onUpdate != null) {
+                  if (widget.onUpdate != null) {
                     // Format history items as bullet list
                     String preview = historyItems.map((h) {
-                      String line = h['name']!;
-                      if (h['value']!.isNotEmpty) {
+                      String line = h['name']?.toString() ?? '';
+                      if ((h['value']?.toString() ?? '').isNotEmpty) {
                         line += ' - ${h['value']}';
                       }
-                      if (h['note']!.isNotEmpty) {
+                      if ((h['note']?.toString() ?? '').isNotEmpty) {
                         line += ' (${h['note']})';
                       }
                       return line;
@@ -247,7 +264,7 @@ class ClinicalSections extends StatelessWidget {
                     if (preview.isNotEmpty) {
                       preview = '• $preview';
                     }
-                    onUpdate!(field, preview);
+                    widget.onUpdate!(field, preview);
                   }
                 },
                 onClose: () => Navigator.of(context).pop(),
@@ -279,8 +296,8 @@ class ClinicalSections extends StatelessWidget {
               predefinedItems: _predefinedItems[field] ?? [],
               onItemsSelected: (items) {
                 final text = items.map((item) => item.toFormattedString()).join('\n');
-                if (onUpdate != null) {
-                  onUpdate!(field, text);
+                if (widget.onUpdate != null) {
+                  widget.onUpdate!(field, text);
                 }
               },
             ),
@@ -298,7 +315,7 @@ class ClinicalSections extends StatelessWidget {
         _buildSection(
           context,
           'Chief Complaint',
-          clinicalData.chiefComplaint,
+          widget.clinicalData.chiefComplaint,
           'chiefComplaint',
           Icons.description_outlined,
         ),
@@ -306,7 +323,7 @@ class ClinicalSections extends StatelessWidget {
         _buildSection(
           context,
           'Examination',
-          clinicalData.examination,
+          widget.clinicalData.examination,
           'examination',
           Icons.medical_information_outlined,
         ),
@@ -314,7 +331,7 @@ class ClinicalSections extends StatelessWidget {
         _buildSection(
           context,
           'History',
-          clinicalData.history,
+          widget.clinicalData.history,
           'history',
           Icons.history,
         ),
@@ -322,7 +339,7 @@ class ClinicalSections extends StatelessWidget {
         _buildSection(
           context,
           'Diagnosis',
-          clinicalData.diagnosis,
+          widget.clinicalData.diagnosis,
           'diagnosis',
           Icons.analytics_outlined,
         ),
@@ -330,9 +347,100 @@ class ClinicalSections extends StatelessWidget {
         _buildSection(
           context,
           'Investigation',
-          clinicalData.investigation,
+          widget.clinicalData.investigation,
           'investigation',
           Icons.science_outlined,
+        ),
+        const SizedBox(height: 20),
+        // Discount checkbox and input field
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Row(
+            children: [
+              Checkbox(
+                value: _discountEnabled,
+                onChanged: (value) {
+                  setState(() {
+                    _discountEnabled = value ?? false;
+                    if (!_discountEnabled) {
+                      _discountController.clear();
+                      if (widget.onDiscountUpdate != null) {
+                        widget.onDiscountUpdate!(false, null);
+                      }
+                    } else {
+                      if (widget.onDiscountUpdate != null) {
+                        widget.onDiscountUpdate!(true, _discountController.text);
+                      }
+                    }
+                  });
+                },
+                activeColor: const Color(0xFFFE3001),
+              ),
+              if (_discountEnabled) ...[
+                const Text(
+                  'please give ',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1E293B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+                SizedBox(
+                  width: 80,
+                  child: TextField(
+                    controller: _discountController,
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                      ),
+                    ),
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(fontSize: 14),
+                    onChanged: (value) {
+                      if (widget.onDiscountUpdate != null) {
+                        widget.onDiscountUpdate!(_discountEnabled, value.isEmpty ? null : value);
+                      }
+                    },
+                  ),
+                ),
+                const Text(
+                  ' % discount',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1E293B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+              ] else ...[
+                const Text(
+                  'Discount',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1E293B),
+                    fontFamily: 'ProductSans',
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ],
     );

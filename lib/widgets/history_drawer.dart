@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class HistoryDrawer extends StatefulWidget {
   final Function(List<Map<String, dynamic>>) onSave;
@@ -16,7 +18,6 @@ class HistoryDrawer extends StatefulWidget {
 
 class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _customController = TextEditingController();
   late TabController _tabController;
   
   // Selected items - using HistoryItem class for Value, For, Duration, Note
@@ -24,6 +25,9 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
   
   // Track expanded sections for each item (itemIndex -> sectionKey -> isExpanded)
   final Map<int, Map<String, bool>> _expandedSections = {};
+  
+  // Track visibility of "Add new description" field for each item (itemIndex -> isVisible)
+  final Map<int, bool> _addDescriptionVisible = {};
   
   // Tab configuration
   final List<Map<String, dynamic>> _tabs = [
@@ -64,8 +68,8 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
     },
   ];
   
-  // Custom options for each section
-  final Map<String, List<String>> _customOptions = {
+  // Custom options for each section - loaded from SharedPreferences
+  Map<String, List<String>> _customOptions = {
     'presentingComplaint': [],
     'pastMedical': [],
     'drugHistory': [],
@@ -76,6 +80,11 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
     'socioeconomicHistory': [],
     'occupationalHistory': [],
     'immunizationHistory': [],
+    // Custom options for symptom detail sections
+    'verbatimTags': [],
+    'onsetTags': [],
+    'durationTags': [],
+    'frequencyTags': [],
   };
   
   // Grouped options for presenting complaint
@@ -358,13 +367,59 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    _loadCustomOptions();
+  }
+  
+  // Load custom options from SharedPreferences
+  Future<void> _loadCustomOptions() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      for (var key in _customOptions.keys) {
+        final jsonString = prefs.getString('history_custom_$key');
+        if (jsonString != null) {
+          final List<dynamic> decoded = jsonDecode(jsonString);
+          _customOptions[key] = decoded.cast<String>();
+        }
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      // Handle error silently
+      print('Error loading custom options: $e');
+    }
+  }
+  
+  // Save custom options to SharedPreferences
+  Future<void> _saveCustomOptions(String key, List<String> options) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _customOptions[key] = options;
+      await prefs.setString('history_custom_$key', jsonEncode(options));
+    } catch (e) {
+      // Handle error silently
+      print('Error saving custom options: $e');
+    }
+  }
+  
+  // Add a custom option to a specific key
+  Future<void> _addCustomOption(String key, String option) async {
+    if (option.trim().isEmpty) return;
+    
+    final currentOptions = _customOptions[key] ?? [];
+    if (!currentOptions.contains(option.trim())) {
+      final updatedOptions = [...currentOptions, option.trim()];
+      await _saveCustomOptions(key, updatedOptions);
+      if (mounted) {
+        setState(() {});
+      }
+    }
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
-    _customController.dispose();
     super.dispose();
   }
   
@@ -472,49 +527,56 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
           symptomDetail: isPresentingComplaint ? SymptomDetailData() : null,
         ));
       });
+      // Update in real-time
+      _updateHistoryInRealTime();
     }
   }
 
-  void _addCustomItem() {
-    if (_customController.text.isNotEmpty) {
-      _addItem(_customController.text);
-      _customController.clear();
-    }
-  }
-
-
-  void _updateItem(int index, HistoryItem item) {
-    setState(() {
-      _selectedItems[index] = item;
-    });
-  }
-
-  void _deleteItem(int index) {
-    setState(() {
-      _selectedItems.removeAt(index);
-      // Clean up expansion state for removed item
-      _expandedSections.remove(index);
-      // Shift indices for items after the deleted one
-      final keysToUpdate = _expandedSections.keys.where((k) => k > index).toList()..sort();
-      for (var key in keysToUpdate.reversed) {
-        _expandedSections[key - 1] = _expandedSections.remove(key)!;
-      }
-    });
+  
+  void _showAddCustomItemDialog() {
+    final customController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Custom Item'),
+        content: TextField(
+          controller: customController,
+          decoration: const InputDecoration(
+            hintText: 'Type custom item...',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+          onSubmitted: (value) {
+            if (value.trim().isNotEmpty) {
+              _addItem(value.trim());
+              Navigator.pop(context);
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (customController.text.trim().isNotEmpty) {
+                _addItem(customController.text.trim());
+                Navigator.pop(context);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFE3001),
+            ),
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
   }
   
-  bool _isSectionExpanded(int itemIndex, String sectionKey) {
-    return _expandedSections[itemIndex]?[sectionKey] ?? false;
-  }
-  
-  void _toggleSection(int itemIndex, String sectionKey) {
-    setState(() {
-      _expandedSections.putIfAbsent(itemIndex, () => {});
-      _expandedSections[itemIndex]![sectionKey] = !_isSectionExpanded(itemIndex, sectionKey);
-    });
-  }
-
-
-  void _save() {
+  // Update history in real-time
+  void _updateHistoryInRealTime() {
     // Convert selected items to the format expected by onSave
     final List<Map<String, dynamic>> historyItems = _selectedItems.map((item) {
       final Map<String, dynamic> itemMap = {
@@ -544,9 +606,51 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
       return itemMap;
     }).toList();
     
+    // Call onSave callback in real-time
     widget.onSave(historyItems);
-    Navigator.pop(context);
   }
+
+
+  void _updateItem(int index, HistoryItem item) {
+    setState(() {
+      _selectedItems[index] = item;
+    });
+    // Update in real-time
+    _updateHistoryInRealTime();
+  }
+
+  void _deleteItem(int index) {
+    setState(() {
+      _selectedItems.removeAt(index);
+      // Clean up expansion state for removed item
+      _expandedSections.remove(index);
+      _addDescriptionVisible.remove(index);
+      // Shift indices for items after the deleted one
+      final keysToUpdate = _expandedSections.keys.where((k) => k > index).toList()..sort();
+      for (var key in keysToUpdate.reversed) {
+        _expandedSections[key - 1] = _expandedSections.remove(key)!;
+      }
+      final visibleKeysToUpdate = _addDescriptionVisible.keys.where((k) => k > index).toList()..sort();
+      for (var key in visibleKeysToUpdate.reversed) {
+        _addDescriptionVisible[key - 1] = _addDescriptionVisible.remove(key)!;
+      }
+    });
+    // Update in real-time
+    _updateHistoryInRealTime();
+  }
+  
+  bool _isSectionExpanded(int itemIndex, String sectionKey) {
+    return _expandedSections[itemIndex]?[sectionKey] ?? false;
+  }
+  
+  void _toggleSection(int itemIndex, String sectionKey) {
+    setState(() {
+      _expandedSections.putIfAbsent(itemIndex, () => {});
+      _expandedSections[itemIndex]![sectionKey] = !_isSectionExpanded(itemIndex, sectionKey);
+    });
+  }
+
+
 
   Widget _buildHighlightedText(String text, String query) {
     if (query.isEmpty) {
@@ -642,14 +746,40 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
                   ),
                   Row(
                     children: [
-                      ElevatedButton(
-                        onPressed: _save,
+                      // Search Field
+                      Container(
+                        width: 200,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: 'Search...',
+                            prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            border: InputBorder.none,
+                            isDense: true,
+                          ),
+                          style: const TextStyle(fontSize: 14),
+                          onChanged: (value) => setState(() {}),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Add Button
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          _showAddCustomItemDialog();
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: const Color(0xFFFE3001),
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         ),
-                        child: const Text('Done'),
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Add'),
                       ),
                       const SizedBox(width: 12),
                       IconButton(
@@ -687,97 +817,6 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
               ),
             ),
             
-            // Search Bar and Custom Input Row
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  // Search Field - Half Width
-                  Expanded(
-                    flex: 1,
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Search...',
-                        prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                        ),
-                      ),
-                      onChanged: (value) => setState(() {}),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Custom Input with Add Button - Half Width
-                  Expanded(
-                    flex: 1,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _customController,
-                            decoration: InputDecoration(
-                              hintText: 'Type custom item...',
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                              ),
-                            ),
-                            onSubmitted: (value) {
-                              if (value.isNotEmpty) {
-                                _addCustomItem();
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (_customController.text.isNotEmpty) {
-                              _addCustomItem();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFE3001),
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Add',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'ProductSans',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
             
             // Tab Content
             Expanded(
@@ -1107,10 +1146,10 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
                     item.name,
                     style: const TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w600,
                       color: Color(0xFF1E293B),
-                      fontFamily: 'ProductSans',
-                    ),
+                fontFamily: 'ProductSans',
+              ),
                   ),
                 ),
                 IconButton(
@@ -1135,58 +1174,64 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
   Widget _buildSymptomDetailTable(int index, HistoryItem item) {
     return Padding(
       padding: const EdgeInsets.all(12),
-      child: Table(
-        columnWidths: const {
-          0: FlexColumnWidth(1),
-          1: FlexColumnWidth(1),
-        },
+      child: Column(
         children: [
           // Row 1: Patient's Verbatim | Core Inquiry
-          TableRow(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(4),
-                child: _buildExpandableSection(
-                  index,
-                  item,
-                  "Patient's Verbatim",
-                  'patientVerbatim',
-                  () => _buildPatientVerbatimContent(index, item),
+          Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: _buildExpandableSection(
+                    index,
+                    item,
+                    "Patient's Verbatim",
+                    'patientVerbatim',
+                    () => _buildPatientVerbatimContent(index, item),
+                  ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(4),
-                child: _buildExpandableSection(
-                  index,
-                  item,
-                  'Core Inquiry',
-                  'coreInquiry',
-                  () => _buildCoreInquiryContent(index, item),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: _buildExpandableSection(
+                    index,
+                    item,
+                    'Core Inquiry',
+                    'coreInquiry',
+                    () => _buildCoreInquiryContent(index, item),
+                  ),
                 ),
               ),
             ],
           ),
           // Row 2: Associated | Cultural Context
-          TableRow(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(4),
-                child: _buildExpandableSection(
-                  index,
-                  item,
-                  'Associated',
-                  'associated',
-                  () => _buildAssociatedContent(index, item),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: _buildExpandableSection(
+                    index,
+                    item,
+                    'Associated',
+                    'associated',
+                    () => _buildAssociatedContent(index, item),
+                  ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(4),
-                child: _buildExpandableSection(
-                  index,
-                  item,
-                  'Cultural Context',
-                  'culturalContext',
-                  () => _buildCulturalContextContent(index, item),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: _buildExpandableSection(
+                    index,
+                    item,
+                    'Cultural Context',
+                    'culturalContext',
+                    () => _buildCulturalContextContent(index, item),
+                  ),
                 ),
               ),
             ],
@@ -1205,56 +1250,61 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
   ) {
     final isExpanded = _isSectionExpanded(index, sectionKey);
     
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isExpanded ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0),
-          width: isExpanded ? 1.5 : 1,
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isExpanded ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0),
+            width: isExpanded ? 1.5 : 1,
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            onTap: () => _toggleSection(index, sectionKey),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: isExpanded ? const Color(0xFFFE3001) : const Color(0xFF1E293B),
-                        fontFamily: 'ProductSans',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              onTap: () => _toggleSection(index, sectionKey),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isExpanded ? const Color(0xFFFE3001) : const Color(0xFF1E293B),
+                          fontFamily: 'ProductSans',
+                        ),
                       ),
                     ),
-                  ),
-                  Icon(
-                    isExpanded ? Icons.expand_less : Icons.expand_more,
-                    size: 20,
-                    color: isExpanded ? const Color(0xFFFE3001) : const Color(0xFF94A3B8),
-                  ),
-                ],
+                    Icon(
+                      isExpanded ? Icons.expand_less : Icons.expand_more,
+                      size: 20,
+                      color: isExpanded ? const Color(0xFFFE3001) : const Color(0xFF94A3B8),
+                    ),
+              ],
+            ),
               ),
             ),
-          ),
-          if (isExpanded)
-            Container(
-              constraints: const BoxConstraints(maxHeight: 400),
-              padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+            if (isExpanded)
+              Container(
+                constraints: const BoxConstraints(maxHeight: 400),
+                padding: const EdgeInsets.all(12),
+                decoration: const BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                  ),
                 ),
-              ),
-              child: buildContent(),
-            ),
+                child: buildContent(),
+          ),
         ],
+        ),
       ),
     );
   }
@@ -1264,13 +1314,32 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
     final verbatimController = TextEditingController(text: detail.patientVerbatim);
     final addDescriptionController = TextEditingController();
     
-    final predefinedVerbatimTags = [
+    // Get predefined tags
+    final basePredefinedTags = [
       "'it just started'",
       "'it's been bothering me for a while'",
       "'it comes and goes'",
       "'it's getting worse'",
       "'it's affecting my daily life'",
     ];
+    
+    // Get custom tags from storage
+    final customVerbatimTags = _customOptions['verbatimTags'] ?? [];
+    
+    // Combine base tags with custom tags from storage, avoiding duplicates
+    final allTags = <String>[];
+    for (var tag in basePredefinedTags) {
+      if (!allTags.contains(tag)) {
+        allTags.add(tag);
+      }
+    }
+    for (var tag in customVerbatimTags) {
+      if (!allTags.contains(tag)) {
+        allTags.add(tag);
+      }
+    }
+    
+    final isAddDescriptionVisible = _addDescriptionVisible[index] ?? false;
 
     return SingleChildScrollView(
       child: Column(
@@ -1305,7 +1374,7 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
             spacing: 8,
             runSpacing: 8,
             children: [
-              ...predefinedVerbatimTags.map((tag) {
+              ...allTags.map((tag) {
                 final isSelected = detail.verbatimTags.contains(tag);
                 return InkWell(
                   onTap: () {
@@ -1339,6 +1408,7 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
             ],
           ),
           const SizedBox(height: 12),
+          if (isAddDescriptionVisible)
           Row(
             children: [
               Expanded(
@@ -1359,17 +1429,41 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
                       borderSide: const BorderSide(color: Color(0xFFFE3001)),
                     ),
                   ),
+                    autofocus: true,
+                    onSubmitted: (value) async {
+                      if (value.trim().isNotEmpty) {
+                        final trimmedValue = value.trim();
+                        // Save to SharedPreferences
+                        await _addCustomOption('verbatimTags', trimmedValue);
+                        // Add to current item's tags
+                        final newTags = [...detail.verbatimTags, trimmedValue];
+                        _updateItem(index, item.copyWith(
+                          symptomDetail: detail.copyWith(verbatimTags: newTags),
+                        ));
+                        addDescriptionController.clear();
+                        setState(() {
+                          _addDescriptionVisible[index] = false;
+                        });
+                      }
+                    },
                 ),
               ),
               const SizedBox(width: 8),
               ElevatedButton(
-                onPressed: () {
-                  if (addDescriptionController.text.isNotEmpty) {
-                    final newTags = [...detail.verbatimTags, addDescriptionController.text];
+                onPressed: () async {
+                  if (addDescriptionController.text.trim().isNotEmpty) {
+                    final trimmedValue = addDescriptionController.text.trim();
+                    // Save to SharedPreferences
+                    await _addCustomOption('verbatimTags', trimmedValue);
+                    // Add to current item's tags
+                    final newTags = [...detail.verbatimTags, trimmedValue];
                     _updateItem(index, item.copyWith(
                       symptomDetail: detail.copyWith(verbatimTags: newTags),
                     ));
                     addDescriptionController.clear();
+                    setState(() {
+                      _addDescriptionVisible[index] = false;
+                    });
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -1382,6 +1476,25 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
                 child: const Icon(Icons.add, color: Colors.white, size: 20),
               ),
             ],
+            )
+          else
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _addDescriptionVisible[index] = true;
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFE3001),
+                  padding: const EdgeInsets.all(12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Icon(Icons.add, color: Colors.white, size: 20),
+              ),
           ),
         ],
       ),
@@ -1395,9 +1508,36 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
     final severityController = TextEditingController(text: detail.severity);
     final frequencyController = TextEditingController(text: detail.frequency);
     
-    final onsetTags = ['Today', 'Yesterday', 'A few days ago', 'Last week', 'Gradual', 'Sudden'];
-    final durationTags = ['Seconds', 'Minutes', 'Hours', 'Days', 'Weeks', 'Months', 'Constant'];
-    final frequencyTags = ['Constant', 'Intermittent', 'Occasional', 'Daily', 'Weekly', 'Monthly'];
+    // Base predefined tags
+    final baseOnsetTags = ['Today', 'Yesterday', 'A few days ago', 'Last week', 'Gradual', 'Sudden'];
+    final baseDurationTags = ['Seconds', 'Minutes', 'Hours', 'Days', 'Weeks', 'Months', 'Constant'];
+    final baseFrequencyTags = ['Constant', 'Intermittent', 'Occasional', 'Daily', 'Weekly', 'Monthly'];
+    
+    // Merge with custom tags from storage
+    final customOnsetTags = _customOptions['onsetTags'] ?? [];
+    final customDurationTags = _customOptions['durationTags'] ?? [];
+    final customFrequencyTags = _customOptions['frequencyTags'] ?? [];
+    
+    final onsetTags = <String>[...baseOnsetTags];
+    for (var tag in customOnsetTags) {
+      if (!onsetTags.contains(tag)) {
+        onsetTags.add(tag);
+      }
+    }
+    
+    final durationTags = <String>[...baseDurationTags];
+    for (var tag in customDurationTags) {
+      if (!durationTags.contains(tag)) {
+        durationTags.add(tag);
+      }
+    }
+    
+    final frequencyTags = <String>[...baseFrequencyTags];
+    for (var tag in customFrequencyTags) {
+      if (!frequencyTags.contains(tag)) {
+        frequencyTags.add(tag);
+      }
+    }
 
     return SingleChildScrollView(
       child: Column(
@@ -1409,13 +1549,17 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
             onsetController,
             onsetTags,
             detail.onsetTags,
+            'onsetTags',
             (value) => _updateItem(index, item.copyWith(
               symptomDetail: detail.copyWith(onset: value),
             )),
             (tags) => _updateItem(index, item.copyWith(
               symptomDetail: detail.copyWith(onsetTags: tags),
             )),
-            (newTag) {
+            (newTag) async {
+              // Save to SharedPreferences
+              await _addCustomOption('onsetTags', newTag);
+              // Add to current item's tags
               final newTags = [...detail.onsetTags, newTag];
               _updateItem(index, item.copyWith(
                 symptomDetail: detail.copyWith(onsetTags: newTags),
@@ -1430,13 +1574,17 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
             durationController,
             durationTags,
             detail.durationTags,
+            'durationTags',
             (value) => _updateItem(index, item.copyWith(
               symptomDetail: detail.copyWith(duration: value),
             )),
             (tags) => _updateItem(index, item.copyWith(
               symptomDetail: detail.copyWith(durationTags: tags),
             )),
-            (newTag) {
+            (newTag) async {
+              // Save to SharedPreferences
+              await _addCustomOption('durationTags', newTag);
+              // Add to current item's tags
               final newTags = [...detail.durationTags, newTag];
               _updateItem(index, item.copyWith(
                 symptomDetail: detail.copyWith(durationTags: newTags),
@@ -1486,13 +1634,17 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
             frequencyController,
             frequencyTags,
             detail.frequencyTags,
+            'frequencyTags',
             (value) => _updateItem(index, item.copyWith(
               symptomDetail: detail.copyWith(frequency: value),
             )),
             (tags) => _updateItem(index, item.copyWith(
               symptomDetail: detail.copyWith(frequencyTags: tags),
             )),
-            (newTag) {
+            (newTag) async {
+              // Save to SharedPreferences
+              await _addCustomOption('frequencyTags', newTag);
+              // Add to current item's tags
               final newTags = [...detail.frequencyTags, newTag];
               _updateItem(index, item.copyWith(
                 symptomDetail: detail.copyWith(frequencyTags: newTags),
@@ -1509,6 +1661,7 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
     TextEditingController controller,
     List<String> predefinedTags,
     List<String> selectedTags,
+    String storageKey,
     Function(String) onTextChanged,
     Function(List<String>) onTagsChanged,
     Function(String) onAddNewTag,
