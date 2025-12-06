@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/max_sessions_dialog.dart';
 import 'dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -12,14 +13,14 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _loginController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _loginController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -29,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       
       final success = await authProvider.login(
-        _emailController.text.trim(),
+        _loginController.text.trim(),
         _passwordController.text,
       );
 
@@ -37,6 +38,18 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const DashboardScreen()),
         );
+      } else if (mounted && authProvider.errorCode == 'MAX_SESSIONS_REACHED') {
+        // Show max sessions dialog
+        final shouldRetry = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const MaxSessionsDialog(),
+        );
+        
+        if (shouldRetry == true && mounted) {
+          // Retry login after session revocation
+          _handleLogin();
+        }
       }
     }
   }
@@ -151,9 +164,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      // Email field
+                                      // Login field (email/username/phone)
                                       const Text(
-                                        'Email',
+                                        'Email, Username, or Phone',
                                         style: TextStyle(
                                           fontFamily: 'ProductSans',
                                           fontSize: 16,
@@ -163,9 +176,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                       const SizedBox(height: 8),
                                       TextFormField(
-                                        controller: _emailController,
+                                        controller: _loginController,
+                                        enabled: true,
+                                        keyboardType: TextInputType.text,
+                                        textInputAction: TextInputAction.next,
+                                        autofocus: false,
                                         decoration: InputDecoration(
-                                          hintText: 'Dr. A.F.M. Helal Uddin',
+                                          hintText: 'dr.helal@gmail.com or 01718572634',
                                           hintStyle: TextStyle(
                                             fontFamily: 'ProductSans',
                                             color: Colors.grey.shade500,
@@ -200,7 +217,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
-                                            return 'Please enter your email';
+                                            return 'Please enter your email, username, or phone';
                                           }
                                           return null;
                                         },
@@ -221,6 +238,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                       TextFormField(
                                         controller: _passwordController,
                                         obscureText: _obscurePassword,
+                                        enabled: true,
+                                        keyboardType: TextInputType.visiblePassword,
+                                        textInputAction: TextInputAction.done,
                                         decoration: InputDecoration(
                                           hintText: '••••••••••••',
                                           hintStyle: TextStyle(
@@ -286,18 +306,42 @@ class _LoginScreenState extends State<LoginScreen> {
                                           child: Container(
                                             padding: const EdgeInsets.all(12),
                                             decoration: BoxDecoration(
-                                              color: Colors.red.shade50,
+                                              color: authProvider.errorCode == 'MAX_SESSIONS_REACHED'
+                                                  ? Colors.orange.shade50
+                                                  : Colors.red.shade50,
                                               borderRadius: BorderRadius.circular(8),
-                                              border: Border.all(color: Colors.red.shade200),
-                                            ),
-                                            child: Text(
-                                              authProvider.errorMessage!,
-                                              style: TextStyle(
-                                                fontFamily: 'ProductSans',
-                                                color: Colors.red.shade700,
-                                                fontSize: 14,
+                                              border: Border.all(
+                                                color: authProvider.errorCode == 'MAX_SESSIONS_REACHED'
+                                                    ? Colors.orange.shade200
+                                                    : Colors.red.shade200,
                                               ),
-                                              textAlign: TextAlign.center,
+                                            ),
+                                            child: Column(
+                                              children: [
+                                                Text(
+                                                  authProvider.errorMessage!,
+                                                  style: TextStyle(
+                                                    fontFamily: 'ProductSans',
+                                                    color: authProvider.errorCode == 'MAX_SESSIONS_REACHED'
+                                                        ? Colors.orange.shade700
+                                                        : Colors.red.shade700,
+                                                    fontSize: 14,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                                if (authProvider.activeSessions != null && authProvider.maxSessions != null)
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(top: 8),
+                                                    child: Text(
+                                                      'Active Sessions: ${authProvider.activeSessions}/${authProvider.maxSessions}',
+                                                      style: TextStyle(
+                                                        fontFamily: 'ProductSans',
+                                                        color: Colors.grey.shade600,
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
                                             ),
                                           ),
                                         ),

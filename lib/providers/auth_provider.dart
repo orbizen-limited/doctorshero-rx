@@ -10,32 +10,48 @@ class AuthProvider with ChangeNotifier {
   UserModel? _user;
   bool _isLoading = false;
   String? _errorMessage;
+  String? _errorCode;
   bool _isOfflineMode = false;
   int? _daysSinceOnline;
+  int? _activeSessions;
+  int? _maxSessions;
+  String? _cooldownUntil;
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  String? get errorCode => _errorCode;
   bool get isAuthenticated => _user != null;
   bool get isOfflineMode => _isOfflineMode;
   int? get daysSinceOnline => _daysSinceOnline;
+  int? get activeSessions => _activeSessions;
+  int? get maxSessions => _maxSessions;
+  String? get cooldownUntil => _cooldownUntil;
 
   // Login - Hybrid online/offline
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String login, String password) async {
     _isLoading = true;
     _errorMessage = null;
+    _errorCode = null;
     _isOfflineMode = false;
     _daysSinceOnline = null;
+    _activeSessions = null;
+    _maxSessions = null;
+    _cooldownUntil = null;
     notifyListeners();
 
-    try {
-      // Try online login first
-      final response = await _apiService.login(email, password);
+    // Try online login first
+    final response = await _apiService.login(login, password);
+    
+    if (response['success'] == true) {
+      // Online login successful
       _user = UserModel.fromJson(response['user']);
+      _activeSessions = response['active_sessions'];
+      _maxSessions = response['max_sessions'];
       
       // Cache credentials for offline use
       await _offlineAuthService.cacheCredentials(
-        email: email,
+        email: _user!.email,
         password: password,
         token: response['token'],
         userData: response['user'],
@@ -45,32 +61,42 @@ class AuthProvider with ChangeNotifier {
       _isOfflineMode = false;
       notifyListeners();
       return true;
-    } catch (e) {
-      // Online login failed - try offline login
-      print('⚠️ Online login failed, attempting offline login...');
+    } else {
+      // Online login failed - check error code
+      _errorCode = response['code'];
+      _errorMessage = response['message'];
+      _activeSessions = response['active_sessions'];
+      _maxSessions = response['max_sessions'];
+      _cooldownUntil = response['cooldown_until'];
       
-      final offlineResult = await _offlineAuthService.verifyOfflineLogin(
-        email: email,
-        password: password,
-      );
-      
-      if (offlineResult != null && offlineResult['success'] == true) {
-        // Offline login successful
-        _user = UserModel.fromJson(offlineResult['user']);
-        _isOfflineMode = true;
-        _daysSinceOnline = offlineResult['daysSinceOnline'];
-        _isLoading = false;
-        notifyListeners();
+      // If network error, try offline login
+      if (_errorCode == 'NETWORK_ERROR') {
+        print('⚠️ Network error, attempting offline login...');
         
-        print('✅ Offline login successful (${_daysSinceOnline} days since online)');
-        return true;
-      } else {
-        // Both online and offline login failed
-        _errorMessage = offlineResult?['message'] ?? e.toString().replaceAll('Exception: ', '');
-        _isLoading = false;
-        notifyListeners();
-        return false;
+        final offlineResult = await _offlineAuthService.verifyOfflineLogin(
+          email: login,
+          password: password,
+        );
+        
+        if (offlineResult != null && offlineResult['success'] == true) {
+          // Offline login successful
+          _user = UserModel.fromJson(offlineResult['user']);
+          _isOfflineMode = true;
+          _daysSinceOnline = offlineResult['daysSinceOnline'];
+          _errorMessage = null;
+          _errorCode = null;
+          _isLoading = false;
+          notifyListeners();
+          
+          print('✅ Offline login successful (${_daysSinceOnline} days since online)');
+          return true;
+        }
       }
+      
+      // Login failed
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 
@@ -98,8 +124,27 @@ class AuthProvider with ChangeNotifier {
     
     _user = null;
     _errorMessage = null;
+    _errorCode = null;
     _isOfflineMode = false;
     _daysSinceOnline = null;
+    _activeSessions = null;
+    _maxSessions = null;
+    _cooldownUntil = null;
+    notifyListeners();
+  }
+  
+  // Logout from all devices
+  Future<void> logoutAll() async {
+    await _apiService.logoutAll();
+    
+    _user = null;
+    _errorMessage = null;
+    _errorCode = null;
+    _isOfflineMode = false;
+    _daysSinceOnline = null;
+    _activeSessions = null;
+    _maxSessions = null;
+    _cooldownUntil = null;
     notifyListeners();
   }
   
@@ -116,8 +161,12 @@ class AuthProvider with ChangeNotifier {
     
     _user = null;
     _errorMessage = null;
+    _errorCode = null;
     _isOfflineMode = false;
     _daysSinceOnline = null;
+    _activeSessions = null;
+    _maxSessions = null;
+    _cooldownUntil = null;
     notifyListeners();
   }
 
@@ -152,9 +201,21 @@ class AuthProvider with ChangeNotifier {
     return false;
   }
 
+  // Get active sessions
+  Future<Map<String, dynamic>?> getActiveSessions() async {
+    return await _apiService.getActiveSessions();
+  }
+  
+  // Revoke specific session
+  Future<bool> revokeSession(int sessionId) async {
+    return await _apiService.revokeSession(sessionId);
+  }
+  
   // Clear error
   void clearError() {
     _errorMessage = null;
+    _errorCode = null;
+    _cooldownUntil = null;
     notifyListeners();
   }
 

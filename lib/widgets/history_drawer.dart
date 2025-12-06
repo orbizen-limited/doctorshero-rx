@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class HistoryDrawer extends StatefulWidget {
-  final Function(List<Map<String, String>>) onSave;
+  final Function(List<Map<String, dynamic>>) onSave;
   final VoidCallback onClose;
 
   const HistoryDrawer({
@@ -21,6 +21,9 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
   
   // Selected items - using HistoryItem class for Value, For, Duration, Note
   List<HistoryItem> _selectedItems = [];
+  
+  // Track expanded sections for each item (itemIndex -> sectionKey -> isExpanded)
+  final Map<int, Map<String, bool>> _expandedSections = {};
   
   // Tab configuration
   final List<Map<String, dynamic>> _tabs = [
@@ -75,25 +78,167 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
     'immunizationHistory': [],
   };
   
+  // Grouped options for presenting complaint
+  final Map<String, Map<String, List<String>>> _groupedPresentingComplaint = {
+    'presentingComplaint': {
+      'General Symptoms': [
+        'Weight loss',
+        'Day sweats',
+        'Fatigue',
+        'Malaise',
+        'Lethargy',
+        'Sleeping pattern change',
+        'Appetite change',
+        'Fever',
+        'Itch',
+        'Rash',
+        'Recent trauma',
+        'Lumps/Bumps/Masses',
+      ],
+      'Eye Symptoms': [
+        'Visual changes',
+        'Eye pain',
+        'Double vision',
+        'Scotomas (blind spots)',
+        'Floaters',
+      ],
+      'ENT Symptoms': [
+        'Runny nose',
+        'Epistaxis (nose bleeds)',
+        'Sinus pain',
+        'Stuffy ears',
+        'Ear pain',
+        'Tinnitus',
+        'Gingival bleeding',
+        'Toothache',
+        'Sore throat',
+        'Odynophagia (pain with swallowing)',
+      ],
+      'Cardiovascular Symptoms': [
+        'Chest Pain',
+        'Shortness of Breath on exertion',
+        'Paroxysmal Nocturnal Dyspnea (PND)',
+        'Orthopnea',
+        'Edema',
+        'Palpitations',
+        'Faintness',
+        'Loss of consciousness',
+        'Claudication',
+      ],
+      'Respiratory Symptoms': [
+        'Cough',
+        'Sputum',
+        'Wheeze',
+        'Hemoptysis',
+        'Shortness of Breath at rest',
+      ],
+      'Gastrointestinal Symptoms': [
+        'Abdominal Pain',
+        'Difficulty swallowing',
+        'Indigestion',
+        'Bloating',
+        'Cramping',
+        'Loss of appetite',
+        'Nausea/Vomiting',
+        'Diarrhea',
+        'Constipation',
+        'Obstipation',
+        'Hematemesis',
+        'Hematochezia (BRBPR)',
+        'Melena',
+        'Tenesmus',
+        'Incontinence',
+      ],
+      'Urological Symptoms': [
+        'Dysuria',
+        'Hematuria',
+        'Nocturia',
+        'Polyuria',
+        'Hesitancy',
+        'Terminal dribbling',
+        'Decreased force of stream',
+      ],
+      'Gynecological Symptoms': [
+        'Vaginal discharge',
+        'Vaginal pain',
+        'Menstrual changes',
+        'Contraception concern',
+        'Libido changes',
+        'Erectile dysfunction',
+      ],
+      'Musculoskeletal Symptoms': [
+        'Joint Pain',
+        'Back Pain',
+        'Stiffness',
+        'Joint swelling',
+        'Decreased range of motion',
+        'Crepitus',
+        'Functional deficit',
+      ],
+      'Dermatological Symptoms': [
+        'Pruritus',
+        'Rashes',
+        'Lesions',
+        'Wounds',
+        'Acanthosis nigricans',
+        'Nodules',
+        'Excessive dryness',
+        'Discoloration',
+      ],
+      'Breast Symptoms': [
+        'Breast pain',
+        'Breast lumps',
+        'Breast discharge',
+      ],
+      'Neurological Symptoms': [
+        'Headache',
+        'Dizziness',
+        'Seizures',
+        'Faints',
+        'Paraesthesiae (pins and needles)',
+        'Numbness',
+        'Limb weakness',
+        'Poor balance',
+        'Speech problems',
+        'Sphincter disturbance',
+        'Cognitive changes',
+      ],
+      'Psychiatric Symptoms': [
+        'Depression',
+        'Anxiety',
+        'Difficulty concentrating',
+        'Body image concerns',
+        'Paranoia',
+        'Anhedonia',
+        'Lack of energy',
+        'Mania episodes',
+        'Personality change',
+      ],
+      'Endocrine Symptoms': [
+        'Heat/Cold intolerance',
+        'Sweating changes',
+        'Mood swings',
+        'Tremor',
+        'Polydipsia',
+        'Polyphagia',
+        'Hypoglycemia symptoms',
+      ],
+      'Hematological Symptoms': [
+        'Easy bruising (purpura/petechia)',
+        'Prolonged bleeding',
+        'History of anemia',
+        'Swollen lymph nodes',
+      ],
+      'Allergic Symptoms': [
+        'Anaphylaxis history',
+        'Allergic rhinitis symptoms',
+        'Known food/drug/environmental allergies',
+      ],
+    },
+  };
+
   // Predefined options for each history category
   final Map<String, List<String>> _predefinedOptions = {
-    'presentingComplaint': [
-      'Fever',
-      'Cough',
-      'Headache',
-      'Abdominal pain',
-      'Chest pain',
-      'Shortness of breath',
-      'Nausea',
-      'Vomiting',
-      'Diarrhea',
-      'Constipation',
-      'Fatigue',
-      'Weight loss',
-      'Dizziness',
-      'Joint pain',
-      'Back pain',
-    ],
     'pastMedical': [
       'No known allergies',
       'No prior surgeries',
@@ -235,8 +380,47 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
     final filteredGroups = <String, List<String>>{};
     final currentSections = _getCurrentTabSections();
     
-    // Combine predefined and custom options for each section in current tab
+    // Special handling for presenting complaint (grouped)
+    if (currentSections.contains('presentingComplaint')) {
+      final groupedOptions = _groupedPresentingComplaint['presentingComplaint'] ?? {};
+      final customList = _customOptions['presentingComplaint'] ?? [];
+      
+      for (var groupName in groupedOptions.keys) {
+        final groupOptions = groupedOptions[groupName] ?? [];
+        
+        if (searchQuery.isEmpty) {
+          // If no search, show all options in group
+          filteredGroups[groupName] = groupOptions;
+        } else {
+          // Filter by search query
+          final filtered = groupOptions
+              .where((option) => option.toLowerCase().contains(searchQuery))
+              .toList();
+          if (filtered.isNotEmpty) {
+            filteredGroups[groupName] = filtered;
+          }
+        }
+      }
+      
+      // Add custom options as a separate group if they exist
+      if (customList.isNotEmpty) {
+        if (searchQuery.isEmpty) {
+          filteredGroups['Custom'] = customList;
+        } else {
+          final filtered = customList
+              .where((option) => option.toLowerCase().contains(searchQuery))
+              .toList();
+          if (filtered.isNotEmpty) {
+            filteredGroups['Custom'] = filtered;
+          }
+        }
+      }
+    }
+    
+    // Handle other sections normally
     for (var sectionKey in currentSections) {
+      if (sectionKey == 'presentingComplaint') continue; // Already handled above
+      
       final predefinedList = _predefinedOptions[sectionKey] ?? [];
       final customList = _customOptions[sectionKey] ?? [];
       final allOptions = [...predefinedList, ...customList];
@@ -264,6 +448,20 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
     // Check if item already exists
     final exists = _selectedItems.any((item) => item.name == name);
     if (!exists) {
+      // Check if this is a presenting complaint item (from grouped structure)
+      bool isPresentingComplaint = false;
+      final groupedOptions = _groupedPresentingComplaint['presentingComplaint'] ?? {};
+      for (var groupOptions in groupedOptions.values) {
+        if (groupOptions.contains(name)) {
+          isPresentingComplaint = true;
+          break;
+        }
+      }
+      // Also check custom options
+      if (!isPresentingComplaint) {
+        isPresentingComplaint = _customOptions['presentingComplaint']?.contains(name) ?? false;
+      }
+      
       setState(() {
         _selectedItems.add(HistoryItem(
           name: name,
@@ -271,6 +469,7 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
           forField: '',
           duration: 'Day',
           note: '',
+          symptomDetail: isPresentingComplaint ? SymptomDetailData() : null,
         ));
       });
     }
@@ -283,6 +482,7 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
     }
   }
 
+
   void _updateItem(int index, HistoryItem item) {
     setState(() {
       _selectedItems[index] = item;
@@ -292,72 +492,56 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
   void _deleteItem(int index) {
     setState(() {
       _selectedItems.removeAt(index);
+      // Clean up expansion state for removed item
+      _expandedSections.remove(index);
+      // Shift indices for items after the deleted one
+      final keysToUpdate = _expandedSections.keys.where((k) => k > index).toList()..sort();
+      for (var key in keysToUpdate.reversed) {
+        _expandedSections[key - 1] = _expandedSections.remove(key)!;
+      }
     });
   }
-
-  void _showCustomOptions(String sectionKey) {
-    final customList = _customOptions[sectionKey] ?? [];
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Custom Options - ${_sectionTitles[sectionKey]}'),
-        content: customList.isEmpty
-            ? const Text('No custom options')
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: customList.map((option) => ListTile(
-                  title: Text(option),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () {
-                      setState(() {
-                        customList.remove(option);
-                      });
-                      Navigator.pop(context);
-                      _showCustomOptions(sectionKey);
-                    },
-                  ),
-                )).toList(),
-              ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
+  
+  bool _isSectionExpanded(int itemIndex, String sectionKey) {
+    return _expandedSections[itemIndex]?[sectionKey] ?? false;
   }
-
-  void _addCustomOption(String sectionKey, String customText) {
-    if (customText.isNotEmpty) {
-      setState(() {
-        final customList = _customOptions[sectionKey] ?? [];
-        if (!customList.contains(customText)) {
-          customList.add(customText);
-        }
-        _addItem(customText);
-      });
-    }
-  }
-
-  void _clearCustomOptions(String sectionKey) {
+  
+  void _toggleSection(int itemIndex, String sectionKey) {
     setState(() {
-      final customList = _customOptions[sectionKey] ?? [];
-      // Remove custom items from selected items
-      _selectedItems.removeWhere((item) => customList.contains(item.name));
-      customList.clear();
+      _expandedSections.putIfAbsent(itemIndex, () => {});
+      _expandedSections[itemIndex]![sectionKey] = !_isSectionExpanded(itemIndex, sectionKey);
     });
   }
+
 
   void _save() {
     // Convert selected items to the format expected by onSave
-    final List<Map<String, String>> historyItems = _selectedItems.map((item) {
-      return {
+    final List<Map<String, dynamic>> historyItems = _selectedItems.map((item) {
+      final Map<String, dynamic> itemMap = {
         'name': item.name,
         'value': item.value,
         'note': item.note,
       };
+      
+      // Include symptom detail data if present
+      if (item.symptomDetail != null) {
+        final detail = item.symptomDetail!;
+        itemMap['symptomDetail'] = {
+          'patientVerbatim': detail.patientVerbatim,
+          'verbatimTags': detail.verbatimTags,
+          'onset': detail.onset,
+          'onsetTags': detail.onsetTags,
+          'duration': detail.duration,
+          'durationTags': detail.durationTags,
+          'severity': detail.severity,
+          'frequency': detail.frequency,
+          'frequencyTags': detail.frequencyTags,
+          'associated': detail.associated,
+          'culturalContext': detail.culturalContext,
+        };
+      }
+      
+      return itemMap;
     }).toList();
     
     widget.onSave(historyItems);
@@ -503,53 +687,93 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
               ),
             ),
             
-            // Search Bar and Custom Input on same row
+            // Search Bar and Custom Input Row
             Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
-                  // Search field - half width
+                  // Search Field - Half Width
                   Expanded(
+                    flex: 1,
                     child: TextField(
                       controller: _searchController,
-                      onChanged: (_) => setState(() {}),
                       decoration: InputDecoration(
                         hintText: 'Search...',
-                        prefixIcon: const Icon(Icons.search),
+                        prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                        ),
                       ),
+                      onChanged: (value) => setState(() {}),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Custom input field - half width
+                  // Custom Input with Add Button - Half Width
                   Expanded(
-                    child: TextField(
-                      controller: _customController,
-                      onSubmitted: (value) {
-                        if (value.isNotEmpty) {
-                          _addCustomItem();
-                        }
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Type custom item...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    flex: 1,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _customController,
+                            decoration: InputDecoration(
+                              hintText: 'Type custom item...',
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                              ),
+                            ),
+                            onSubmitted: (value) {
+                              if (value.isNotEmpty) {
+                                _addCustomItem();
+                              }
+                            },
+                          ),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_customController.text.isNotEmpty) {
+                              _addCustomItem();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFE3001),
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Add',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'ProductSans',
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: _addCustomItem,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFE3001),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    ),
-                    child: const Text('Add'),
                   ),
                 ],
               ),
@@ -557,97 +781,43 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
             
             // Tab Content
             Expanded(
-              flex: 6,
-              child: Column(
-                children: [
-                  // Search Bar and Custom Input
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      children: [
-                        // Search field - half width
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            onChanged: (_) => setState(() {}),
-                            decoration: InputDecoration(
-                              hintText: 'Search...',
-                              prefixIcon: const Icon(Icons.search),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Custom input field - half width
-                        Expanded(
-                          child: TextField(
-                            controller: _customController,
-                            onSubmitted: (value) {
-                              if (value.isNotEmpty) {
-                                _addCustomItem();
-                              }
-                            },
-                            decoration: InputDecoration(
-                              hintText: 'Type custom item...',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        ElevatedButton(
-                          onPressed: _addCustomItem,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFE3001),
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                          ),
-                          child: const Text('Add'),
-                        ),
-                      ],
+              flex: 5,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: const Color(0xFFE2E8F0),
+                      width: 2,
                     ),
                   ),
-                  
-                  // Tab View Content
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: const Color(0xFFE2E8F0),
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: _tabs.map((tab) {
-                          return _buildTabContent(tab['sections'] as List<String>);
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
+                child: TabBarView(
+                  controller: _tabController,
+                  children: _tabs.map((tab) {
+                    return _buildTabContent(tab['sections'] as List<String>);
+                  }).toList(),
+                ),
               ),
             ),
             
-            // Selected Items Table (2 columns side by side)
+            // Selected Items with Table
             Expanded(
-              flex: 4,
+              flex: 5,
               child: Container(
                 color: Colors.white,
                 child: _selectedItems.isNotEmpty
-                    ? SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            decoration: const BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                              ),
+                            ),
+                            child: const Text(
                               'Selected Items',
                               style: TextStyle(
                                 fontSize: 14,
@@ -656,29 +826,18 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
                                 fontFamily: 'ProductSans',
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Left Column
-                                Expanded(
-                                  child: _buildTable(
-                                    _selectedItems.take((_selectedItems.length / 2).ceil()).toList(),
-                                    0,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                // Right Column
-                                Expanded(
-                                  child: _buildTable(
-                                    _selectedItems.skip((_selectedItems.length / 2).ceil()).toList(),
-                                    (_selectedItems.length / 2).ceil(),
-                                  ),
-                                ),
-                              ],
+                          ),
+                          Expanded(
+                            child: ListView.builder(
+                              padding: const EdgeInsets.all(20),
+                              itemCount: _selectedItems.length,
+                              itemBuilder: (context, index) {
+                                final item = _selectedItems[index];
+                                return _buildSelectedItemRow(index, item);
+                              },
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       )
                     : Center(
                         child: Container(
@@ -736,7 +895,10 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
                   children: leftColumnEntries.map((entry) {
                     final sectionKey = entry.key;
                     final options = entry.value;
-                    final title = _sectionTitles[sectionKey] ?? sectionKey;
+                    // For presenting complaint, use group name directly; for others use section title
+                    final title = _getCurrentTabSections().contains('presentingComplaint') 
+                        ? sectionKey 
+                        : (_sectionTitles[sectionKey] ?? sectionKey);
                     
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
@@ -746,7 +908,7 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
                         border: Border.all(color: const Color(0xFFE2E8F0)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -826,7 +988,10 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
                   children: rightColumnEntries.map((entry) {
                     final sectionKey = entry.key;
                     final options = entry.value;
-                    final title = _sectionTitles[sectionKey] ?? sectionKey;
+                    // For presenting complaint, use group name directly; for others use section title
+                    final title = _getCurrentTabSections().contains('presentingComplaint') 
+                        ? sectionKey 
+                        : (_sectionTitles[sectionKey] ?? sectionKey);
                     
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
@@ -836,7 +1001,7 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
                         border: Border.all(color: const Color(0xFFE2E8F0)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -913,6 +1078,630 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
           );
         },
       ),
+    );
+  }
+
+  Widget _buildSelectedItemRow(int index, HistoryItem item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Item header with name and delete button
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    item.name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => _deleteItem(index),
+                  icon: const Icon(Icons.close, size: 18, color: Color(0xFF94A3B8)),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+          ),
+          // Content area
+          if (item.symptomDetail != null)
+            _buildSymptomDetailTable(index, item)
+          else
+            _buildSimpleItemView(index, item),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildSymptomDetailTable(int index, HistoryItem item) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Table(
+        columnWidths: const {
+          0: FlexColumnWidth(1),
+          1: FlexColumnWidth(1),
+        },
+        children: [
+          // Row 1: Patient's Verbatim | Core Inquiry
+          TableRow(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(4),
+                child: _buildExpandableSection(
+                  index,
+                  item,
+                  "Patient's Verbatim",
+                  'patientVerbatim',
+                  () => _buildPatientVerbatimContent(index, item),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(4),
+                child: _buildExpandableSection(
+                  index,
+                  item,
+                  'Core Inquiry',
+                  'coreInquiry',
+                  () => _buildCoreInquiryContent(index, item),
+                ),
+              ),
+            ],
+          ),
+          // Row 2: Associated | Cultural Context
+          TableRow(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(4),
+                child: _buildExpandableSection(
+                  index,
+                  item,
+                  'Associated',
+                  'associated',
+                  () => _buildAssociatedContent(index, item),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(4),
+                child: _buildExpandableSection(
+                  index,
+                  item,
+                  'Cultural Context',
+                  'culturalContext',
+                  () => _buildCulturalContextContent(index, item),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildExpandableSection(
+    int index,
+    HistoryItem item,
+    String title,
+    String sectionKey,
+    Widget Function() buildContent,
+  ) {
+    final isExpanded = _isSectionExpanded(index, sectionKey);
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isExpanded ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0),
+          width: isExpanded ? 1.5 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: () => _toggleSection(index, sectionKey),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isExpanded ? const Color(0xFFFE3001) : const Color(0xFF1E293B),
+                        fontFamily: 'ProductSans',
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    isExpanded ? Icons.expand_less : Icons.expand_more,
+                    size: 20,
+                    color: isExpanded ? const Color(0xFFFE3001) : const Color(0xFF94A3B8),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (isExpanded)
+            Container(
+              constraints: const BoxConstraints(maxHeight: 400),
+              padding: const EdgeInsets.all(12),
+              decoration: const BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                ),
+              ),
+              child: buildContent(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPatientVerbatimContent(int index, HistoryItem item) {
+    final detail = item.symptomDetail ?? SymptomDetailData();
+    final verbatimController = TextEditingController(text: detail.patientVerbatim);
+    final addDescriptionController = TextEditingController();
+    
+    final predefinedVerbatimTags = [
+      "'it just started'",
+      "'it's been bothering me for a while'",
+      "'it comes and goes'",
+      "'it's getting worse'",
+      "'it's affecting my daily life'",
+    ];
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: verbatimController,
+            decoration: InputDecoration(
+              hintText: "Enter patient's verbatim...",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFFE3001)),
+              ),
+            ),
+            maxLines: 3,
+            onChanged: (value) {
+              _updateItem(index, item.copyWith(
+                symptomDetail: detail.copyWith(patientVerbatim: value),
+              ));
+            },
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ...predefinedVerbatimTags.map((tag) {
+                final isSelected = detail.verbatimTags.contains(tag);
+                return InkWell(
+                  onTap: () {
+                    final newTags = isSelected
+                        ? detail.verbatimTags.where((t) => t != tag).toList()
+                        : [...detail.verbatimTags, tag];
+                    _updateItem(index, item.copyWith(
+                      symptomDetail: detail.copyWith(verbatimTags: newTags),
+                    ));
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? const Color(0xFFFFE5DD) : const Color(0xFFF1F5F9),
+                      border: Border.all(
+                        color: isSelected ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0),
+                      ),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      tag,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isSelected ? const Color(0xFFFE3001) : const Color(0xFF64748B),
+                        fontFamily: 'ProductSans',
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: addDescriptionController,
+                  decoration: InputDecoration(
+                    hintText: 'Add new description...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: () {
+                  if (addDescriptionController.text.isNotEmpty) {
+                    final newTags = [...detail.verbatimTags, addDescriptionController.text];
+                    _updateItem(index, item.copyWith(
+                      symptomDetail: detail.copyWith(verbatimTags: newTags),
+                    ));
+                    addDescriptionController.clear();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFE3001),
+                  padding: const EdgeInsets.all(12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Icon(Icons.add, color: Colors.white, size: 20),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCoreInquiryContent(int index, HistoryItem item) {
+    final detail = item.symptomDetail ?? SymptomDetailData();
+    final onsetController = TextEditingController(text: detail.onset);
+    final durationController = TextEditingController(text: detail.duration);
+    final severityController = TextEditingController(text: detail.severity);
+    final frequencyController = TextEditingController(text: detail.frequency);
+    
+    final onsetTags = ['Today', 'Yesterday', 'A few days ago', 'Last week', 'Gradual', 'Sudden'];
+    final durationTags = ['Seconds', 'Minutes', 'Hours', 'Days', 'Weeks', 'Months', 'Constant'];
+    final frequencyTags = ['Constant', 'Intermittent', 'Occasional', 'Daily', 'Weekly', 'Monthly'];
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Onset Section
+          _buildTaggedInputSection(
+            'Onset',
+            onsetController,
+            onsetTags,
+            detail.onsetTags,
+            (value) => _updateItem(index, item.copyWith(
+              symptomDetail: detail.copyWith(onset: value),
+            )),
+            (tags) => _updateItem(index, item.copyWith(
+              symptomDetail: detail.copyWith(onsetTags: tags),
+            )),
+            (newTag) {
+              final newTags = [...detail.onsetTags, newTag];
+              _updateItem(index, item.copyWith(
+                symptomDetail: detail.copyWith(onsetTags: newTags),
+              ));
+            },
+          ),
+          const SizedBox(height: 24),
+          
+          // Duration Section
+          _buildTaggedInputSection(
+            'Duration',
+            durationController,
+            durationTags,
+            detail.durationTags,
+            (value) => _updateItem(index, item.copyWith(
+              symptomDetail: detail.copyWith(duration: value),
+            )),
+            (tags) => _updateItem(index, item.copyWith(
+              symptomDetail: detail.copyWith(durationTags: tags),
+            )),
+            (newTag) {
+              final newTags = [...detail.durationTags, newTag];
+              _updateItem(index, item.copyWith(
+                symptomDetail: detail.copyWith(durationTags: newTags),
+              ));
+            },
+          ),
+          const SizedBox(height: 24),
+          
+          // Severity Section
+          const Text(
+            'Severity (0-10)',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1E293B),
+              fontFamily: 'ProductSans',
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: severityController,
+            decoration: InputDecoration(
+              hintText: 'Enter severity (0-10)',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFFE3001)),
+              ),
+            ),
+            keyboardType: TextInputType.number,
+            onChanged: (value) => _updateItem(index, item.copyWith(
+              symptomDetail: detail.copyWith(severity: value),
+            )),
+          ),
+          const SizedBox(height: 24),
+          
+          // Frequency Section
+          _buildTaggedInputSection(
+            'Frequency',
+            frequencyController,
+            frequencyTags,
+            detail.frequencyTags,
+            (value) => _updateItem(index, item.copyWith(
+              symptomDetail: detail.copyWith(frequency: value),
+            )),
+            (tags) => _updateItem(index, item.copyWith(
+              symptomDetail: detail.copyWith(frequencyTags: tags),
+            )),
+            (newTag) {
+              final newTags = [...detail.frequencyTags, newTag];
+              _updateItem(index, item.copyWith(
+                symptomDetail: detail.copyWith(frequencyTags: newTags),
+              ));
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTaggedInputSection(
+    String label,
+    TextEditingController controller,
+    List<String> predefinedTags,
+    List<String> selectedTags,
+    Function(String) onTextChanged,
+    Function(List<String>) onTagsChanged,
+    Function(String) onAddNewTag,
+  ) {
+    final addOptionController = TextEditingController();
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1E293B),
+            fontFamily: 'ProductSans',
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Color(0xFFFE3001)),
+            ),
+          ),
+          onChanged: onTextChanged,
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ...predefinedTags.map((tag) {
+              final isSelected = selectedTags.contains(tag);
+              return InkWell(
+                onTap: () {
+                  final newTags = isSelected
+                      ? selectedTags.where((t) => t != tag).toList()
+                      : [...selectedTags, tag];
+                  onTagsChanged(newTags);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFFFFE5DD) : const Color(0xFFF1F5F9),
+                    border: Border.all(
+                      color: isSelected ? const Color(0xFFFE3001) : const Color(0xFFE2E8F0),
+                    ),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    tag,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isSelected ? const Color(0xFFFE3001) : const Color(0xFF64748B),
+                      fontFamily: 'ProductSans',
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: addOptionController,
+                decoration: InputDecoration(
+                  hintText: 'Add new option...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: () {
+                if (addOptionController.text.isNotEmpty) {
+                  onAddNewTag(addOptionController.text);
+                  addOptionController.clear();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFE3001),
+                padding: const EdgeInsets.all(12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Icon(Icons.add, color: Colors.white, size: 20),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAssociatedContent(int index, HistoryItem item) {
+    final detail = item.symptomDetail ?? SymptomDetailData();
+    final associatedController = TextEditingController(text: detail.associated);
+    
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: associatedController,
+            decoration: InputDecoration(
+              hintText: 'Enter associated symptoms or conditions...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFFE3001)),
+              ),
+            ),
+            maxLines: 5,
+            onChanged: (value) => _updateItem(index, item.copyWith(
+              symptomDetail: detail.copyWith(associated: value),
+            )),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCulturalContextContent(int index, HistoryItem item) {
+    final detail = item.symptomDetail ?? SymptomDetailData();
+    final culturalController = TextEditingController(text: detail.culturalContext);
+    
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: culturalController,
+            decoration: InputDecoration(
+              hintText: 'Enter cultural context or relevant information...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFFE3001)),
+              ),
+            ),
+            maxLines: 5,
+            onChanged: (value) => _updateItem(index, item.copyWith(
+              symptomDetail: detail.copyWith(culturalContext: value),
+            )),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSimpleItemView(int index, HistoryItem item) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: _buildItemRow(index, item),
     );
   }
 
@@ -1004,7 +1793,8 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
               const SizedBox(width: 8),
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: item.duration,
+                  key: ValueKey('duration_${index}_${item.duration}'),
+                  initialValue: item.duration,
                   decoration: const InputDecoration(
                     labelText: 'Duration',
                     border: OutlineInputBorder(),
@@ -1050,6 +1840,9 @@ class HistoryItem {
   final String forField;
   final String duration;
   final String note;
+  
+  // Detailed symptom data
+  final SymptomDetailData? symptomDetail;
 
   HistoryItem({
     required this.name,
@@ -1057,6 +1850,7 @@ class HistoryItem {
     required this.forField,
     required this.duration,
     required this.note,
+    this.symptomDetail,
   });
 
   HistoryItem copyWith({
@@ -1065,6 +1859,7 @@ class HistoryItem {
     String? forField,
     String? duration,
     String? note,
+    SymptomDetailData? symptomDetail,
   }) {
     return HistoryItem(
       name: name ?? this.name,
@@ -1072,6 +1867,70 @@ class HistoryItem {
       forField: forField ?? this.forField,
       duration: duration ?? this.duration,
       note: note ?? this.note,
+      symptomDetail: symptomDetail ?? this.symptomDetail,
+    );
+  }
+}
+
+class SymptomDetailData {
+  // Patient's Verbatim
+  final String patientVerbatim;
+  final List<String> verbatimTags;
+  
+  // Core Inquiry
+  final String onset;
+  final List<String> onsetTags;
+  final String duration;
+  final List<String> durationTags;
+  final String severity; // 0-10
+  final String frequency;
+  final List<String> frequencyTags;
+  
+  // Associated
+  final String associated;
+  
+  // Cultural Context
+  final String culturalContext;
+
+  SymptomDetailData({
+    this.patientVerbatim = '',
+    this.verbatimTags = const [],
+    this.onset = '',
+    this.onsetTags = const [],
+    this.duration = '',
+    this.durationTags = const [],
+    this.severity = '',
+    this.frequency = '',
+    this.frequencyTags = const [],
+    this.associated = '',
+    this.culturalContext = '',
+  });
+
+  SymptomDetailData copyWith({
+    String? patientVerbatim,
+    List<String>? verbatimTags,
+    String? onset,
+    List<String>? onsetTags,
+    String? duration,
+    List<String>? durationTags,
+    String? severity,
+    String? frequency,
+    List<String>? frequencyTags,
+    String? associated,
+    String? culturalContext,
+  }) {
+    return SymptomDetailData(
+      patientVerbatim: patientVerbatim ?? this.patientVerbatim,
+      verbatimTags: verbatimTags ?? this.verbatimTags,
+      onset: onset ?? this.onset,
+      onsetTags: onsetTags ?? this.onsetTags,
+      duration: duration ?? this.duration,
+      durationTags: durationTags ?? this.durationTags,
+      severity: severity ?? this.severity,
+      frequency: frequency ?? this.frequency,
+      frequencyTags: frequencyTags ?? this.frequencyTags,
+      associated: associated ?? this.associated,
+      culturalContext: culturalContext ?? this.culturalContext,
     );
   }
 }

@@ -195,11 +195,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               if (user.phone != null && user.phone!.isNotEmpty)
                                 const SizedBox(height: 20),
                               
-                              _buildInfoItem(
-                                icon: Icons.calendar_today_outlined,
-                                label: 'Member Since',
-                                value: _formatDate(user.createdAt),
-                              ),
+                              if (user.createdAt != null)
+                                _buildInfoItem(
+                                  icon: Icons.calendar_today_outlined,
+                                  label: 'Member Since',
+                                  value: _formatDate(user.createdAt!),
+                                ),
                               
                               // Notification Preferences
                               if (user.notificationPreferences != null) ...[
