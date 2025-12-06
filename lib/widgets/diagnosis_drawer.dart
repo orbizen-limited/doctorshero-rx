@@ -83,6 +83,7 @@ class _DiagnosisDrawerState extends State<DiagnosisDrawer> {
           'note': '',
         });
       });
+      widget.onSave(_selectedDiagnoses); // Real-time update
     }
   }
   
@@ -90,12 +91,14 @@ class _DiagnosisDrawerState extends State<DiagnosisDrawer> {
     setState(() {
       _selectedDiagnoses.removeAt(index);
     });
+    widget.onSave(_selectedDiagnoses); // Real-time update
   }
   
   void _updateDiagnosisField(int index, String field, String value) {
     setState(() {
       _selectedDiagnoses[index][field] = value;
     });
+    widget.onSave(_selectedDiagnoses); // Real-time update
   }
 
   Widget _buildTable(List<Map<String, String>> diagnoses, int startIndex) {
@@ -285,7 +288,7 @@ class _DiagnosisDrawerState extends State<DiagnosisDrawer> {
         ),
         child: Column(
           children: [
-            // Header
+            // Header with Search and Add Button
             Container(
               padding: const EdgeInsets.all(20),
               decoration: const BoxDecoration(
@@ -305,21 +308,58 @@ class _DiagnosisDrawerState extends State<DiagnosisDrawer> {
                       fontFamily: 'ProductSans',
                     ),
                   ),
-                  const Spacer(),
-                  ElevatedButton(
+                  const SizedBox(width: 24),
+                  // Search Field in Header
+                  Expanded(
+                    child: Container(
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search diagnoses...',
+                          hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                          prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, color: Color(0xFF94A3B8), size: 18),
+                                  onPressed: () {
+                                    setState(() {
+                                      _searchController.clear();
+                                    });
+                                  },
+                                )
+                              : null,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          border: InputBorder.none,
+                        ),
+                        style: const TextStyle(fontSize: 13),
+                        onChanged: (value) => setState(() {}),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Add Button in Header
+                  ElevatedButton.icon(
                     onPressed: () {
-                      widget.onSave(_selectedDiagnoses);
-                      widget.onClose();
+                      if (_customController.text.isNotEmpty) {
+                        _addDiagnosis(_customController.text);
+                        _customController.clear();
+                      }
                     },
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Add', style: TextStyle(fontWeight: FontWeight.w600)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: const Color(0xFFFE3001),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text('Done', style: TextStyle(fontWeight: FontWeight.w600)),
                   ),
                   const SizedBox(width: 12),
                   IconButton(
@@ -330,97 +370,44 @@ class _DiagnosisDrawerState extends State<DiagnosisDrawer> {
               ),
             ),
             
-            // Search Bar and Custom Input Row
+            // Custom Input Field
             Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  // Search Field - Half Width
-                  Expanded(
-                    flex: 1,
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Search...',
-                        prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                        ),
-                      ),
-                      onChanged: (value) => setState(() {}),
-                    ),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+              child: TextField(
+                controller: _customController,
+                decoration: InputDecoration(
+                  hintText: 'Type custom diagnosis and press Enter or click Add button...',
+                  hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.send, color: Color(0xFFFE3001)),
+                    onPressed: () {
+                      if (_customController.text.isNotEmpty) {
+                        _addDiagnosis(_customController.text);
+                        _customController.clear();
+                      }
+                    },
                   ),
-                  const SizedBox(width: 12),
-                  // Custom Input with Add Button - Half Width
-                  Expanded(
-                    flex: 1,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _customController,
-                            decoration: InputDecoration(
-                              hintText: 'Type custom item...',
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Color(0xFFFE3001)),
-                              ),
-                            ),
-                            onSubmitted: (value) {
-                              if (value.isNotEmpty) {
-                                _addDiagnosis(value);
-                                _customController.clear();
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (_customController.text.isNotEmpty) {
-                              _addDiagnosis(_customController.text);
-                              _customController.clear();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFE3001),
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Add',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'ProductSans',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                   ),
-                ],
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFFE3001)),
+                  ),
+                ),
+                style: const TextStyle(fontSize: 13),
+                onSubmitted: (value) {
+                  if (value.isNotEmpty) {
+                    _addDiagnosis(value);
+                    _customController.clear();
+                  }
+                },
               ),
             ),
             

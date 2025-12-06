@@ -14,9 +14,11 @@ class ExaminationDrawer extends StatefulWidget {
   State<ExaminationDrawer> createState() => _ExaminationDrawerState();
 }
 
-class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTickerProviderStateMixin {
+class _ExaminationDrawerState extends State<ExaminationDrawer> with TickerProviderStateMixin {
   late TabController _tabController;
+  late TabController _generalExamSubTabController;
   final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
   
   // General Examination - General Survey
   String? _selectedConsciousness;
@@ -106,11 +108,18 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
   void initState() {
     super.initState();
     _tabController = TabController(length: 7, vsync: this);
+    _generalExamSubTabController = TabController(length: 2, vsync: this);
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _generalExamSubTabController.dispose();
     _searchController.dispose();
     _temperatureController.dispose();
     _pulseController.dispose();
@@ -152,6 +161,11 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
     required Function(String) onAdd,
   }) {
     final TextEditingController customController = TextEditingController();
+    
+    // Filter based on search query
+    if (_searchQuery.isNotEmpty && !label.toLowerCase().contains(_searchQuery)) {
+      return const SizedBox.shrink();
+    }
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1553,6 +1567,68 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with SingleTicker
     }
     
     return sections.join('\n\n');
+  }
+
+  bool _matchesEnglishKeyword(String query, String category) {
+    // Check if English keyword maps to this Bengali category
+    for (var entry in _englishToBengaliMap.entries) {
+      if (query.contains(entry.key) && entry.value == category) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _saveExaminationData() {
+    widget.onSave({
+      'examination': {
+        // General Survey
+        'consciousness': _consciousnessTags,
+        'bodyHabitus': _bodyHabitusTags,
+        'posture': _postureTags,
+        'distress': _distressTags,
+        'hygiene': _hygieneTags,
+        // Vital Signs
+        'temperature': _temperatureController.text,
+        'temperatureUnit': _temperatureUnit,
+        'pulse': _pulseController.text,
+        'respiratoryRate': _respiratoryRateController.text,
+        'bpSystolic': _bpSystolicController.text,
+        'bpDiastolic': _bpDiastolicController.text,
+        'bpPosition': _bpPosition,
+        'bpArm': _bpArm,
+        'oxygenSaturation': _oxygenSaturationController.text,
+        'height': _heightController.text,
+        'weight': _weightController.text,
+        'bmi': _bmi,
+        // Cardiovascular
+        'cvInspection': _cvInspection,
+        'cvInspectionNotes': _cvInspectionNotesController.text,
+        'peripheralPulses': _peripheralPulses,
+        'jvp': _jvp,
+        'jvpHeight': _jvpHeightController.text,
+        'precordialPalpation': _precordialPalpation,
+        'thrills': _thrills,
+        'heartSounds': _heartSounds,
+        'heartSoundsNotes': _heartSoundsNotesController.text,
+        'murmurTiming': _murmurTiming,
+        'murmurGrade': _murmurGrade,
+        'murmurLocation': _murmurLocation,
+        'murmurRadiation': _murmurRadiation,
+        'murmurQuality': _murmurQuality,
+        // Integumentary System
+        'skinColorLesions': _skinColorLesions,
+        'skinColorLesionsNotes': _skinColorLesionsNotesController.text,
+        'skinPalpation': _skinPalpation,
+        'skinPalpationNotes': _skinPalpationNotesController.text,
+        'pressureAreasEdema': _pressureAreasEdema,
+        'pressureAreasEdemaNotes': _pressureAreasEdemaNotesController.text,
+        'hair': _hair,
+        'hairNotes': _hairNotesController.text,
+        'nails': _nails,
+        'nailsNotes': _nailsNotesController.text,
+      },
+    });
   }
 
   @override
