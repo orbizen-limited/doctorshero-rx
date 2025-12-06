@@ -52,6 +52,13 @@ class ClinicalData {
   String history;
   String diagnosis;
   String investigation;
+  
+  // Raw structured data for drawers
+  List<Map<String, String>>? chiefComplaintData;
+  Map<String, dynamic>? examinationData;
+  List<Map<String, dynamic>>? historyData;
+  List<Map<String, String>>? diagnosisData;
+  List<Map<String, String>>? investigationData;
 
   ClinicalData({
     this.chiefComplaint = '',
@@ -59,6 +66,11 @@ class ClinicalData {
     this.history = '',
     this.diagnosis = '',
     this.investigation = '',
+    this.chiefComplaintData,
+    this.examinationData,
+    this.historyData,
+    this.diagnosisData,
+    this.investigationData,
   });
 
   factory ClinicalData.fromJson(Map<String, dynamic> json) {
@@ -68,6 +80,19 @@ class ClinicalData {
       history: json['history'] ?? '',
       diagnosis: json['diagnosis'] ?? '',
       investigation: json['investigation'] ?? '',
+      chiefComplaintData: json['chief_complaint_data'] != null 
+          ? List<Map<String, String>>.from((json['chief_complaint_data'] as List).map((e) => Map<String, String>.from(e)))
+          : null,
+      examinationData: json['examination_data'],
+      historyData: json['history_data'] != null
+          ? List<Map<String, dynamic>>.from(json['history_data'])
+          : null,
+      diagnosisData: json['diagnosis_data'] != null
+          ? List<Map<String, String>>.from((json['diagnosis_data'] as List).map((e) => Map<String, String>.from(e)))
+          : null,
+      investigationData: json['investigation_data'] != null
+          ? List<Map<String, String>>.from((json['investigation_data'] as List).map((e) => Map<String, String>.from(e)))
+          : null,
     );
   }
 
@@ -78,6 +103,11 @@ class ClinicalData {
       'history': history,
       'diagnosis': diagnosis,
       'investigation': investigation,
+      'chief_complaint_data': chiefComplaintData,
+      'examination_data': examinationData,
+      'history_data': historyData,
+      'diagnosis_data': diagnosisData,
+      'investigation_data': investigationData,
     };
   }
 }

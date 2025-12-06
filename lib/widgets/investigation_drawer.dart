@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class InvestigationDrawer extends StatefulWidget {
   final Function(List<Map<String, String>>) onSave;
   final VoidCallback onClose;
+  final List<Map<String, String>>? initialData;
 
   const InvestigationDrawer({
     Key? key,
     required this.onSave,
     required this.onClose,
+    this.initialData,
   }) : super(key: key);
 
   @override
@@ -19,6 +21,17 @@ class _InvestigationDrawerState extends State<InvestigationDrawer> {
   final TextEditingController _customController = TextEditingController();
   
   List<Map<String, String>> _selectedInvestigations = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Load initial data if provided
+    if (widget.initialData != null) {
+      _selectedInvestigations = List<Map<String, String>>.from(
+        widget.initialData!.map((item) => Map<String, String>.from(item)),
+      );
+    }
+  }
   
   final Map<String, List<String>> _investigationGroups = {
     'Blood Tests': [

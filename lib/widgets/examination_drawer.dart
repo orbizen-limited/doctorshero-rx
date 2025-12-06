@@ -306,22 +306,46 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with TickerProvid
   }
 
   Widget _buildGeneralExaminationTab() {
+    return Column(
+      children: [
+        // Sub-tabs for General Survey and Vital Signs
+        Container(
+          color: const Color(0xFFF8F9FA),
+          child: TabBar(
+            controller: _generalExamSubTabController,
+            labelColor: const Color(0xFFFE3001),
+            unselectedLabelColor: const Color(0xFF64748B),
+            indicatorColor: const Color(0xFFFE3001),
+            labelStyle: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'ProductSans',
+            ),
+            tabs: const [
+              Tab(text: 'General Survey'),
+              Tab(text: 'Vital Signs'),
+            ],
+          ),
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: _generalExamSubTabController,
+            children: [
+              _buildGeneralSurveyContent(),
+              _buildVitalSignsContent(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGeneralSurveyContent() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // A. General Survey
-          const Text(
-            'A. General Survey',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 16),
-          
           _buildTagSelector(
             label: 'Level of Consciousness/Sensorium',
             options: _consciousnessOptions,
@@ -360,23 +384,18 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with TickerProvid
             selectedTags: _hygieneTags,
             onAdd: (value) => _addCustomTag(_hygieneTags, value),
           ),
-          
-          const SizedBox(height: 24),
-          const Divider(),
-          const SizedBox(height: 24),
-          
-          // B. Vital Signs
-          const Text(
-            'B. Vital Signs',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 16),
-          
-          // Temperature, Pulse, Respiratory Rate
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVitalSignsContent() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Temperature and Pulse (Row 1)
           Row(
             children: [
               Expanded(
@@ -401,6 +420,7 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with TickerProvid
                               ),
                             ),
                             keyboardType: TextInputType.number,
+                            onChanged: (value) => _saveExaminationData(),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -416,6 +436,7 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with TickerProvid
                             setState(() {
                               _temperatureUnit = value!;
                             });
+                            _saveExaminationData();
                           },
                         ),
                       ],
@@ -443,11 +464,19 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with TickerProvid
                         ),
                       ),
                       keyboardType: TextInputType.number,
+                      onChanged: (value) => _saveExaminationData(),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Respiratory Rate (Row 2)
+          Row(
+            children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -467,10 +496,13 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with TickerProvid
                         ),
                       ),
                       keyboardType: TextInputType.number,
+                      onChanged: (value) => _saveExaminationData(),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 12),
+              const Expanded(child: SizedBox()), // Empty space for 2-column layout
             ],
           ),
           
@@ -1569,15 +1601,7 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with TickerProvid
     return sections.join('\n\n');
   }
 
-  bool _matchesEnglishKeyword(String query, String category) {
-    // Check if English keyword maps to this Bengali category
-    for (var entry in _englishToBengaliMap.entries) {
-      if (query.contains(entry.key) && entry.value == category) {
-        return true;
-      }
-    }
-    return false;
-  }
+  
 
   void _saveExaminationData() {
     widget.onSave({
@@ -1653,7 +1677,7 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with TickerProvid
         ),
         child: Column(
           children: [
-            // Header
+            // Header with Search
             Container(
               padding: const EdgeInsets.all(20),
               decoration: const BoxDecoration(
@@ -1670,75 +1694,59 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with TickerProvid
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
+                      fontFamily: 'ProductSans',
                     ),
                   ),
-                  const Spacer(),
-                  ElevatedButton(
-                    onPressed: () {
-                      widget.onSave({
-                        'preview': _generatePreview(),
-                        'data': {
-                          'consciousness': _consciousnessTags,
-                          'bodyHabitus': _bodyHabitusTags,
-                          'posture': _postureTags,
-                          'distress': _distressTags,
-                          'hygiene': _hygieneTags,
-                          'temperature': _temperatureController.text,
-                          'temperatureUnit': _temperatureUnit,
-                          'pulse': _pulseController.text,
-                          'respiratoryRate': _respiratoryRateController.text,
-                          'bpSystolic': _bpSystolicController.text,
-                          'bpDiastolic': _bpDiastolicController.text,
-                          'bpPosition': _bpPosition,
-                          'bpArm': _bpArm,
-                          'oxygenSaturation': _oxygenSaturationController.text,
-                          'height': _heightController.text,
-                          'weight': _weightController.text,
-                          'bmi': _bmi,
-                          // Cardiovascular
-                          'cvInspection': _cvInspection,
-                          'cvInspectionNotes': _cvInspectionNotesController.text,
-                          'peripheralPulses': _peripheralPulses,
-                          'jvp': _jvp,
-                          'jvpHeight': _jvpHeightController.text,
-                          'precordialPalpation': _precordialPalpation,
-                          'thrills': _thrills,
-                          'heartSounds': _heartSounds,
-                          'heartSoundsNotes': _heartSoundsNotesController.text,
-                          'murmurTiming': _murmurTiming,
-                          'murmurGrade': _murmurGrade,
-                          'murmurLocation': _murmurLocation,
-                          'murmurRadiation': _murmurRadiation,
-                          'murmurQuality': _murmurQuality,
-                          // Integumentary System
-                          'skinColorLesions': _skinColorLesions,
-                          'skinColorLesionsNotes': _skinColorLesionsNotesController.text,
-                          'skinPalpation': _skinPalpation,
-                          'skinPalpationNotes': _skinPalpationNotesController.text,
-                          'pressureAreasEdema': _pressureAreasEdema,
-                          'pressureAreasEdemaNotes': _pressureAreasEdemaNotesController.text,
-                          'hair': _hair,
-                          'hairNotes': _hairNotesController.text,
-                          'nails': _nails,
-                          'nailsNotes': _nailsNotesController.text,
-                        },
-                      });
-                      widget.onClose();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFFFE3001),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
+                  const SizedBox(width: 24),
+                  // Search Field
+                  Expanded(
+                    child: Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
                       ),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search...',
+                          hintStyle: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF94A3B8),
+                            fontFamily: 'ProductSans',
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: Color(0xFF94A3B8),
+                            size: 20,
+                          ),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, color: Color(0xFF94A3B8), size: 18),
+                                  onPressed: () {
+                                    setState(() {
+                                      _searchController.clear();
+                                    });
+                                  },
+                                )
+                              : null,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          border: InputBorder.none,
+                        ),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontFamily: 'ProductSans',
+                        ),
+                        onChanged: (value) => setState(() {}),
+                      ),
                     ),
-                    child: const Text('Done'),
                   ),
                   const SizedBox(width: 12),
                   IconButton(
                     onPressed: widget.onClose,
-                    icon: const Icon(Icons.close, color: Colors.white),
+                    icon: const Icon(Icons.close, color: Colors.white, size: 24),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
                 ],
               ),

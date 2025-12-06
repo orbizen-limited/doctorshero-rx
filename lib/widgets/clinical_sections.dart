@@ -82,7 +82,12 @@ class _ClinicalSectionsState extends State<ClinicalSections> {
                 end: Offset.zero,
               ).animate(animation),
               child: ChiefComplaintDrawer(
+                initialData: widget.clinicalData.chiefComplaintData,
                 onSave: (complaints) {
+                  // Store raw data
+                  print('ClinicalSections: Storing ${complaints.length} complaints');
+                  widget.clinicalData.chiefComplaintData = complaints;
+                  print('ClinicalSections: Stored data: ${widget.clinicalData.chiefComplaintData}');
                   if (widget.onUpdate != null) {
                     // Format complaints as bullet list
                     String preview = complaints.map((c) {
@@ -158,7 +163,10 @@ class _ClinicalSectionsState extends State<ClinicalSections> {
                 end: Offset.zero,
               ).animate(animation),
               child: DiagnosisDrawer(
+                initialData: widget.clinicalData.diagnosisData,
                 onSave: (diagnoses) {
+                  // Store raw data
+                  widget.clinicalData.diagnosisData = diagnoses;
                   if (widget.onUpdate != null) {
                     // Format diagnoses as bullet list
                     String preview = diagnoses.map((d) {
@@ -203,7 +211,10 @@ class _ClinicalSectionsState extends State<ClinicalSections> {
                 end: Offset.zero,
               ).animate(animation),
               child: InvestigationDrawer(
+                initialData: widget.clinicalData.investigationData,
                 onSave: (investigations) {
+                  // Store raw data
+                  widget.clinicalData.investigationData = investigations;
                   if (widget.onUpdate != null) {
                     // Format investigations as bullet list
                     String preview = investigations.map((i) {
@@ -248,7 +259,10 @@ class _ClinicalSectionsState extends State<ClinicalSections> {
                 end: Offset.zero,
               ).animate(animation),
               child: HistoryDrawer(
+                initialData: widget.clinicalData.historyData,
                 onSave: (historyItems) {
+                  // Store raw data
+                  widget.clinicalData.historyData = historyItems;
                   if (widget.onUpdate != null) {
                     // Format history items as bullet list
                     String preview = historyItems.map((h) {

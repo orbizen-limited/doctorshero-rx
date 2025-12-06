@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class ChiefComplaintDrawer extends StatefulWidget {
   final Function(List<Map<String, String>>) onSave;
   final VoidCallback onClose;
+  final List<Map<String, String>>? initialData;
 
   const ChiefComplaintDrawer({
     Key? key,
     required this.onSave,
     required this.onClose,
+    this.initialData,
   }) : super(key: key);
 
   @override
@@ -19,6 +21,21 @@ class _ChiefComplaintDrawerState extends State<ChiefComplaintDrawer> {
   final TextEditingController _customController = TextEditingController();
   
   List<Map<String, String>> _selectedComplaints = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Load initial data if provided
+    if (widget.initialData != null) {
+      print('ChiefComplaintDrawer: Loading ${widget.initialData!.length} initial complaints');
+      _selectedComplaints = List<Map<String, String>>.from(
+        widget.initialData!.map((item) => Map<String, String>.from(item)),
+      );
+      print('ChiefComplaintDrawer: Loaded complaints: $_selectedComplaints');
+    } else {
+      print('ChiefComplaintDrawer: No initial data provided');
+    }
+  }
   
   final List<String> _allComplaints = [
     'Low Back Pain',

@@ -5,11 +5,13 @@ import 'dart:convert';
 class HistoryDrawer extends StatefulWidget {
   final Function(List<Map<String, dynamic>>) onSave;
   final VoidCallback onClose;
+  final List<Map<String, dynamic>>? initialData;
 
   const HistoryDrawer({
     Key? key,
     required this.onSave,
     required this.onClose,
+    this.initialData,
   }) : super(key: key);
 
   @override
@@ -368,6 +370,20 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
     _loadCustomOptions();
+    
+    // Load initial data if provided
+    if (widget.initialData != null) {
+      _selectedItems = widget.initialData!.map((item) {
+        return HistoryItem(
+          name: item['name']?.toString() ?? '',
+          value: item['value']?.toString() ?? '',
+          forField: item['forField']?.toString() ?? '',
+          duration: item['duration']?.toString() ?? '',
+          note: item['note']?.toString() ?? '',
+          symptomDetail: null, // TODO: Implement SymptomDetailData.fromJson if needed
+        );
+      }).toList();
+    }
   }
   
   // Load custom options from SharedPreferences
@@ -733,60 +749,71 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
                 ],
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'History',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      fontFamily: 'ProductSans',
+                  // Search Field - Expanded
+                  Expanded(
+                    child: Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search...',
+                          hintStyle: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF94A3B8),
+                            fontFamily: 'ProductSans',
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: Color(0xFF94A3B8),
+                            size: 20,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          border: InputBorder.none,
+                        ),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontFamily: 'ProductSans',
+                        ),
+                        onChanged: (value) => setState(() {}),
+                      ),
                     ),
                   ),
-                  Row(
-                    children: [
-                      // Search Field
-                      Container(
-                        width: 200,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: TextField(
-                          controller: _searchController,
-                          decoration: InputDecoration(
-                            hintText: 'Search...',
-                            prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            border: InputBorder.none,
-                            isDense: true,
-                          ),
-                          style: const TextStyle(fontSize: 14),
-                          onChanged: (value) => setState(() {}),
-                        ),
+                  const SizedBox(width: 12),
+                  // Add Button - Red with white text
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      _showAddCustomItemDialog();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFE3001),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const SizedBox(width: 12),
-                      // Add Button
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          _showAddCustomItemDialog();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFFFE3001),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        ),
-                        icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Add'),
+                      elevation: 0,
+                    ),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text(
+                      'Add',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'ProductSans',
                       ),
-                      const SizedBox(width: 12),
-                      IconButton(
-                        onPressed: widget.onClose,
-                        icon: const Icon(Icons.close, color: Colors.white),
-                      ),
-                    ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  IconButton(
+                    onPressed: widget.onClose,
+                    icon: const Icon(Icons.close, color: Colors.white, size: 24),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
                 ],
               ),
@@ -957,7 +984,7 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
                         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                         child: ExpansionTile(
                           key: ValueKey('left_${sectionKey}_${_searchController.text}'),
-                          initiallyExpanded: _searchController.text.isNotEmpty,
+                          initiallyExpanded: _searchController.text.isNotEmpty || !_getCurrentTabSections().contains('presentingComplaint'),
                           tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                           title: Text(
@@ -1050,7 +1077,7 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
                         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                         child: ExpansionTile(
                           key: ValueKey('right_${sectionKey}_${_searchController.text}'),
-                          initiallyExpanded: _searchController.text.isNotEmpty,
+                          initiallyExpanded: _searchController.text.isNotEmpty || !_getCurrentTabSections().contains('presentingComplaint'),
                           tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                           title: Text(
@@ -1947,7 +1974,7 @@ class _HistoryDrawerState extends State<HistoryDrawer> with SingleTickerProvider
               Expanded(
                 child: DropdownButtonFormField<String>(
                   key: ValueKey('duration_${index}_${item.duration}'),
-                  initialValue: item.duration,
+                  value: ['Day', 'Week', 'Month', 'Year'].contains(item.duration) ? item.duration : null,
                   decoration: const InputDecoration(
                     labelText: 'Duration',
                     border: OutlineInputBorder(),
