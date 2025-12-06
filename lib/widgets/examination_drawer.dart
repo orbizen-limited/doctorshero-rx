@@ -1601,8 +1601,6 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with TickerProvid
     return sections.join('\n\n');
   }
 
-  
-
   void _saveExaminationData() {
     widget.onSave({
       'examination': {

@@ -1,34 +1,58 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import 'api_service.dart';
 
 class PatientService {
   final ApiService _apiService = ApiService();
   static const String baseUrl = 'https://doctorshero.com';
+  
+  // Create HTTP client with SSL bypass (same as other services)
+  static http.Client _createHttpClient() {
+    final ioClient = HttpClient()
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+    return IOClient(ioClient);
+  }
+  
+  static final http.Client _client = _createHttpClient();
 
   /// Search patients by phone number
   /// Returns list of patients matching the phone (partial match)
   Future<List<Map<String, dynamic>>> searchByPhone(String phone) async {
     try {
       final token = await _apiService.getToken();
-      if (token == null) return [];
+      if (token == null) {
+        print('❌ No auth token available');
+        return [];
+      }
 
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/v1/patients?phone=$phone'),
+      final url = '$baseUrl/api/v1/patients?phone=$phone';
+      print('📡 GET $url');
+      
+      final response = await _client.get(
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
       );
 
+      print('📦 Response status: ${response.statusCode}');
+      print('📦 Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true && data['data'] != null) {
-          return List<Map<String, dynamic>>.from(data['data']);
+          final patients = List<Map<String, dynamic>>.from(data['data']);
+          print('✅ Found ${patients.length} patients');
+          return patients;
         }
       }
+      print('⚠️  No patients found or API error');
       return [];
     } catch (e) {
+      print('❌ Error in searchByPhone: $e');
       return [];
     }
   }
@@ -40,7 +64,7 @@ class PatientService {
       final token = await _apiService.getToken();
       if (token == null) return [];
 
-      final response = await http.get(
+      final response = await _client.get(
         Uri.parse('$baseUrl/api/v1/patients?name=$name'),
         headers: {
           'Authorization': 'Bearer $token',
@@ -71,7 +95,7 @@ class PatientService {
       final token = await _apiService.getToken();
       if (token == null) return [];
 
-      final response = await http.get(
+      final response = await _client.get(
         Uri.parse('$baseUrl/api/v1/patients?phone=$phone&name=$name'),
         headers: {
           'Authorization': 'Bearer $token',
@@ -97,7 +121,7 @@ class PatientService {
       final token = await _apiService.getToken();
       if (token == null) return null;
 
-      final response = await http.get(
+      final response = await _client.get(
         Uri.parse('$baseUrl/api/v1/patients?patient_id=$patientId'),
         headers: {
           'Authorization': 'Bearer $token',
@@ -124,7 +148,7 @@ class PatientService {
       final token = await _apiService.getToken();
       if (token == null) return [];
 
-      final response = await http.get(
+      final response = await _client.get(
         Uri.parse('$baseUrl/api/v1/patients?search=$query'),
         headers: {
           'Authorization': 'Bearer $token',
@@ -156,7 +180,10 @@ class PatientService {
   }) async {
     try {
       final token = await _apiService.getToken();
-      if (token == null) return null;
+      if (token == null) {
+        print('❌ No auth token available');
+        return null;
+      }
 
       final body = {
         'name': name,
@@ -166,7 +193,10 @@ class PatientService {
         'force_create': forceCreate,
       };
 
-      final response = await http.post(
+      print('📡 POST $baseUrl/api/v1/patients');
+      print('📦 Request body: ${jsonEncode(body)}');
+
+      final response = await _client.post(
         Uri.parse('$baseUrl/api/v1/patients'),
         headers: {
           'Authorization': 'Bearer $token',
@@ -176,13 +206,19 @@ class PatientService {
         body: jsonEncode(body),
       );
 
+      print('📦 Response status: ${response.statusCode}');
+      print('📦 Response body: ${response.body}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
+        print('✅ Patient creation response received');
         // Return full response (includes success, data, requires_confirmation, similar_patients)
         return data;
       }
+      print('❌ Failed with status: ${response.statusCode}');
       return null;
     } catch (e) {
+      print('❌ Error in createPatient: $e');
       return null;
     }
   }
@@ -211,7 +247,7 @@ class PatientService {
         queryParameters: params.isNotEmpty ? params : null,
       );
 
-      final response = await http.get(
+      final response = await _client.get(
         uri,
         headers: {
           'Authorization': 'Bearer $token',

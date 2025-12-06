@@ -103,15 +103,21 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
   }
 
   Future<void> _searchPatientsByPhone(String phone) async {
+    print('🔍 Searching patients by phone: $phone');
     setState(() => _isSearching = true);
     
     try {
       final matches = await _patientService.searchByPhone(phone);
+      print('✅ Found ${matches.length} patients');
+      if (matches.isNotEmpty) {
+        print('   Patients: ${matches.map((p) => p['name']).join(", ")}');
+      }
       setState(() {
         _matchedPatients = matches;
         _isSearching = false;
       });
     } catch (e) {
+      print('❌ Error searching patients: $e');
       setState(() => _isSearching = false);
     }
   }
@@ -225,8 +231,16 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
   }
 
   Future<void> _handleSave() async {
+    print('💾 Attempting to save patient...');
+    print('   Name: ${_nameController.text.trim()}');
+    print('   Phone: ${_phoneController.text.trim()}');
+    print('   Age: ${_ageController.text.trim()}');
+    print('   Gender: $_selectedGender');
+    print('   Patient ID: ${_patientIdController.text.trim()}');
+    
     // Validation: Only name is required
     if (_nameController.text.trim().isEmpty) {
+      print('❌ Validation failed: Name is required');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Patient name is required')),
       );
@@ -255,6 +269,7 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
       }
       
       // If phone provided, try to create patient in API
+      print('📡 Creating patient via API...');
       final response = await _patientService.createPatient(
         name: _nameController.text.trim(),
         phone: _phoneController.text.trim(),
@@ -262,7 +277,10 @@ class _UnifiedPatientDialogState extends State<UnifiedPatientDialog> {
         gender: _selectedGender,
       );
       
+      print('📦 API Response: $response');
+      
       if (response == null) {
+        print('❌ API returned null response');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to create patient. Please try again.')),
         );
