@@ -42,22 +42,45 @@ class PatientInfoCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 24),
-          // Patient Info
+          // Patient Info - Scrollable to prevent overflow
           Expanded(
-            child: Row(
-              children: [
-                _buildInfoField(context, 'Patient Name', patientInfo.name, 'name'),
-                const SizedBox(width: 32),
-                _buildInfoField(context, 'Age', patientInfo.age, 'age'),
-                const SizedBox(width: 32),
-                _buildGenderField(context),
-                const SizedBox(width: 32),
-                _buildDateField(context),
-                const SizedBox(width: 32),
-                _buildInfoField(context, 'Phone', patientInfo.phone ?? '', 'phone'),
-                const SizedBox(width: 32),
-                _buildInfoField(context, 'Patient ID', patientInfo.patientId, 'patientId'),
-              ],
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: IntrinsicHeight(
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 180,
+                      child: _buildInfoField(context, 'Patient Name', patientInfo.name, 'name'),
+                    ),
+                    const SizedBox(width: 24),
+                    SizedBox(
+                      width: 80,
+                      child: _buildInfoField(context, 'Age', patientInfo.age, 'age'),
+                    ),
+                    const SizedBox(width: 24),
+                    SizedBox(
+                      width: 100,
+                      child: _buildGenderField(context),
+                    ),
+                    const SizedBox(width: 24),
+                    SizedBox(
+                      width: 120,
+                      child: _buildDateField(context),
+                    ),
+                    const SizedBox(width: 24),
+                    SizedBox(
+                      width: 140,
+                      child: _buildInfoField(context, 'Phone', patientInfo.phone ?? '', 'phone'),
+                    ),
+                    const SizedBox(width: 24),
+                    SizedBox(
+                      width: 120,
+                      child: _buildInfoField(context, 'Patient ID', patientInfo.patientId, 'patientId'),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -66,8 +89,7 @@ class PatientInfoCard extends StatelessWidget {
   }
 
   Widget _buildInfoField(BuildContext context, String label, String value, String field) {
-    return Expanded(
-      child: isEditable && onUpdate != null
+    return isEditable && onUpdate != null
           ? InkWell(
               onTap: () => _showUnifiedPatientDialog(context),
               child: Column(
@@ -120,13 +142,11 @@ class PatientInfoCard extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-    );
+            );
   }
 
   Widget _buildGenderField(BuildContext context) {
-    return Expanded(
-      child: isEditable && onUpdate != null
+    return isEditable && onUpdate != null
           ? InkWell(
               onTap: () => _showUnifiedPatientDialog(context),
               child: Column(
@@ -179,13 +199,11 @@ class PatientInfoCard extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-    );
+            );
   }
 
   Widget _buildDateField(BuildContext context) {
-    return Expanded(
-      child: isEditable && onUpdate != null
+    return isEditable && onUpdate != null
           ? InkWell(
               onTap: () => _showUnifiedPatientDialog(context),
               child: Column(
@@ -238,8 +256,7 @@ class PatientInfoCard extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-    );
+            );
   }
 
   void _showUnifiedPatientDialog(BuildContext context) {
