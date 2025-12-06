@@ -1569,16 +1569,6 @@ class _ExaminationDrawerState extends State<ExaminationDrawer> with TickerProvid
     return sections.join('\n\n');
   }
 
-  bool _matchesEnglishKeyword(String query, String category) {
-    // Check if English keyword maps to this Bengali category
-    for (var entry in _englishToBengaliMap.entries) {
-      if (query.contains(entry.key) && entry.value == category) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   void _saveExaminationData() {
     widget.onSave({
       'examination': {
